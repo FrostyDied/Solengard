@@ -33,6 +33,15 @@ public class WaveManager : MonoBehaviour
     int enemiesAlive = 0;
     bool isSpawning = false;
 
+    // Posições fixas usadas como fallback quando spawnPoints não está configurado (modo de teste)
+    static readonly Vector2[] fallbackSpawnPositions =
+    {
+        new Vector2(-5f,  5f),
+        new Vector2( 5f,  5f),
+        new Vector2( 5f, -5f),
+        new Vector2(-5f, -5f),
+    };
+
     // ── Unity ───────────────────────────────────────────────────────────────────
 
     void Start()
@@ -81,19 +90,19 @@ public class WaveManager : MonoBehaviour
         isSpawning = false;
     }
 
-    // Instancia um inimigo aleatório em um ponto de spawn aleatório
+    // Instancia um inimigo aleatório em uma posição de spawn
     void SpawnEnemy()
     {
-        if (enemyPrefabs.Count == 0 || spawnPoints.Count == 0)
+        if (enemyPrefabs.Count == 0)
         {
-            Debug.LogWarning("[WaveManager] Prefabs ou pontos de spawn não configurados.");
+            Debug.LogError("[WaveManager] Nenhum prefab de inimigo configurado. Adicione prefabs à lista 'Enemy Prefabs' no Inspector.");
             return;
         }
 
         GameObject prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
-        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
+        Vector3 posicao    = ObterPosicaoDeSpawn();
 
-        GameObject enemy = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
+        GameObject enemy = Instantiate(prefab, posicao, Quaternion.identity);
 
         // Registra o callback de morte no inimigo recém-criado
         EnemyBase enemyBase = enemy.GetComponent<EnemyBase>();
@@ -101,6 +110,17 @@ public class WaveManager : MonoBehaviour
             enemyBase.OnDeathCallback = OnEnemyDied;
         else
             Debug.LogWarning($"[WaveManager] Prefab '{prefab.name}' não possui EnemyBase.");
+    }
+
+    // Retorna posição de um spawnPoint configurado ou, em fallback, um dos 4 cantos fixos da arena
+    Vector3 ObterPosicaoDeSpawn()
+    {
+        if (spawnPoints.Count > 0)
+            return spawnPoints[Random.Range(0, spawnPoints.Count)].position;
+
+        // Avisa uma única vez por spawn — sem spam, pois o log aparece a cada inimigo
+        Debug.LogWarning("[WaveManager] SpawnPoints não configurados — usando posições de fallback para testes.");
+        return fallbackSpawnPositions[Random.Range(0, fallbackSpawnPositions.Length)];
     }
 
     // Encerra a wave atual e decide o que vem a seguir

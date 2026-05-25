@@ -22,6 +22,7 @@ public class EnemyBase : MonoBehaviour
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        rb.freezeRotation = true;
         currentHealth = maxHealth;
 
         // Busca o player automaticamente caso não tenha sido atribuído no Inspector

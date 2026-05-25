@@ -12,8 +12,8 @@ public class EnemySlime : EnemyBase
     void Start()
     {
         // Valores padrão do Slime — sobrescrevem os campos públicos de EnemyBase
-        maxHealth  = 30f;
-        moveSpeed  = 2f;
+        maxHealth  = 50f;
+        moveSpeed  = 1.5f;
         damage     = 10f;
 
         // Ressincroniza a vida atual, pois Awake() (base) rodou antes deste Start()
