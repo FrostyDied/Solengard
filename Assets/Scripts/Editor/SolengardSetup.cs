@@ -153,13 +153,23 @@ public static class SolengardSetup
         var mainMenuScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
         EditorSceneManager.SetActiveScene(mainMenuScene);
 
-        // 3. Main Camera
-        var cameraGO = NewGO("Main Camera");
-        cameraGO.tag = "MainCamera";
-        var cam = cameraGO.AddComponent<Camera>();
-        cam.clearFlags       = CameraClearFlags.SolidColor;
-        cam.backgroundColor  = new Color(0.08f, 0.04f, 0.12f);
-        cameraGO.AddComponent<AudioListener>();
+        // 3. Main Camera — skip if one already exists in the scene
+        if (Object.FindFirstObjectByType<Camera>(FindObjectsInactive.Include) == null)
+        {
+            var cameraGO = NewGO("Main Camera");
+            cameraGO.tag = "MainCamera";
+            var cam = cameraGO.AddComponent<Camera>();
+            cam.clearFlags      = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.08f, 0.04f, 0.12f);
+            cameraGO.AddComponent<AudioListener>();
+        }
+        else
+        {
+            // Remove duplicate AudioListeners — Unity warns when more than one is active
+            var listeners = Object.FindObjectsByType<AudioListener>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 1; i < listeners.Length; i++)
+                Object.DestroyImmediate(listeners[i]);
+        }
 
         // 4. Singletons — root-level GOs; DontDestroyOnLoad requires scene root (no parent)
         NewSingleton(null, "[S] DiamondSystem",       typeof(DiamondSystem));
@@ -169,10 +179,13 @@ public static class SolengardSetup
         NewSingleton(null, "[S] AuthSystem",          typeof(AuthSystem));
         NewSingleton(null, "[S] LocalizationManager", typeof(LocalizationManager));
 
-        // 5. EventSystem
-        var eventSystemGO = NewGO("EventSystem");
-        eventSystemGO.AddComponent<EventSystem>();
-        eventSystemGO.AddComponent<StandaloneInputModule>();
+        // 5. EventSystem — skip if one already exists in the scene
+        if (Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include) == null)
+        {
+            var eventSystemGO = NewGO("EventSystem");
+            eventSystemGO.AddComponent<EventSystem>();
+            eventSystemGO.AddComponent<StandaloneInputModule>();
+        }
 
         // 6. Canvas — Screen Space Overlay, Scale With Screen Size, 1080×1920
         var canvasGO = NewGO("Canvas");
