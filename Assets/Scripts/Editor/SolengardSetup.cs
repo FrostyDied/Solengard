@@ -147,7 +147,32 @@ public static class SolengardSetup
 
     static void CreateMainMenuSceneImpl()
     {
-        // 1. Abort if scene file already exists — never overwrite
+        // 1. Handle unsaved changes in the active scene before touching scene management
+        var activeScene = EditorSceneManager.GetActiveScene();
+        if (activeScene.isDirty)
+        {
+            bool save = EditorUtility.DisplayDialog(
+                "Cenas não salvas",
+                $"A cena '{activeScene.name}' tem alterações não salvas.\n\nDeseja salvar antes de continuar?",
+                "Salvar", "Continuar sem salvar");
+
+            if (save)
+            {
+                // Untitled scenes have no path — ask the user to save manually
+                if (string.IsNullOrEmpty(activeScene.path))
+                {
+                    EditorUtility.DisplayDialog("Solengard",
+                        "A cena ativa não tem um caminho no disco (\"Untitled\").\n\n" +
+                        "Salve-a manualmente via File → Save Scene antes de continuar.",
+                        "OK");
+                    return;
+                }
+
+                EditorSceneManager.SaveOpenScenes();
+            }
+        }
+
+        // 2. Abort if scene file already exists — never overwrite
         string fullPath = System.IO.Path.GetFullPath(
             System.IO.Path.Combine(Application.dataPath, "..", MAIN_MENU_SCENE_PATH));
         if (System.IO.File.Exists(fullPath))
@@ -163,7 +188,7 @@ public static class SolengardSetup
         Undo.SetCurrentGroupName("Create MainMenu Scene");
         int undoGroup = Undo.GetCurrentGroup();
 
-        // 2. New scene additive — preserva a cena atual no editor
+        // 3. New scene additive — preserva a cena atual no editor
         var mainMenuScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
         EditorSceneManager.SetActiveScene(mainMenuScene);
 
