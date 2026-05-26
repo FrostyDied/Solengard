@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 661f27b58853c704b9689d9bdb6ee602, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  dificuldadeBase: 1
+  escalamentoPorWave: 0.15
+  multiplicadorDificMaximo: 5
+  diamantesPorKill: 0
+  diamantesPorWaveConcluida: 5
+  diamantesPorMissaoDiaria: 15
+  intervaloMinimoAds: 300
+  recompensaAdDiamantes: 10
+  duracaoTemporadaDias: 30
+  xpPorKill: 1
+  xpPorWaveConcluida: 25
+  xpPorMissaoDiaria: 50
+  totalWaves: 5
+  intervaloEntreWaves: 5
+  inimigosBaseWave1: 5
+  incrementoInimigosPorWave: 3
