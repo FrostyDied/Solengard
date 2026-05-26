@@ -321,6 +321,14 @@ public static class SolengardSetup
 
         // 15. Collapse undo, save scene, refresh database
         Undo.CollapseUndoOperations(undoGroup);
+
+        // Close any other loaded instance of the same path before saving — Unity forbids
+        // saving to a path that is already open in another scene slot.
+        var existingSlot = EditorSceneManager.GetSceneByPath(MAIN_MENU_SCENE_PATH);
+        if (existingSlot.isLoaded && existingSlot != mainMenuScene)
+            EditorSceneManager.CloseScene(existingSlot, true);
+
+        AssetDatabase.Refresh();
         EditorSceneManager.SaveScene(mainMenuScene, MAIN_MENU_SCENE_PATH);
         AssetDatabase.Refresh();
 
