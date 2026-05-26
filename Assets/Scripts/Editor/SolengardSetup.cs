@@ -161,14 +161,13 @@ public static class SolengardSetup
         cam.backgroundColor  = new Color(0.08f, 0.04f, 0.12f);
         cameraGO.AddComponent<AudioListener>();
 
-        // 4. [Singletons] — DontDestroyOnLoad systems that persist to GameScene
-        var singletonsGO = NewGO("[Singletons]");
-        NewSingleton(singletonsGO.transform, "DiamondSystem",       typeof(DiamondSystem));
-        NewSingleton(singletonsGO.transform, "SeasonPassSystem",    typeof(SeasonPassSystem));
-        NewSingleton(singletonsGO.transform, "DailyRewardSystem",   typeof(DailyRewardSystem));
-        NewSingleton(singletonsGO.transform, "IAPSystem",           typeof(IAPSystem));
-        NewSingleton(singletonsGO.transform, "AuthSystem",          typeof(AuthSystem));
-        NewSingleton(singletonsGO.transform, "LocalizationManager", typeof(LocalizationManager));
+        // 4. Singletons — root-level GOs; DontDestroyOnLoad requires scene root (no parent)
+        NewSingleton(null, "[S] DiamondSystem",       typeof(DiamondSystem));
+        NewSingleton(null, "[S] SeasonPassSystem",    typeof(SeasonPassSystem));
+        NewSingleton(null, "[S] DailyRewardSystem",   typeof(DailyRewardSystem));
+        NewSingleton(null, "[S] IAPSystem",           typeof(IAPSystem));
+        NewSingleton(null, "[S] AuthSystem",          typeof(AuthSystem));
+        NewSingleton(null, "[S] LocalizationManager", typeof(LocalizationManager));
 
         // 5. EventSystem
         var eventSystemGO = NewGO("EventSystem");
@@ -702,12 +701,12 @@ public static class SolengardSetup
         return go;
     }
 
-    // Singleton GO parented under [Singletons]; warns but continues if AddComponent fails
+    // Singleton root GO; parent must be null — DontDestroyOnLoad requires scene root
     static void NewSingleton(Transform parent, string name, System.Type type)
     {
         var go = new GameObject(name);
         Undo.RegisterCreatedObjectUndo(go, "Create MainMenu Scene");
-        go.transform.SetParent(parent, false);
+        if (parent != null) go.transform.SetParent(parent, false);
         try { go.AddComponent(type); }
         catch (System.Exception e)
         {
