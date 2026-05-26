@@ -13,6 +13,7 @@ public class DiamondSystem : MonoBehaviour
     const string PREF_KEY = "sol_dia";
 
     int saldoAtual;
+    [SerializeField] PlayerData playerData;
 
     void Awake()
     {
@@ -29,6 +30,7 @@ public class DiamondSystem : MonoBehaviour
         if (quantidade <= 0) return;
         saldoAtual += quantidade;
         SalvarSaldo();
+        if (playerData != null) { playerData.totalDiamonds = saldoAtual; playerData.Save(); }
         OnDiamondsChanged?.Invoke(saldoAtual);
         Debug.Log($"[DiamondSystem] +{quantidade} diamantes. Saldo: {saldoAtual}");
 
@@ -42,6 +44,7 @@ public class DiamondSystem : MonoBehaviour
 
         saldoAtual -= quantidade;
         SalvarSaldo();
+        if (playerData != null) { playerData.totalDiamonds = saldoAtual; playerData.Save(); }
         OnDiamondsChanged?.Invoke(saldoAtual);
         Debug.Log($"[DiamondSystem] -{quantidade} diamantes. Saldo: {saldoAtual}");
 

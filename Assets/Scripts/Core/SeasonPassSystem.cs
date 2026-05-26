@@ -30,6 +30,7 @@ public class SeasonPassSystem : MonoBehaviour
 
     [Header("Recompensas por nível")]
     public List<SeasonReward> recompensas = new();
+    [SerializeField] PlayerData playerData;
 
     int nivelAtual;
     int xpAtual;
@@ -79,6 +80,12 @@ public class SeasonPassSystem : MonoBehaviour
         }
 
         Salvar();
+        if (playerData != null)
+        {
+            playerData.currentSeasonLevel = nivelAtual;
+            playerData.seasonXP           = xpAtual;
+            playerData.Save();
+        }
     }
 
     // Reivindica recompensa de um nível específico; isPremiumTier exige passe premium

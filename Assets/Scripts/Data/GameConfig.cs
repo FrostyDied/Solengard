@@ -34,6 +34,7 @@ public class GameConfig : ScriptableObject
     public int   xpPorMissaoDiaria        = 50;
 
     [Header("Wave System")]
+    public int   totalWaves               = 5;
     public float intervaloEntreWaves      = 5f;
     public int   inimigosBaseWave1        = 5;
     public int   incrementoInimigosPorWave = 3;

@@ -4,6 +4,8 @@ using UnityEngine;
 // A sequência reseta se o jogador faltar um dia.
 public class DailyRewardSystem : MonoBehaviour
 {
+    public static DailyRewardSystem Instance { get; private set; }
+
     // Passa: dia atual da sequência (1-7), quantidade de diamantes
     public static event System.Action<int, int> OnDailyRewardAvailable;
 
@@ -12,6 +14,13 @@ public class DailyRewardSystem : MonoBehaviour
 
     // Recompensas indexadas por dia (índice 0 = dia 1)
     static readonly int[] recompensasDiamantes = { 10, 15, 20, 25, 30, 50, 100 };
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
 
     // Chamado pelo GameManager no Start após inicialização
     public void CheckDailyReward()

@@ -17,6 +17,7 @@ public class EnemyBase : MonoBehaviour
     public System.Action OnDeathCallback;
 
     public static event System.Action OnEnemyDied;
+    [HideInInspector] public string poolTag;
 
     protected float currentHealth;
     protected Rigidbody2D rb;
@@ -34,6 +35,11 @@ public class EnemyBase : MonoBehaviour
             if (player != null)
                 playerTransform = player.transform;
         }
+    }
+
+    protected virtual void OnEnable()
+    {
+        currentHealth = maxHealth;
     }
 
     protected virtual void FixedUpdate()
@@ -64,7 +70,11 @@ public class EnemyBase : MonoBehaviour
         OnDie();
         OnDeathCallback?.Invoke();
         OnEnemyDied?.Invoke();
-        Destroy(gameObject);
+
+        if (ObjectPoolManager.Instance != null && !string.IsNullOrEmpty(poolTag))
+            ObjectPoolManager.Instance.ReturnToPool(poolTag, gameObject);
+        else
+            Destroy(gameObject);
     }
 
     // Sobrescreva em subclasses para efeitos de morte específicos (drops, animações, etc.)

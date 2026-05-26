@@ -17,6 +17,7 @@ public class ScoreSystem : MonoBehaviour
     public int   bonusDificuldade;
 
     int scoreAtual;
+    [SerializeField] PlayerData playerData;
     public int ScoreAtual => scoreAtual;
 
     // ── Contadores em tempo real ─────────────────────────────────────────────────
@@ -68,6 +69,7 @@ public class ScoreSystem : MonoBehaviour
         {
             Debug.Log($"[ScoreSystem] Novo recorde: {scoreAtual}!");
             OnNewHighScore?.Invoke(scoreAtual);
+            if (playerData != null) { playerData.bestScore = scoreAtual; playerData.Save(); }
             // TODO: sincronizar melhor score com Supabase leaderboard
         }
 

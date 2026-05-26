@@ -13,9 +13,9 @@ public class WaveManager : MonoBehaviour
     public static event System.Action OnAllWavesCompleted;
 
     [Header("Configuração de Waves")]
-    public int totalWaves = 5;
+    public int totalWaves = 5;  // fallback quando GameConfig não está atribuído
 
-    [Header("GameConfig (opcional — sobrescreve os valores abaixo se atribuído)")]
+    [Header("GameConfig (opcional — sobrescreve os valores acima se atribuído)")]
     [SerializeField] GameConfig gameConfig;
 
     [Header("Inimigos")]
@@ -28,6 +28,7 @@ public class WaveManager : MonoBehaviour
 
     // ── Valores lidos do GameConfig (com fallback nos padrões) ──────────────────
 
+    int   TotalWavesConfig    => gameConfig != null ? gameConfig.totalWaves               : totalWaves;
     float TimeBetweenWaves    => gameConfig != null ? gameConfig.intervaloEntreWaves       : 5f;
     int   BaseEnemyCount      => gameConfig != null ? gameConfig.inimigosBaseWave1         : 5;
     int   EnemyCountIncrement => gameConfig != null ? gameConfig.incrementoInimigosPorWave : 3;
@@ -62,7 +63,7 @@ public class WaveManager : MonoBehaviour
         int count = EnemyCountForWave(currentWave);
         enemiesAlive = count;
 
-        Debug.Log($"[WaveManager] Wave {currentWave}/{totalWaves} iniciada — {count} inimigos");
+        Debug.Log($"[WaveManager] Wave {currentWave}/{TotalWavesConfig} iniciada — {count} inimigos");
 
         StartCoroutine(SpawnWave(count));
     }
@@ -102,11 +103,19 @@ public class WaveManager : MonoBehaviour
         GameObject prefab  = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
         Vector3    posicao = ObterPosicaoDeSpawn();
 
-        GameObject enemy = Instantiate(prefab, posicao, Quaternion.identity);
+        // Tenta reutilizar da pool; instancia normalmente se a pool não estiver configurada
+        GameObject enemy = ObjectPoolManager.Instance?.GetFromPool(prefab.name);
+        if (enemy != null)
+            enemy.transform.position = posicao;
+        else
+            enemy = Instantiate(prefab, posicao, Quaternion.identity);
 
         EnemyBase enemyBase = enemy.GetComponent<EnemyBase>();
         if (enemyBase != null)
+        {
             enemyBase.OnDeathCallback = OnEnemyDied;
+            enemyBase.poolTag         = prefab.name;
+        }
         else
             Debug.LogWarning($"[WaveManager] Prefab '{prefab.name}' não possui EnemyBase.");
     }
@@ -125,7 +134,7 @@ public class WaveManager : MonoBehaviour
         Debug.Log($"[WaveManager] Wave {currentWave} concluída.");
         OnWaveCompleted?.Invoke(currentWave);
 
-        if (currentWave >= totalWaves)
+        if (currentWave >= TotalWavesConfig)
         {
             Debug.Log("[WaveManager] Todas as waves concluídas!");
             OnAllWavesCompleted?.Invoke();
@@ -150,6 +159,6 @@ public class WaveManager : MonoBehaviour
     // ── Propriedades de leitura (úteis para a UI) ───────────────────────────────
 
     public int CurrentWave  => currentWave;
-    public int TotalWaves   => totalWaves;
+    public int TotalWaves   => TotalWavesConfig;
     public int EnemiesAlive => enemiesAlive;
 }
