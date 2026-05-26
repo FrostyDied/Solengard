@@ -203,7 +203,7 @@ public static class SolengardSetup
         pirt.sizeDelta       = new Vector2(0f, 180f);
         pirt.anchoredPosition = Vector2.zero;
 
-        var textoDiamantes  = NewTMP(playerInfoGO.transform, "TextoDiamantes",  "0 \u{1F48E}",  26);
+        var textoDiamantes  = NewTMP(playerInfoGO.transform, "TextoDiamantes",  "0 \U0001F48E",  26);
         var textoNivelPasse  = NewTMP(playerInfoGO.transform, "TextoNivelPasse", "Nível 1",      22);
         var textoStreakLogin = NewTMP(playerInfoGO.transform, "TextoStreakLogin", "Dia 1",        20);
 
