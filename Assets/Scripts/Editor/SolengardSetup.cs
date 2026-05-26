@@ -1,18 +1,24 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using System.Text;
+using TMPro;
 
 // Menu: Solengard ▸ Setup Scene / Setup Systems / Setup Pools and Upgrades / Setup All
+//                 ▸ Create MainMenu Scene
 // Atribui automaticamente referências e dados de gameplay a componentes da cena.
-// Nunca sobrescreve valores existentes; exige GameScene aberta.
+// "Create MainMenu Scene" gera Assets/Scenes/MainMenu.unity com hierarquia UI completa.
 public static class SolengardSetup
 {
-    const string GAME_CONFIG_PATH  = "Assets/Data/GameConfig.asset";
-    const string PLAYER_DATA_PATH  = "Assets/Data/PlayerData.asset";
-    const string SLIME_PREFAB_PATH = "Assets/Prefabs/Enemies/Slime.prefab";
-    const string EXPECTED_SCENE    = "GameScene";
+    const string GAME_CONFIG_PATH     = "Assets/Data/GameConfig.asset";
+    const string PLAYER_DATA_PATH     = "Assets/Data/PlayerData.asset";
+    const string SLIME_PREFAB_PATH    = "Assets/Prefabs/Enemies/Slime.prefab";
+    const string EXPECTED_SCENE       = "GameScene";
+    const string MAIN_MENU_SCENE_PATH = "Assets/Scenes/MainMenu.unity";
+    const string GAME_SCENE_PATH      = "Assets/Scenes/GameScene.unity";
 
     // ── Setup Scene ──────────────────────────────────────────────────────────────
 
@@ -122,14 +128,167 @@ public static class SolengardSetup
     static bool ValidateSetupAll() =>
         !string.IsNullOrEmpty(EditorSceneManager.GetActiveScene().name);
 
+    // ── Create MainMenu Scene ────────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Create MainMenu Scene")]
+    static void CreateMainMenuScene()
+    {
+        // 1. Abort if scene file already exists — never overwrite
+        string fullPath = System.IO.Path.GetFullPath(
+            System.IO.Path.Combine(Application.dataPath, "..", MAIN_MENU_SCENE_PATH));
+        if (System.IO.File.Exists(fullPath))
+        {
+            EditorUtility.DisplayDialog("Solengard",
+                $"Cena já existe:\n{MAIN_MENU_SCENE_PATH}\n\n" +
+                "Exclua o arquivo para criar novamente.",
+                "OK");
+            return;
+        }
+
+        // Group everything into one Ctrl+Z step
+        Undo.SetCurrentGroupName("Create MainMenu Scene");
+        int undoGroup = Undo.GetCurrentGroup();
+
+        // 2. New scene additive — preserva a cena atual no editor
+        var mainMenuScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+        EditorSceneManager.SetActiveScene(mainMenuScene);
+
+        // 3. Main Camera
+        var cameraGO = NewGO("Main Camera");
+        cameraGO.tag = "MainCamera";
+        var cam = cameraGO.AddComponent<Camera>();
+        cam.clearFlags       = CameraClearFlags.SolidColor;
+        cam.backgroundColor  = new Color(0.08f, 0.04f, 0.12f);
+        cameraGO.AddComponent<AudioListener>();
+
+        // 4. [Singletons] — DontDestroyOnLoad systems that persist to GameScene
+        var singletonsGO = NewGO("[Singletons]");
+        NewSingleton(singletonsGO.transform, "DiamondSystem",       typeof(DiamondSystem));
+        NewSingleton(singletonsGO.transform, "SeasonPassSystem",    typeof(SeasonPassSystem));
+        NewSingleton(singletonsGO.transform, "DailyRewardSystem",   typeof(DailyRewardSystem));
+        NewSingleton(singletonsGO.transform, "IAPSystem",           typeof(IAPSystem));
+        NewSingleton(singletonsGO.transform, "AuthSystem",          typeof(AuthSystem));
+        NewSingleton(singletonsGO.transform, "LocalizationManager", typeof(LocalizationManager));
+
+        // 5. EventSystem
+        var eventSystemGO = NewGO("EventSystem");
+        eventSystemGO.AddComponent<EventSystem>();
+        eventSystemGO.AddComponent<StandaloneInputModule>();
+
+        // 6. Canvas — Screen Space Overlay, Scale With Screen Size, 1080×1920
+        var canvasGO = NewGO("Canvas");
+        var canvas   = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        var scaler = canvasGO.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode          = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution  = new Vector2(1080f, 1920f);
+        scaler.screenMatchMode      = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight   = 0.5f;
+        canvasGO.AddComponent<GraphicRaycaster>();
+
+        // 7. MainMenuManager lives on the Canvas root
+        var mmm = canvasGO.AddComponent<MainMenuManager>();
+
+        // 8. BG — full-screen colour placeholder
+        var bgGO = NewUIChild(canvasGO.transform, "BG");
+        bgGO.AddComponent<Image>().color = new Color(0.08f, 0.04f, 0.12f);
+        StretchFull(RT(bgGO));
+
+        // 9. PlayerInfoPanel — top bar with player stats
+        var playerInfoGO = NewUIChild(canvasGO.transform, "PlayerInfoPanel");
+        var pirt = RT(playerInfoGO);
+        pirt.anchorMin       = new Vector2(0f, 1f);
+        pirt.anchorMax       = new Vector2(1f, 1f);
+        pirt.pivot           = new Vector2(0.5f, 1f);
+        pirt.sizeDelta       = new Vector2(0f, 180f);
+        pirt.anchoredPosition = Vector2.zero;
+
+        var textoDiamantes  = NewTMP(playerInfoGO.transform, "TextoDiamantes",  "0 \u{1F48E}",  26);
+        var textoNivelPasse  = NewTMP(playerInfoGO.transform, "TextoNivelPasse", "Nível 1",      22);
+        var textoStreakLogin = NewTMP(playerInfoGO.transform, "TextoStreakLogin", "Dia 1",        20);
+
+        // 10. MainButtons — 6 navigation buttons (designer positions/sizes them)
+        var mainButtonsGO = NewUIChild(canvasGO.transform, "MainButtons");
+        var mbrt = RT(mainButtonsGO);
+        mbrt.anchorMin = new Vector2(0.1f, 0.20f);
+        mbrt.anchorMax = new Vector2(0.9f, 0.85f);
+        mbrt.offsetMin = Vector2.zero;
+        mbrt.offsetMax = Vector2.zero;
+
+        var (_, botaoJogar)         = NewButton(mainButtonsGO.transform, "BotaoJogar",         "JOGAR");
+        var (_, botaoLoja)          = NewButton(mainButtonsGO.transform, "BotaoLoja",          "LOJA");
+        var (_, botaoPasse)         = NewButton(mainButtonsGO.transform, "BotaoPasse",         "PASSE");
+        var (_, botaoMissoes)       = NewButton(mainButtonsGO.transform, "BotaoMissoes",       "MISSÕES");
+        var (_, botaoRanking)       = NewButton(mainButtonsGO.transform, "BotaoRanking",       "RANKING");
+        var (_, botaoConfiguracoes) = NewButton(mainButtonsGO.transform, "BotaoConfiguracoes", "CONFIGURAÇÕES");
+
+        // 11. Panels — full-screen, inactive by default
+        var painelLoja          = NewPanel(canvasGO.transform, "PainelLoja");
+        var painelPasse         = NewPanel(canvasGO.transform, "PainelPasse");
+        var painelMissoes       = NewPanel(canvasGO.transform, "PainelMissoes");
+        var painelRanking       = NewPanel(canvasGO.transform, "PainelRanking");
+        var painelConfiguracoes = NewPanel(canvasGO.transform, "PainelConfiguracoes");
+
+        // 12. PopupRecompensa — centred popup, inactive
+        var popupGO = NewUIChild(canvasGO.transform, "PopupRecompensa");
+        var popupRT = RT(popupGO);
+        popupRT.anchorMin        = new Vector2(0.1f, 0.32f);
+        popupRT.anchorMax        = new Vector2(0.9f, 0.68f);
+        popupRT.offsetMin        = Vector2.zero;
+        popupRT.offsetMax        = Vector2.zero;
+        popupGO.AddComponent<Image>().color = new Color(0.10f, 0.05f, 0.18f, 0.97f);
+
+        var textoRecompensaDia       = NewTMP(popupGO.transform, "TextoRecompensaDia",       "Dia 1 de 7",    22);
+        var textoRecompensaDiamantes = NewTMP(popupGO.transform, "TextoRecompensaDiamantes", "+10 diamantes", 20);
+        var (_, botaoColetarRecompensa) = NewButton(popupGO.transform, "BotaoColetarRecompensa", "COLETAR");
+        popupGO.SetActive(false);
+
+        // 13. Wire all 19 MainMenuManager references via SerializedObject
+        var so = new SerializedObject(mmm);
+        WireRef(so, "botaoJogar",               botaoJogar);
+        WireRef(so, "botaoLoja",                botaoLoja);
+        WireRef(so, "botaoPasse",               botaoPasse);
+        WireRef(so, "botaoMissoes",             botaoMissoes);
+        WireRef(so, "botaoRanking",             botaoRanking);
+        WireRef(so, "botaoConfiguracoes",       botaoConfiguracoes);
+        WireRef(so, "textoDiamantes",           textoDiamantes);
+        WireRef(so, "textoNivelPasse",          textoNivelPasse);
+        WireRef(so, "textoStreakLogin",         textoStreakLogin);
+        WireRef(so, "popupRecompensa",          popupGO);
+        WireRef(so, "textoRecompensaDia",       textoRecompensaDia);
+        WireRef(so, "textoRecompensaDiamantes", textoRecompensaDiamantes);
+        WireRef(so, "botaoColetarRecompensa",   botaoColetarRecompensa);
+        WireRef(so, "painelLoja",               painelLoja);
+        WireRef(so, "painelPasse",              painelPasse);
+        WireRef(so, "painelMissoes",            painelMissoes);
+        WireRef(so, "painelRanking",            painelRanking);
+        WireRef(so, "painelConfiguracoes",      painelConfiguracoes);
+        so.ApplyModifiedProperties();
+
+        // 14. Build Settings: MainMenu[0], GameScene[1]
+        UpdateBuildSettings();
+
+        // 15. Collapse undo, save scene, refresh database
+        Undo.CollapseUndoOperations(undoGroup);
+        EditorSceneManager.SaveScene(mainMenuScene, MAIN_MENU_SCENE_PATH);
+        AssetDatabase.Refresh();
+
+        EditorUtility.DisplayDialog(
+            "Solengard — MainMenu Criada",
+            "✓ Cena criada com sucesso!\n\n" +
+            "Abra Assets/Scenes/MainMenu.unity para posicionamento visual e arte.\n\n" +
+            "Build Settings atualizado:\n  [0] MainMenu\n  [1] GameScene",
+            "OK");
+    }
+
     // ── Core logic ───────────────────────────────────────────────────────────────
 
     static int RunSetupScene(GameConfig gameConfig, PlayerData playerData, StringBuilder log)
     {
         int total = 0;
-        total += TryAssign<WaveManager>("gameConfig",   gameConfig,  log);
-        total += TryAssign<DiamondSystem>("playerData",  playerData,  log);
-        total += TryAssign<ScoreSystem>("playerData",    playerData,  log);
+        total += TryAssign<WaveManager>("gameConfig",     gameConfig,  log);
+        total += TryAssign<DiamondSystem>("playerData",   playerData,  log);
+        total += TryAssign<ScoreSystem>("playerData",     playerData,  log);
         total += TryAssign<SeasonPassSystem>("playerData", playerData, log);
         return total;
     }
@@ -344,7 +503,7 @@ public static class SolengardSetup
         return 1;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────────
+    // ── Helpers — Setup menus ─────────────────────────────────────────────────────
 
     static bool ValidateScene(out Scene scene)
     {
@@ -521,5 +680,126 @@ public static class SolengardSetup
         sb.AppendLine();
         sb.AppendLine("• HUDComplete, UpgradeUIManager, MainMenuManager, MobileJoystick");
         sb.AppendLine("  (todas as referências de UI — configurar após montar as cenas)");
+    }
+
+    // ── Helpers — Create MainMenu Scene ──────────────────────────────────────────
+
+    // Root-level GameObject (no UI, no parent)
+    static GameObject NewGO(string name)
+    {
+        var go = new GameObject(name);
+        Undo.RegisterCreatedObjectUndo(go, "Create MainMenu Scene");
+        return go;
+    }
+
+    // UI child with RectTransform; mirrors DefaultControls.CreateUIObject pattern
+    static GameObject NewUIChild(Transform parent, string name)
+    {
+        var go = new GameObject(name);
+        Undo.RegisterCreatedObjectUndo(go, "Create MainMenu Scene");
+        go.AddComponent<RectTransform>(); // replaces Transform with RectTransform
+        go.transform.SetParent(parent, false);
+        return go;
+    }
+
+    // Singleton GO parented under [Singletons]; warns but continues if AddComponent fails
+    static void NewSingleton(Transform parent, string name, System.Type type)
+    {
+        var go = new GameObject(name);
+        Undo.RegisterCreatedObjectUndo(go, "Create MainMenu Scene");
+        go.transform.SetParent(parent, false);
+        try { go.AddComponent(type); }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[SolengardSetup] Não foi possível adicionar {type.Name}: {e.Message}");
+        }
+    }
+
+    // Button: RectTransform + Image + Button + child TMP label
+    static (GameObject go, Button btn) NewButton(Transform parent, string name, string label)
+    {
+        var go = new GameObject(name);
+        Undo.RegisterCreatedObjectUndo(go, "Create MainMenu Scene");
+        go.AddComponent<RectTransform>();
+        go.transform.SetParent(parent, false);
+        var img = go.AddComponent<Image>();
+        img.color = new Color(0.28f, 0.10f, 0.38f);
+        var btn = go.AddComponent<Button>();
+        btn.targetGraphic = img;
+
+        var labelGO = new GameObject("Label");
+        Undo.RegisterCreatedObjectUndo(labelGO, "Create MainMenu Scene");
+        labelGO.AddComponent<RectTransform>();
+        labelGO.transform.SetParent(go.transform, false);
+        StretchFull(RT(labelGO));
+        var tmp = labelGO.AddComponent<TextMeshProUGUI>();
+        tmp.text      = label;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.fontSize  = 28f;
+        tmp.fontStyle = FontStyles.Bold;
+
+        return (go, btn);
+    }
+
+    // TextMeshProUGUI element with placeholder text
+    static TextMeshProUGUI NewTMP(Transform parent, string name, string placeholder, float fontSize = 24f)
+    {
+        var go = new GameObject(name);
+        Undo.RegisterCreatedObjectUndo(go, "Create MainMenu Scene");
+        go.AddComponent<RectTransform>();
+        go.transform.SetParent(parent, false);
+        var tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.text      = placeholder;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.fontSize  = fontSize;
+        return tmp;
+    }
+
+    // Full-screen panel with semi-transparent background; inactive by default
+    static GameObject NewPanel(Transform parent, string name)
+    {
+        var go = new GameObject(name);
+        Undo.RegisterCreatedObjectUndo(go, "Create MainMenu Scene");
+        go.AddComponent<RectTransform>();
+        go.transform.SetParent(parent, false);
+        go.AddComponent<Image>().color = new Color(0.05f, 0.02f, 0.08f, 0.97f);
+        StretchFull(RT(go));
+        go.SetActive(false);
+        return go;
+    }
+
+    // Stretch RectTransform to fill its parent completely
+    static void StretchFull(RectTransform rt)
+    {
+        rt.anchorMin  = Vector2.zero;
+        rt.anchorMax  = Vector2.one;
+        rt.offsetMin  = Vector2.zero;
+        rt.offsetMax  = Vector2.zero;
+    }
+
+    // Shorthand to get RectTransform (valid after any UI component has been added)
+    static RectTransform RT(GameObject go) => go.GetComponent<RectTransform>();
+
+    // Set a SerializedObject reference field by name; logs warning if property not found
+    static void WireRef(SerializedObject so, string propName, Object value)
+    {
+        var prop = so.FindProperty(propName);
+        if (prop == null)
+        {
+            Debug.LogWarning($"[SolengardSetup] Propriedade '{propName}' não encontrada em MainMenuManager.");
+            return;
+        }
+        prop.objectReferenceValue = value;
+    }
+
+    // Overwrites Build Settings with MainMenu[0] + GameScene[1], no duplicates
+    static void UpdateBuildSettings()
+    {
+        EditorBuildSettings.scenes = new[]
+        {
+            new EditorBuildSettingsScene(MAIN_MENU_SCENE_PATH, true),
+            new EditorBuildSettingsScene(GAME_SCENE_PATH,      true),
+        };
+        Debug.Log("[SolengardSetup] Build Settings → MainMenu[0], GameScene[1]");
     }
 }
