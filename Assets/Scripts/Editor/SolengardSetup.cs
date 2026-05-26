@@ -133,6 +133,20 @@ public static class SolengardSetup
     [MenuItem("Solengard/Create MainMenu Scene")]
     static void CreateMainMenuScene()
     {
+        Debug.Log("[SolengardSetup] CreateMainMenuScene iniciado");
+        try
+        {
+            CreateMainMenuSceneImpl();
+        }
+        catch (System.Exception ex)
+        {
+            EditorUtility.DisplayDialog("Erro", ex.Message + "\n\n" + ex.StackTrace, "OK");
+            Debug.LogException(ex);
+        }
+    }
+
+    static void CreateMainMenuSceneImpl()
+    {
         // 1. Abort if scene file already exists — never overwrite
         string fullPath = System.IO.Path.GetFullPath(
             System.IO.Path.Combine(Application.dataPath, "..", MAIN_MENU_SCENE_PATH));
