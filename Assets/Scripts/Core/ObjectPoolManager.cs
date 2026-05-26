@@ -1,0 +1,82 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+// Gerencia pools de objetos reutilizáveis para performance em mobile.
+// Configure as pools no Inspector e chame GetFromPool / ReturnToPool nos sistemas de spawn.
+public class ObjectPoolManager : MonoBehaviour
+{
+    public static ObjectPoolManager Instance { get; private set; }
+
+    [System.Serializable]
+    public class Pool
+    {
+        public string tag;
+        public GameObject prefab;
+        [Min(1)] public int tamanhoInicial = 10;
+    }
+
+    [Header("Pools (inimigos, projéteis, efeitos)")]
+    public List<Pool> pools = new();
+
+    Dictionary<string, Queue<GameObject>> poolDic = new();
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+        InicializarPools();
+    }
+
+    void InicializarPools()
+    {
+        foreach (Pool pool in pools)
+        {
+            Queue<GameObject> fila = new();
+            for (int i = 0; i < pool.tamanhoInicial; i++)
+            {
+                GameObject obj = Instantiate(pool.prefab);
+                obj.SetActive(false);
+                fila.Enqueue(obj);
+            }
+            poolDic[pool.tag] = fila;
+            Debug.Log($"[ObjectPoolManager] Pool '{pool.tag}' criada com {pool.tamanhoInicial} objetos.");
+        }
+    }
+
+    // Retira um objeto da pool; expande automaticamente se estiver vazia
+    public GameObject GetFromPool(string tag)
+    {
+        if (!poolDic.TryGetValue(tag, out Queue<GameObject> fila))
+        {
+            Debug.LogWarning($"[ObjectPoolManager] Pool '{tag}' não encontrada.");
+            return null;
+        }
+
+        if (fila.Count == 0)
+        {
+            Pool pool = pools.Find(p => p.tag == tag);
+            if (pool == null) return null;
+            GameObject extra = Instantiate(pool.prefab);
+            extra.SetActive(false);
+            fila.Enqueue(extra);
+        }
+
+        GameObject obj = fila.Dequeue();
+        obj.SetActive(true);
+        return obj;
+    }
+
+    // Desativa o objeto e o devolve à pool correspondente
+    public void ReturnToPool(string tag, GameObject obj)
+    {
+        if (!poolDic.ContainsKey(tag))
+        {
+            Debug.LogWarning($"[ObjectPoolManager] Pool '{tag}' não existe. Objeto destruído.");
+            Destroy(obj);
+            return;
+        }
+        obj.SetActive(false);
+        poolDic[tag].Enqueue(obj);
+    }
+}

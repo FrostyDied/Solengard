@@ -16,10 +16,17 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // Lê input do teclado (WASD / setas) — para teste no editor
+#if UNITY_ANDROID || UNITY_IOS
+        // Em mobile usa o joystick virtual; fallback para Input caso o componente não exista
+        moveInput = MobileJoystick.Instance != null
+            ? MobileJoystick.Instance.Direction
+            : Vector2.zero;
+#else
+        // Lê input do teclado (WASD / setas) no editor e builds desktop
         moveInput.x = Input.GetAxisRaw("Horizontal");
         moveInput.y = Input.GetAxisRaw("Vertical");
         moveInput.Normalize();
+#endif
     }
 
     void FixedUpdate()
