@@ -34,10 +34,10 @@ public class UpgradeSystem : MonoBehaviour
     [Header("Pool de Upgrades disponíveis")]
     public List<UpgradeOption> poolDeUpgrades = new();
 
-    void OnEnable()  => WaveManager.OnAllWavesCompleted += AoFimDeWave;
-    void OnDisable() => WaveManager.OnAllWavesCompleted -= AoFimDeWave;
+    void OnEnable()  => WaveManager.OnWaveCompleted += AoFimDeWave;
+    void OnDisable() => WaveManager.OnWaveCompleted -= AoFimDeWave;
 
-    void AoFimDeWave() => GerarENotificar();
+    void AoFimDeWave(int waveNumber) => GerarENotificar();
 
     // Sorteia 3 upgrades distintos da pool configurada
     public List<UpgradeOption> GenerateUpgradeOptions()

@@ -16,6 +16,8 @@ public class EnemyBase : MonoBehaviour
     // Atribuído pelo WaveManager para ser notificado quando este inimigo morrer
     public System.Action OnDeathCallback;
 
+    public static event System.Action OnEnemyDied;
+
     protected float currentHealth;
     protected Rigidbody2D rb;
 
@@ -61,6 +63,7 @@ public class EnemyBase : MonoBehaviour
     {
         OnDie();
         OnDeathCallback?.Invoke();
+        OnEnemyDied?.Invoke();
         Destroy(gameObject);
     }
 

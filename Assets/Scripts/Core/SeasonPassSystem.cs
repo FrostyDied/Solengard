@@ -48,6 +48,21 @@ public class SeasonPassSystem : MonoBehaviour
         Carregar();
     }
 
+    void OnEnable()
+    {
+        EnemyBase.OnEnemyDied       += AoInimigoMorrer;
+        WaveManager.OnWaveCompleted += AoWaveConcluida;
+    }
+
+    void OnDisable()
+    {
+        EnemyBase.OnEnemyDied       -= AoInimigoMorrer;
+        WaveManager.OnWaveCompleted -= AoWaveConcluida;
+    }
+
+    void AoInimigoMorrer()      => AddSeasonXP(1);
+    void AoWaveConcluida(int w) => AddSeasonXP(25);
+
     // Adiciona XP e verifica se houve level up
     public void AddSeasonXP(int quantidade)
     {

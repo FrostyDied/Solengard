@@ -43,6 +43,21 @@ public class DailyMissionSystem : MonoBehaviour
         ( MissionType.VencerSemTomarDano,  "Vencer {0} wave sem tomar dano", 1, 30 ),
     };
 
+    void OnEnable()
+    {
+        EnemyBase.OnEnemyDied       += AoInimigoMorrer;
+        WaveManager.OnWaveCompleted += AoWaveConcluida;
+    }
+
+    void OnDisable()
+    {
+        EnemyBase.OnEnemyDied       -= AoInimigoMorrer;
+        WaveManager.OnWaveCompleted -= AoWaveConcluida;
+    }
+
+    void AoInimigoMorrer()      => UpdateMissionProgress("MatarInimigos",   1);
+    void AoWaveConcluida(int w) => UpdateMissionProgress("SobreviverWaves", 1);
+
     void Start() => CarregarOuGerarMissoes();
 
     // Retorna as missões do dia atual

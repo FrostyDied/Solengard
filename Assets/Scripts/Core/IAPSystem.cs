@@ -16,7 +16,7 @@ public class IAPSystem : MonoBehaviour
     public static IAPSystem Instance { get; private set; }
 
     public static event System.Action<string> OnPurchaseSuccess;
-    public static event System.Action<string> OnPurchaseFailed;
+    public static event System.Action<string> OnProductPurchaseFailed;
 
     // IDs dos produtos — TODO: registrar IDs reais no Google Play Console e App Store Connect
     public const string PROD_DIA_100   = "pacote_100_diamantes";
@@ -62,7 +62,7 @@ public class IAPSystem : MonoBehaviour
         if (!inicializado || storeController == null)
         {
             Debug.LogWarning("[IAPSystem] IAP não inicializado.");
-            OnPurchaseFailed?.Invoke("Loja não disponível");
+            OnProductPurchaseFailed?.Invoke("Loja não disponível");
             return;
         }
         storeController.InitiatePurchase(productId);
@@ -121,7 +121,7 @@ public class IAPSystem : MonoBehaviour
     {
         string motivo = reason.ToString();
         Debug.LogWarning($"[IAPSystem] Falha na compra de {product.definition.id}: {motivo}");
-        OnPurchaseFailed?.Invoke(motivo);
+        OnProductPurchaseFailed?.Invoke(motivo);
     }
 #endif
 

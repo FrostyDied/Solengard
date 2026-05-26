@@ -14,9 +14,19 @@ public class PlayerAttack : MonoBehaviour
     // Layer "Enemy" deve estar configurada no projeto para que a detecção funcione
     public LayerMask enemyLayerMask;
 
+    PlayerWeapon weapon;
     float cooldownTimer;
 
     // ── Unity ───────────────────────────────────────────────────────────────────
+
+    void Awake()
+    {
+        weapon = GetComponent<PlayerWeapon>();
+        SyncFromWeapon();
+    }
+
+    void OnEnable()  => PlayerWeapon.OnWeaponUpgraded += AoUpgradeArma;
+    void OnDisable() => PlayerWeapon.OnWeaponUpgraded -= AoUpgradeArma;
 
     void Update()
     {
@@ -39,6 +49,16 @@ public class PlayerAttack : MonoBehaviour
 
         alvo.TakeDamage(attackDamage);
     }
+
+    public void SyncFromWeapon()
+    {
+        if (weapon == null) return;
+        attackDamage   = weapon.damage;
+        attackRange    = weapon.attackRange;
+        attackCooldown = 1f / Mathf.Max(weapon.attackSpeed, 0.01f);
+    }
+
+    void AoUpgradeArma(PlayerWeapon pw) => SyncFromWeapon();
 
     // Retorna o EnemyBase mais próximo dentro do attackRange, ou null se não houver nenhum
     EnemyBase EncontrarInimigoMaisProximo()

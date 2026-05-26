@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Referências")]
     public WaveManager waveManager;
+    [SerializeField] ProceduralArenaSystem proceduralArena;
 
     // ── Estado interno ──────────────────────────────────────────────────────────
 
@@ -77,6 +78,7 @@ public class GameManager : MonoBehaviour
         if (currentState != GameState.MainMenu) return;
 
         SetState(GameState.Playing);
+        proceduralArena?.InitializeRun();
 
         if (waveManager != null)
             waveManager.StartWave();

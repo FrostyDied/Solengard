@@ -46,6 +46,7 @@ public class PassiveItemSystem : MonoBehaviour
         AplicarEfeito(tipo);
 
         Debug.Log($"[PassiveItemSystem] Item adicionado: {tipo}");
+        FindFirstObjectByType<WeaponEvolutionSystem>()?.VerificarEvolucoesPossiveis();
         return true;
     }
 

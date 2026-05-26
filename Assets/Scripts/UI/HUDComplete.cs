@@ -29,6 +29,7 @@ public class HUDComplete : MonoBehaviour
     public Button              botaoPause;
 
     int ultimaWaveExibida = -1;
+    ScoreSystem scoreSystem;
 
     void OnEnable()
     {
@@ -52,6 +53,7 @@ public class HUDComplete : MonoBehaviour
         bannerWave?.SetActive(false);
         painelMissao?.SetActive(false);
 
+        scoreSystem = FindFirstObjectByType<ScoreSystem>();
         AtualizarDiamantes(DiamondSystem.Instance?.GetBalance() ?? 0);
     }
 
@@ -100,9 +102,8 @@ public class HUDComplete : MonoBehaviour
 
     void AtualizarScore()
     {
-        ScoreSystem sc = FindFirstObjectByType<ScoreSystem>();
-        if (sc != null && textoScore != null)
-            textoScore.text = sc.ScoreAtual.ToString("N0");
+        if (scoreSystem != null && textoScore != null)
+            textoScore.text = scoreSystem.ScoreAtual.ToString("N0");
     }
 
     // ── Banner de início de wave ─────────────────────────────────────────────────
