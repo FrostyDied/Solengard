@@ -195,8 +195,16 @@ public static class SolengardSetup
         var mainMenuScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
         EditorSceneManager.SetActiveScene(mainMenuScene);
 
-        // 3. Main Camera — skip if one already exists in the scene
-        if (Object.FindFirstObjectByType<Camera>(FindObjectsInactive.Include) == null)
+        // 3. Main Camera — search only within mainMenuScene (scene is additive; FindFirstObjectByType
+        //    would find cameras in other open scenes and incorrectly skip creation here)
+        Camera existingCam = null;
+        foreach (var root in mainMenuScene.GetRootGameObjects())
+        {
+            existingCam = root.GetComponentInChildren<Camera>(true);
+            if (existingCam != null) break;
+        }
+
+        if (existingCam == null)
         {
             var cameraGO = NewGO("Main Camera");
             cameraGO.tag = "MainCamera";
@@ -207,10 +215,9 @@ public static class SolengardSetup
         }
         else
         {
-            // Remove duplicate AudioListeners — Unity warns when more than one is active
-            var listeners = Object.FindObjectsByType<AudioListener>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            for (int i = 1; i < listeners.Length; i++)
-                Object.DestroyImmediate(listeners[i]);
+            existingCam.gameObject.tag = "MainCamera";
+            if (existingCam.GetComponent<AudioListener>() == null)
+                existingCam.gameObject.AddComponent<AudioListener>();
         }
 
         // 4. Singletons — root-level GOs; DontDestroyOnLoad requires scene root (no parent)
@@ -221,8 +228,13 @@ public static class SolengardSetup
         NewSingleton(null, "[S] AuthSystem",          typeof(AuthSystem));
         NewSingleton(null, "[S] LocalizationManager", typeof(LocalizationManager));
 
-        // 5. EventSystem — skip if one already exists in the scene
-        if (Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include) == null)
+        // 5. EventSystem — same scope issue: search only within mainMenuScene
+        bool hasEventSystem = false;
+        foreach (var root in mainMenuScene.GetRootGameObjects())
+        {
+            if (root.GetComponentInChildren<EventSystem>(true) != null) { hasEventSystem = true; break; }
+        }
+        if (!hasEventSystem)
         {
             var eventSystemGO = NewGO("EventSystem");
             eventSystemGO.AddComponent<EventSystem>();
