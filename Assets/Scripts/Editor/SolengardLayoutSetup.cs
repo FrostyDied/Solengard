@@ -144,15 +144,19 @@ public static class SolengardLayoutSetup
             if(isNew){ var rt=RT(go); rt.anchorMin=Vector2.zero; rt.anchorMax=Vector2.one; rt.offsetMin=new(0,140); rt.offsetMax=new(0,-140); log.AppendLine("  CenterArea"); total++; }
             var tr=go.transform;
 
-            { var (c,n)=FindOrCreateUI(tr,"TextoTitulo"); if(n){ SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,200),new(800,100)); var t=EnsureTMP(c,"SOLENGARD",72f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold; log.AppendLine("  CenterArea/TextoTitulo"); total++; } }
+            // Always apply positions — re-running layout fixes existing overlapping elements
+            // Y layout (relative to CenterArea center): Titulo 300→250-350, Temporada 170→140-200, Streak 60→30-90 (50px gaps)
+            { var (c,n)=FindOrCreateUI(tr,"TextoTitulo"); SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,300),new(800,100)); var t=EnsureTMP(c,"SOLENGARD",72f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold; if(n){ log.AppendLine("  CenterArea/TextoTitulo"); total++; } }
 
             var (tGO,tN)=FindOrCreateUI(tr,"TextoTemporada");
             textoTemporadaGO=tGO;
-            if(tN){ SetRect(RT(tGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,120),new(600,60)); EnsureTMP(tGO,"Temporada 1",28f,Hex("#8080AA")); log.AppendLine("  CenterArea/TextoTemporada"); total++; }
+            SetRect(RT(tGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,170),new(600,60)); EnsureTMP(tGO,"Temporada 1",28f,Hex("#8080AA"));
+            if(tN){ log.AppendLine("  CenterArea/TextoTemporada"); total++; }
 
             var (sGO,sN)=FindOrCreateUI(tr,"TextoStreak");
             textoStreakGO=sGO;
-            if(sN){ SetRect(RT(sGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,20),new(400,60)); EnsureTMP(sGO,"🔥 Dia 1",28f,Hex("#FFD700")); log.AppendLine("  CenterArea/TextoStreak"); total++; }
+            SetRect(RT(sGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,60),new(400,60)); EnsureTMP(sGO,"🔥 Dia 1",28f,Hex("#FFD700"));
+            if(sN){ log.AppendLine("  CenterArea/TextoStreak"); total++; }
 
             TryWire(mmmSO,"textoNivelPasse", textoTemporadaGO.GetComponent<TextMeshProUGUI>(),log);
             TryWire(mmmSO,"textoStreakLogin",textoStreakGO.GetComponent<TextMeshProUGUI>(),log);
@@ -267,6 +271,10 @@ public static class SolengardLayoutSetup
             TryWire(mmmSO,"textoRecompensaDiamantes", rdmGO.GetComponent<TextMeshProUGUI>(),      log);
             TryWire(mmmSO,"botaoColetarRecompensa",   btnGO.GetComponent<Button>(),               log);
         }
+
+        // Destroy legacy containers — children have been migrated or are no longer needed
+        total += DestroyLegacyGO(canvasTr, "PlayerInfoPanel", log);
+        total += DestroyLegacyGO(canvasTr, "MainButtons",     log);
 
         mmmSO.ApplyModifiedProperties();
         return total;
@@ -485,6 +493,15 @@ public static class SolengardLayoutSetup
         if (p==null||p.objectReferenceValue!=null) return;
         p.objectReferenceValue=val;
         log.AppendLine($"  Wire {so.targetObject.GetType().Name}.{prop}");
+    }
+
+    static int DestroyLegacyGO(Transform parent, string name, StringBuilder log)
+    {
+        var t = parent.Find(name);
+        if (t == null) return 0;
+        Undo.DestroyObjectImmediate(t.gameObject);
+        log.AppendLine($"  ✕ Removido legado: {name}");
+        return 1;
     }
 
     static bool ValidateScene(string expected)
