@@ -22,14 +22,15 @@ public class WaveManager : MonoBehaviour
     public List<Transform> spawnPoints = new();
 
     [Header("Sistemas")]
-    [SerializeField] WaveTimerSystem waveTimerSystem;
+    [SerializeField] WaveTimerSystem        waveTimerSystem;
+    [SerializeField] DynamicDifficultySystem dynamicDifficulty;
 
     // ── Valores lidos do GameConfig (com fallback nos padrões) ──────────────────
 
     int   TotalWavesConfig    => gameConfig != null ? gameConfig.totalWaves               : totalWaves;
     float RawTimeBetweenWaves => gameConfig != null ? gameConfig.intervaloEntreWaves       : 5f;
-    int   BaseEnemyCount      => gameConfig != null ? gameConfig.inimigosBaseWave1         : 5;
-    int   EnemyCountIncrement => gameConfig != null ? gameConfig.incrementoInimigosPorWave : 3;
+    int   BaseEnemyCount      => gameConfig != null ? gameConfig.inimigosBaseWave1         : 20;
+    int   EnemyCountIncrement => gameConfig != null ? gameConfig.incrementoInimigosPorWave : 10;
 
     public float TimeBetweenWaves => RawTimeBetweenWaves;
 
@@ -59,6 +60,11 @@ public class WaveManager : MonoBehaviour
 
         currentWave++;
         int count = EnemyCountForWave(currentWave);
+
+        // Limita pelo maxEnemiesOnScreen do tier atual
+        if (dynamicDifficulty != null)
+            count = Mathf.Min(count, dynamicDifficulty.MaxEnemiesOnScreen);
+
         enemiesAlive = count;
 
         Debug.Log($"[WaveManager] Wave {currentWave}/{TotalWavesConfig} iniciada — {count} inimigos");
@@ -91,13 +97,14 @@ public class WaveManager : MonoBehaviour
 
     void SpawnEnemy()
     {
-        if (enemyPrefabs.Count == 0)
+        var available = GetFilteredPrefabs();
+        if (available.Count == 0)
         {
             Debug.LogError("[WaveManager] Nenhum prefab de inimigo configurado.");
             return;
         }
 
-        GameObject prefab  = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
+        GameObject prefab  = available[Random.Range(0, available.Count)];
         Vector3    posicao = ObterPosicaoDeSpawn();
 
         GameObject enemy = ObjectPoolManager.Instance?.GetFromPool(prefab.name);
@@ -112,9 +119,26 @@ public class WaveManager : MonoBehaviour
             enemyBase.OnDeathCallback = OnEnemyDied;
             enemyBase.poolTag         = prefab.name;
             ApplyAdaptiveHealthModifier(enemyBase);
+            dynamicDifficulty?.ApplyToEnemy(enemyBase);
         }
         else
             Debug.LogWarning($"[WaveManager] Prefab '{prefab.name}' não possui EnemyBase.");
+    }
+
+    // Filtra enemyPrefabs pelos tipos disponíveis no tier atual do DynamicDifficultySystem
+    List<GameObject> GetFilteredPrefabs()
+    {
+        if (dynamicDifficulty == null) return enemyPrefabs;
+
+        string[] available = dynamicDifficulty.GetAvailableEnemyTypes();
+        if (available == null || available.Length == 0) return enemyPrefabs;
+
+        var filtered = new List<GameObject>();
+        foreach (var prefab in enemyPrefabs)
+            if (System.Array.IndexOf(available, prefab.name) >= 0)
+                filtered.Add(prefab);
+
+        return filtered.Count > 0 ? filtered : enemyPrefabs;
     }
 
     void ApplyAdaptiveHealthModifier(EnemyBase enemy)

@@ -67,6 +67,23 @@ public class ObjectPoolManager : MonoBehaviour
         return obj;
     }
 
+    // Registra uma pool em runtime (usada por sistemas que criam prefabs proceduralmente)
+    public void RegisterPool(string tag, GameObject prefab, int initialSize)
+    {
+        if (poolDic.ContainsKey(tag)) return;
+
+        pools.Add(new Pool { tag = tag, prefab = prefab, tamanhoInicial = initialSize });
+        Queue<GameObject> fila = new();
+        for (int i = 0; i < initialSize; i++)
+        {
+            GameObject obj = Instantiate(prefab);
+            obj.SetActive(false);
+            fila.Enqueue(obj);
+        }
+        poolDic[tag] = fila;
+        Debug.Log($"[ObjectPoolManager] Pool '{tag}' registrada em runtime ({initialSize} objetos).");
+    }
+
     // Desativa o objeto e o devolve à pool correspondente
     public void ReturnToPool(string tag, GameObject obj)
     {

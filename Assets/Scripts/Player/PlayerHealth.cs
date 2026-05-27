@@ -35,6 +35,8 @@ public class PlayerHealth : MonoBehaviour
     // Retorna valor entre 0 e 1; use direto no slider da barra de vida
     public float HealthPercentage => currentHealth / maxHealth;
 
+    public bool IsInvincible { get => isInvincible; set => isInvincible = value; }
+
     // ── Unity ───────────────────────────────────────────────────────────────────
 
     void Awake()

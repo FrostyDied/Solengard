@@ -403,9 +403,10 @@ public static class SolengardSetup
         total += TryAssignLayerMask<PlayerAttack>("enemyLayerMask", "Enemy", log, warns);
 
         // New systems — cross-component wiring
-        total += TryAssignComponent<WaveManager,      WaveTimerSystem>("waveTimerSystem", log);
-        total += TryAssignComponent<GameManager,      RunRewardSystem>("runRewardSystem", log);
-        total += TryAssignComponent<RunRewardSystem,  WaveTimerSystem>("waveTimerSystem", log);
+        total += TryAssignComponent<WaveManager,           WaveTimerSystem>         ("waveTimerSystem",    log);
+        total += TryAssignComponent<WaveManager,           DynamicDifficultySystem> ("dynamicDifficulty",  log);
+        total += TryAssignComponent<GameManager,           RunRewardSystem>          ("runRewardSystem",    log);
+        total += TryAssignComponent<RunRewardSystem,       WaveTimerSystem>          ("waveTimerSystem",    log);
 
         // DifficultyAdaptiveSystem — presence check only (no reference to wire)
         if (Object.FindFirstObjectByType<DifficultyAdaptiveSystem>(FindObjectsInactive.Include) == null)
@@ -418,9 +419,11 @@ public static class SolengardSetup
     static int RunCreateNewSystemObjects(StringBuilder log)
     {
         int total = 0;
-        total += EnsureSystemObject<WaveTimerSystem>("WaveTimerSystem", log);
+        total += EnsureSystemObject<WaveTimerSystem>         ("WaveTimerSystem",          log);
         total += EnsureSystemObject<DifficultyAdaptiveSystem>("DifficultyAdaptiveSystem", log);
-        total += EnsureSystemObject<RunRewardSystem>("RunRewardSystem", log);
+        total += EnsureSystemObject<RunRewardSystem>         ("RunRewardSystem",           log);
+        total += EnsureSystemObject<DynamicDifficultySystem> ("DynamicDifficultySystem",  log);
+        total += EnsureSystemObject<TemporaryPowerSystem>    ("TemporaryPowerSystem",      log);
         return total;
     }
 

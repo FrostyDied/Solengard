@@ -59,11 +59,14 @@ public class EnemyBase : MonoBehaviour
     // Recebe dano e dispara Die() quando a vida chega a zero
     public void TakeDamage(float amount)
     {
+        if (!CanTakeDamage()) return;
         currentHealth -= amount;
 
         if (currentHealth <= 0f)
             Die();
     }
+
+    protected virtual bool CanTakeDamage() => true;
 
     void Die()
     {
