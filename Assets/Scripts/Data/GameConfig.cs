@@ -34,10 +34,10 @@ public class GameConfig : ScriptableObject
     public int   xpPorMissaoDiaria        = 50;
 
     [Header("Wave System")]
-    public int   totalWaves               = 5;
-    public float intervaloEntreWaves      = 5f;
-    public int   inimigosBaseWave1        = 5;
-    public int   incrementoInimigosPorWave = 3;
+    public int   totalWaves               = 10;
+    public float intervaloEntreWaves      = 8f;
+    public int   inimigosBaseWave1        = 20;
+    public int   incrementoInimigosPorWave = 10;
 
     // Retorna o multiplicador de dificuldade para a wave informada
     public float GetDificuldadeParaWave(int wave)

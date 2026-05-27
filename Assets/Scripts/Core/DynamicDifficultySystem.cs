@@ -27,8 +27,10 @@ public class DynamicDifficultySystem : MonoBehaviour
         new Tier { timeThreshold=240, healthMultiplier=2.0f, damageMultiplier=1.6f,  spawnRateMultiplier=1.5f, maxEnemiesOnScreen=50, availableEnemyTypes=new[]{"EnemyZumbi","EnemyOrc","EnemyArcher","EnemyMage","EnemyAssassin","EnemyGolem","EnemyBoss"} },
     };
 
-    int   currentTierIndex;
-    float elapsedTime;
+    int currentTierIndex;
+
+    // Tempo lido do GameManager.RunTimeSeconds — só avança quando Playing, reseta no StartGame
+    float ElapsedTime => GameManager.Instance != null ? GameManager.Instance.RunTimeSeconds : 0f;
 
     public int   CurrentTierIndex    => currentTierIndex;
     public float HealthMultiplier    => Tiers[currentTierIndex].healthMultiplier;
@@ -44,7 +46,6 @@ public class DynamicDifficultySystem : MonoBehaviour
 
     void Update()
     {
-        elapsedTime += Time.deltaTime;
         TryAdvanceTier();
     }
 
@@ -52,10 +53,10 @@ public class DynamicDifficultySystem : MonoBehaviour
     {
         int next = currentTierIndex + 1;
         if (next >= Tiers.Length) return;
-        if (elapsedTime < Tiers[next].timeThreshold) return;
+        if (ElapsedTime < Tiers[next].timeThreshold) return;
 
         currentTierIndex = next;
-        Debug.Log($"[DynamicDifficultySystem] Tier {next} ({elapsedTime:F0}s) — HP×{HealthMultiplier} DMG×{DamageMultiplier}");
+        Debug.Log($"[DynamicDifficultySystem] Tier {next} ({ElapsedTime:F0}s) — HP×{HealthMultiplier} DMG×{DamageMultiplier}");
         OnDifficultyTierChanged?.Invoke(next);
         TryAdvanceTier(); // handle multiple simultaneous tier jumps
     }
@@ -70,9 +71,8 @@ public class DynamicDifficultySystem : MonoBehaviour
         enemy.InitializeHealth();
     }
 
-    public void ResetTime()
+    public void ResetTier()
     {
-        elapsedTime      = 0f;
         currentTierIndex = 0;
     }
 }

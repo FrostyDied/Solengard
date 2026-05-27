@@ -46,6 +46,10 @@ public class GameManager : MonoBehaviour
     public RunData currentRunData;
     float          runStartTime;
 
+    float runTimer;
+    // Segundos decorridos desde StartGame(); incrementa apenas enquanto Playing
+    public float RunTimeSeconds => runTimer;
+
     // ── Unity ───────────────────────────────────────────────────────────────────
 
     void Awake()
@@ -76,6 +80,12 @@ public class GameManager : MonoBehaviour
         SetState(GameState.MainMenu);
     }
 
+    void Update()
+    {
+        if (currentState == GameState.Playing)
+            runTimer += Time.deltaTime;
+    }
+
     // ── API pública ─────────────────────────────────────────────────────────────
 
     public void StartGame()
@@ -84,6 +94,7 @@ public class GameManager : MonoBehaviour
 
         currentRunData = new RunData { causeOfDeath = "inimigo" };
         runStartTime   = Time.time;
+        runTimer       = 0f;
 
         SetState(GameState.Playing);
         proceduralArena?.InitializeRun();

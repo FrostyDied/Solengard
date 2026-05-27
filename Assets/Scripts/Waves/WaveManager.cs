@@ -10,7 +10,7 @@ public class WaveManager : MonoBehaviour
     public static event System.Action      OnAllWavesCompleted;
 
     [Header("Configuração de Waves")]
-    public int totalWaves = 5;
+    public int totalWaves = 10;
 
     [Header("GameConfig (opcional — sobrescreve os valores acima se atribuído)")]
     [SerializeField] GameConfig gameConfig;
@@ -28,7 +28,7 @@ public class WaveManager : MonoBehaviour
     // ── Valores lidos do GameConfig (com fallback nos padrões) ──────────────────
 
     int   TotalWavesConfig    => gameConfig != null ? gameConfig.totalWaves               : totalWaves;
-    float RawTimeBetweenWaves => gameConfig != null ? gameConfig.intervaloEntreWaves       : 5f;
+    float RawTimeBetweenWaves => gameConfig != null ? gameConfig.intervaloEntreWaves       : 8f;
     int   BaseEnemyCount      => gameConfig != null ? gameConfig.inimigosBaseWave1         : 20;
     int   EnemyCountIncrement => gameConfig != null ? gameConfig.incrementoInimigosPorWave : 10;
 
