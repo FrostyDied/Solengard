@@ -1,12 +1,15 @@
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 5f;
 
-    private Rigidbody2D rb;
-    private Vector2 moveInput;
+    Rigidbody2D rb;
+    Vector2     moveInput;
 
     void Awake()
     {
@@ -16,17 +19,20 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-#if UNITY_ANDROID || UNITY_IOS
-        // Em mobile usa o joystick virtual; fallback para Input caso o componente não exista
-        moveInput = MobileJoystick.Instance != null
-            ? MobileJoystick.Instance.Direction
-            : Vector2.zero;
+#if ENABLE_INPUT_SYSTEM
+        moveInput.x = Keyboard.current != null ?
+            (Keyboard.current.dKey.isPressed ? 1 : Keyboard.current.aKey.isPressed ? -1 : 0) : 0;
+        moveInput.y = Keyboard.current != null ?
+            (Keyboard.current.wKey.isPressed ? 1 : Keyboard.current.sKey.isPressed ? -1 : 0) : 0;
 #else
-        // Lê input do teclado (WASD / setas) no editor e builds desktop
         moveInput.x = Input.GetAxisRaw("Horizontal");
         moveInput.y = Input.GetAxisRaw("Vertical");
-        moveInput.Normalize();
 #endif
+
+        if (MobileJoystick.Instance != null && MobileJoystick.Instance.IsActive)
+            moveInput = MobileJoystick.Instance.InputDirection;
+
+        moveInput = moveInput.normalized;
     }
 
     void FixedUpdate()

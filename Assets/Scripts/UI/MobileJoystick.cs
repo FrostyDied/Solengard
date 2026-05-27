@@ -1,88 +1,64 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-// Joystick virtual fixo para builds mobile.
-// No editor usa WASD; em Android/iOS usa touch.
-// PlayerController deve verificar MobileJoystick.Instance?.Direction para obter o input.
-public class MobileJoystick : MonoBehaviour
+// Joystick virtual fixo no canto inferior esquerdo para builds mobile.
+// Attach no JoystickBackground. Conecte knobTransform no Inspector ou via Layout GameScene.
+// No editor só ativa se forceEnableInEditor = true; caso contrário o GO é desativado.
+public class MobileJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
     public static MobileJoystick Instance { get; private set; }
 
-    [Header("Joystick")]
-    public RectTransform areaJoystick;  // círculo externo (fundo)
-    public RectTransform knob;          // círculo interno (alça)
-    [Min(10f)] public float raio = 80f;
+    [SerializeField] RectTransform knobTransform;
+    [SerializeField] float         maxRadius           = 80f;
+    [SerializeField] bool          forceEnableInEditor = false;
 
-    [Header("Botão de habilidade (canto direito)")]
-    public Button botaoHabilidade;
+    public bool    IsActive       { get; private set; }
+    public Vector2 InputDirection { get; private set; }
+    public Vector2 Direction      => InputDirection; // backward compat
 
-    // Direção normalizada do joystick; lida pelo PlayerController
-    public Vector2 Direction { get; private set; }
-
-    int touchIdJoystick = -1;
-    Vector2 origemJoystick;
+    RectTransform rectTransform;
 
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
-    }
+        Instance      = this;
+        rectTransform = GetComponent<RectTransform>();
 
-    void Update()
-    {
-#if UNITY_ANDROID || UNITY_IOS
-        ProcessarTouch();
-#else
-        // Editor: simula joystick com WASD
-        float h = Input.GetAxisRaw("Horizontal");
-        float v = Input.GetAxisRaw("Vertical");
-        Direction = new Vector2(h, v).normalized;
-        AtualizarKnob(Direction * raio);
+#if !UNITY_ANDROID && !UNITY_IOS
+        if (!forceEnableInEditor)
+            gameObject.SetActive(false);
 #endif
     }
 
-#if UNITY_ANDROID || UNITY_IOS
-    void ProcessarTouch()
+    public void OnPointerDown(PointerEventData eventData)
     {
-        foreach (Touch touch in Input.touches)
-        {
-            // Apenas touches no lado esquerdo da tela controlam o joystick
-            bool ladoEsquerdo = touch.position.x < Screen.width * 0.5f;
-
-            switch (touch.phase)
-            {
-                case TouchPhase.Began when ladoEsquerdo && touchIdJoystick == -1:
-                    touchIdJoystick = touch.fingerId;
-                    origemJoystick  = touch.position;
-                    break;
-
-                case TouchPhase.Moved when touch.fingerId == touchIdJoystick:
-                case TouchPhase.Stationary when touch.fingerId == touchIdJoystick:
-                    Vector2 delta    = touch.position - origemJoystick;
-                    Vector2 clamped  = Vector2.ClampMagnitude(delta, raio);
-                    Direction        = clamped / raio;
-                    AtualizarKnob(clamped);
-                    break;
-
-                case TouchPhase.Ended when touch.fingerId == touchIdJoystick:
-                case TouchPhase.Canceled when touch.fingerId == touchIdJoystick:
-                    ResetarJoystick();
-                    break;
-            }
-        }
-    }
-#endif
-
-    void AtualizarKnob(Vector2 offset)
-    {
-        if (knob != null)
-            knob.anchoredPosition = offset;
+        IsActive = true;
+        UpdateKnob(eventData);
     }
 
-    void ResetarJoystick()
+    public void OnDrag(PointerEventData eventData)
     {
-        touchIdJoystick = -1;
-        Direction       = Vector2.zero;
-        AtualizarKnob(Vector2.zero);
+        UpdateKnob(eventData);
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        IsActive       = false;
+        InputDirection = Vector2.zero;
+        if (knobTransform != null)
+            knobTransform.anchoredPosition = Vector2.zero;
+    }
+
+    void UpdateKnob(PointerEventData eventData)
+    {
+        if (knobTransform == null) return;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            rectTransform, eventData.position, eventData.pressEventCamera, out Vector2 local);
+
+        Vector2 clamped            = Vector2.ClampMagnitude(local, maxRadius);
+        knobTransform.anchoredPosition = clamped;
+        InputDirection             = clamped / maxRadius;
     }
 }

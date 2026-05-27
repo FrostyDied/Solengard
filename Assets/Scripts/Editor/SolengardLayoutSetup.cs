@@ -401,6 +401,49 @@ public static class SolengardLayoutSetup
         }
 
         hudSO.ApplyModifiedProperties();
+
+        // Joystick Canvas (sortingOrder 20, acima do HUD)
+        {
+            var jcGO = GameObject.Find("JoystickCanvas");
+            if (jcGO == null)
+            {
+                jcGO = new GameObject("JoystickCanvas");
+                Undo.RegisterCreatedObjectUndo(jcGO, "Layout GameScene");
+                var c = jcGO.AddComponent<Canvas>();
+                c.renderMode   = RenderMode.ScreenSpaceOverlay;
+                c.sortingOrder = 20;
+                var s = jcGO.AddComponent<CanvasScaler>();
+                s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                s.referenceResolution = new Vector2(1080f, 1920f);
+                s.matchWidthOrHeight  = 0.5f;
+                jcGO.AddComponent<GraphicRaycaster>();
+                log.AppendLine("  JoystickCanvas criado"); total++;
+            }
+            var jcTr = jcGO.transform;
+
+            var (bgGO, bgNew) = FindOrCreateUI(jcTr, "JoystickBackground");
+            if (bgNew)
+            {
+                // Canto inferior esquerdo, pivot (0,0), offset (80,80)
+                SetRect(RT(bgGO), Vector2.zero, Vector2.zero, Vector2.zero, new Vector2(80f, 80f), new Vector2(200f, 200f));
+                EnsureImage(bgGO, Hex("#80000000"));
+                log.AppendLine("  JoystickBackground"); total++;
+            }
+
+            var (knobGO, knobNew) = FindOrCreateUI(bgGO.transform, "JoystickKnob");
+            if (knobNew)
+            {
+                SetRect(RT(knobGO), new Vector2(.5f,.5f), new Vector2(.5f,.5f), new Vector2(.5f,.5f), Vector2.zero, new Vector2(80f, 80f));
+                EnsureImage(knobGO, Hex("#AAFFFFFF"));
+                log.AppendLine("  JoystickKnob"); total++;
+            }
+
+            var joystick   = bgGO.GetComponent<MobileJoystick>() ?? bgGO.AddComponent<MobileJoystick>();
+            var joystickSO = new SerializedObject(joystick);
+            TryWire(joystickSO, "knobTransform", knobGO.GetComponent<RectTransform>(), log);
+            joystickSO.ApplyModifiedProperties();
+        }
+
         return total;
     }
 
