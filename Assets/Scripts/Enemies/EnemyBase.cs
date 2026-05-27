@@ -79,4 +79,7 @@ public class EnemyBase : MonoBehaviour
 
     // Sobrescreva em subclasses para efeitos de morte específicos (drops, animações, etc.)
     protected virtual void OnDie() { }
+
+    // Sincroniza currentHealth com maxHealth; use após modificar maxHealth externamente
+    public void InitializeHealth() => currentHealth = maxHealth;
 }

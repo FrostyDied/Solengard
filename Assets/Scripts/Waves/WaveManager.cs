@@ -2,36 +2,36 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// Gerencia todas as ondas de inimigos de uma fase do Solengard.
-// Attach este componente em um GameObject persistente na cena de jogo.
+public enum WaveType { Normal, Elite, Boss }
+
 public class WaveManager : MonoBehaviour
 {
-    // Disparado ao fim de cada wave individual (passa o número da wave concluída)
     public static event System.Action<int> OnWaveCompleted;
-
-    // Disparado quando todas as waves da fase forem concluídas
-    public static event System.Action OnAllWavesCompleted;
+    public static event System.Action      OnAllWavesCompleted;
 
     [Header("Configuração de Waves")]
-    public int totalWaves = 5;  // fallback quando GameConfig não está atribuído
+    public int totalWaves = 5;
 
     [Header("GameConfig (opcional — sobrescreve os valores acima se atribuído)")]
     [SerializeField] GameConfig gameConfig;
 
     [Header("Inimigos")]
-    // Prefabs possíveis de inimigos — o spawn escolhe aleatoriamente desta lista
     public List<GameObject> enemyPrefabs = new();
 
     [Header("Pontos de Spawn")]
-    // Transforms posicionados ao redor da arena que definem onde os inimigos aparecem
     public List<Transform> spawnPoints = new();
+
+    [Header("Sistemas")]
+    [SerializeField] WaveTimerSystem waveTimerSystem;
 
     // ── Valores lidos do GameConfig (com fallback nos padrões) ──────────────────
 
     int   TotalWavesConfig    => gameConfig != null ? gameConfig.totalWaves               : totalWaves;
-    float TimeBetweenWaves    => gameConfig != null ? gameConfig.intervaloEntreWaves       : 5f;
+    float RawTimeBetweenWaves => gameConfig != null ? gameConfig.intervaloEntreWaves       : 5f;
     int   BaseEnemyCount      => gameConfig != null ? gameConfig.inimigosBaseWave1         : 5;
     int   EnemyCountIncrement => gameConfig != null ? gameConfig.incrementoInimigosPorWave : 3;
+
+    public float TimeBetweenWaves => RawTimeBetweenWaves;
 
     // ── Estado interno ──────────────────────────────────────────────────────────
 
@@ -39,7 +39,6 @@ public class WaveManager : MonoBehaviour
     int  enemiesAlive = 0;
     bool isSpawning   = false;
 
-    // Posições fixas usadas como fallback quando spawnPoints não está configurado (modo de teste)
     static readonly Vector2[] fallbackSpawnPositions =
     {
         new Vector2(-5f,  5f),
@@ -54,7 +53,6 @@ public class WaveManager : MonoBehaviour
 
     // ── API pública ─────────────────────────────────────────────────────────────
 
-    // Inicia a próxima wave; chamado pelo GameManager após o jogador iniciar a partida
     public void StartWave()
     {
         if (isSpawning) return;
@@ -65,14 +63,13 @@ public class WaveManager : MonoBehaviour
 
         Debug.Log($"[WaveManager] Wave {currentWave}/{TotalWavesConfig} iniciada — {count} inimigos");
 
+        waveTimerSystem?.StartTimer();
         StartCoroutine(SpawnWave(count));
     }
 
-    // Chamado pelo EnemyBase ao morrer (via OnDeathCallback)
     public void OnEnemyDied()
     {
         enemiesAlive--;
-
         if (enemiesAlive <= 0)
             EndWave();
     }
@@ -96,14 +93,13 @@ public class WaveManager : MonoBehaviour
     {
         if (enemyPrefabs.Count == 0)
         {
-            Debug.LogError("[WaveManager] Nenhum prefab de inimigo configurado. Adicione prefabs à lista 'Enemy Prefabs' no Inspector.");
+            Debug.LogError("[WaveManager] Nenhum prefab de inimigo configurado.");
             return;
         }
 
         GameObject prefab  = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
         Vector3    posicao = ObterPosicaoDeSpawn();
 
-        // Tenta reutilizar da pool; instancia normalmente se a pool não estiver configurada
         GameObject enemy = ObjectPoolManager.Instance?.GetFromPool(prefab.name);
         if (enemy != null)
             enemy.transform.position = posicao;
@@ -115,9 +111,20 @@ public class WaveManager : MonoBehaviour
         {
             enemyBase.OnDeathCallback = OnEnemyDied;
             enemyBase.poolTag         = prefab.name;
+            ApplyAdaptiveHealthModifier(enemyBase);
         }
         else
             Debug.LogWarning($"[WaveManager] Prefab '{prefab.name}' não possui EnemyBase.");
+    }
+
+    void ApplyAdaptiveHealthModifier(EnemyBase enemy)
+    {
+        if (DifficultyAdaptiveSystem.Instance == null) return;
+        float mod = DifficultyAdaptiveSystem.Instance.EnemyHealthModifier;
+        if (Mathf.Approximately(mod, 1f)) return;
+
+        enemy.maxHealth = enemy.maxHealth * mod;
+        enemy.InitializeHealth();
     }
 
     Vector3 ObterPosicaoDeSpawn()
@@ -132,6 +139,7 @@ public class WaveManager : MonoBehaviour
     void EndWave()
     {
         Debug.Log($"[WaveManager] Wave {currentWave} concluída.");
+        waveTimerSystem?.StopTimer();
         OnWaveCompleted?.Invoke(currentWave);
 
         if (currentWave >= TotalWavesConfig)
@@ -146,17 +154,29 @@ public class WaveManager : MonoBehaviour
 
     IEnumerator NextWaveCountdown()
     {
-        Debug.Log($"[WaveManager] Próxima wave em {TimeBetweenWaves}s...");
-        yield return new WaitForSeconds(TimeBetweenWaves);
+        Debug.Log($"[WaveManager] Próxima wave em {RawTimeBetweenWaves}s...");
+        yield return new WaitForSeconds(RawTimeBetweenWaves);
         StartWave();
     }
 
     int EnemyCountForWave(int wave)
     {
-        return BaseEnemyCount + EnemyCountIncrement * (wave - 1);
+        int count     = BaseEnemyCount + EnemyCountIncrement * (wave - 1);
+        int reduction = DifficultyAdaptiveSystem.Instance?.EnemyCountReduction ?? 0;
+        return Mathf.Max(1, count - reduction);
     }
 
-    // ── Propriedades de leitura (úteis para a UI) ───────────────────────────────
+    // ── Propriedades de leitura ─────────────────────────────────────────────────
+
+    public WaveType CurrentWaveType
+    {
+        get
+        {
+            if (currentWave >= TotalWavesConfig)        return WaveType.Boss;
+            if (currentWave == 5 || currentWave == 8)   return WaveType.Elite;
+            return WaveType.Normal;
+        }
+    }
 
     public int CurrentWave  => currentWave;
     public int TotalWaves   => TotalWavesConfig;
