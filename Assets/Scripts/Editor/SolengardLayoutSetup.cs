@@ -108,18 +108,28 @@ public static class SolengardLayoutSetup
                 EnsureImage(go, Hex("#00000080"));
                 log.AppendLine("  TopBar"); total++;
             }
+            // Enforce sibling order: TopBar right after BG (index 0), before all content
+            topBarGO.transform.SetSiblingIndex(1);
+
             var tr = go.transform;
 
-            { var (c,n)=FindOrCreateUI(tr,"AvatarPlaceholder"); if(n){ SetRect(RT(c),new(0,1),new(0,1),new(0,1),new(20,-25),new(90,90)); EnsureImage(c,Hex("#2A2A4A")); log.AppendLine("  TopBar/AvatarPlaceholder"); total++; } }
-            { var (c,n)=FindOrCreateUI(tr,"NomeJogador");        if(n){ SetRect(RT(c),new(0,1),new(0,1),new(0,1),new(125,-38),new(280,55)); EnsureTMP(c,"Jogador",32f,Color.white); log.AppendLine("  TopBar/NomeJogador"); total++; } }
+            // Warn about legacy elements from CreateMainMenuScene that won't be auto-removed
+            if (canvasTr.Find("PlayerInfoPanel") != null)
+                log.AppendLine("  ⚠ PlayerInfoPanel (legado) detectado — filhos migrados para TopBar");
+            if (canvasTr.Find("MainButtons") != null)
+                log.AppendLine("  ⚠ MainButtons (legado) detectado — botões migrados para novo layout");
 
-            var (dGO,dN)=FindOrCreateUI(tr,"TextoDiamantes");
+            // Use deep search so elements that exist under PlayerInfoPanel/MainButtons get reparented here
+            { var (c,n)=FindReparentOrCreateUI(tr,canvasTr,"AvatarPlaceholder"); if(n){ SetRect(RT(c),new(0,.5f),new(0,.5f),new(0,.5f),new(20,0),new(90,90)); EnsureImage(c,Hex("#2A2A4A")); log.AppendLine("  TopBar/AvatarPlaceholder"); total++; } }
+            { var (c,n)=FindReparentOrCreateUI(tr,canvasTr,"NomeJogador");        if(n){ SetRect(RT(c),new(0,.5f),new(0,.5f),new(0,.5f),new(125,0),new(280,55)); EnsureTMP(c,"Jogador",32f,Color.white); log.AppendLine("  TopBar/NomeJogador"); total++; } }
+
+            var (dGO,dN)=FindReparentOrCreateUI(tr,canvasTr,"TextoDiamantes");
             textoDiamantesGO=dGO;
-            if(dN){ SetRect(RT(dGO),new(.5f,1),new(.5f,1),new(.5f,1),new(80,-42),new(220,56)); EnsureTMP(dGO,"0 💎",36f,Hex("#FFD700")); log.AppendLine("  TopBar/TextoDiamantes"); total++; }
+            if(dN){ SetRect(RT(dGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(80,0),new(220,56)); EnsureTMP(dGO,"0 💎",36f,Hex("#FFD700")); log.AppendLine("  TopBar/TextoDiamantes"); total++; }
 
-            { var (c,n)=FindOrCreateUI(tr,"TextoMoedas"); if(n){ SetRect(RT(c),new(.5f,1),new(.5f,1),new(.5f,1),new(310,-42),new(220,56)); EnsureTMP(c,"0 🪙",36f,Hex("#C0C0C0")); log.AppendLine("  TopBar/TextoMoedas"); total++; } }
+            { var (c,n)=FindReparentOrCreateUI(tr,canvasTr,"TextoMoedas"); if(n){ SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(310,0),new(220,56)); EnsureTMP(c,"0 🪙",36f,Hex("#C0C0C0")); log.AppendLine("  TopBar/TextoMoedas"); total++; } }
 
-            var (cfgGO,cfgN)=FindOrCreateUI(tr,"BotaoConfiguracoes");
+            var (cfgGO,cfgN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoConfiguracoes");
             botaoConfigGO=cfgGO;
             if(cfgN){ SetRect(RT(cfgGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-60,0),new(70,70)); EnsureImage(cfgGO,Hex("#1A1A2A")); EnsureButton(cfgGO); AddLabel(cfgGO,"⚙",32f,Color.white); log.AppendLine("  TopBar/BotaoConfiguracoes"); total++; }
 
@@ -160,10 +170,10 @@ public static class SolengardLayoutSetup
             vlg.padding=new RectOffset(10,10,30,30);
             var tr=go.transform;
 
-            { var (c,n)=FindOrCreateUI(tr,"BotaoMissoes"); if(n){ RT(c).sizeDelta=new(100,100); EnsureImage(c,Hex("#1A1A3A")); EnsureButton(c); AddLabel(c,"MISSÕES",22f,Color.white); log.AppendLine("  LeftPanel/BotaoMissoes"); total++; } }
-            { var (c,n)=FindOrCreateUI(tr,"BotaoPasse");   if(n){ RT(c).sizeDelta=new(100,100); EnsureImage(c,Hex("#1A1A3A")); EnsureButton(c); AddLabel(c,"PASSE",22f,Color.white);   log.AppendLine("  LeftPanel/BotaoPasse");   total++; } }
+            { var (c,n)=FindReparentOrCreateUI(tr,canvasTr,"BotaoMissoes"); if(n){ RT(c).sizeDelta=new(100,100); EnsureImage(c,Hex("#1A1A3A")); EnsureButton(c); AddLabel(c,"MISSÕES",22f,Color.white); log.AppendLine("  LeftPanel/BotaoMissoes"); total++; } }
+            { var (c,n)=FindReparentOrCreateUI(tr,canvasTr,"BotaoPasse");   if(n){ RT(c).sizeDelta=new(100,100); EnsureImage(c,Hex("#1A1A3A")); EnsureButton(c); AddLabel(c,"PASSE",22f,Color.white);   log.AppendLine("  LeftPanel/BotaoPasse");   total++; } }
 
-            var (rkGO,rkN)=FindOrCreateUI(tr,"BotaoRanking");
+            var (rkGO,rkN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoRanking");
             botaoRankingGO=rkGO;
             if(rkN){ RT(rkGO).sizeDelta=new(100,100); EnsureImage(rkGO,Hex("#1A1A3A")); EnsureButton(rkGO); AddLabel(rkGO,"RANKING",22f,Color.white); log.AppendLine("  LeftPanel/BotaoRanking"); total++; }
 
@@ -369,6 +379,36 @@ public static class SolengardLayoutSetup
         Undo.RegisterCreatedObjectUndo(go, "Solengard Layout");
         go.AddComponent<RectTransform>();
         go.transform.SetParent(parent, false);
+        return (go, true);
+    }
+
+    static Transform FindInHierarchy(Transform root, string name)
+    {
+        foreach (Transform child in root)
+        {
+            if (child.name == name) return child;
+            var found = FindInHierarchy(child, name);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    static (GameObject go, bool isNew) FindReparentOrCreateUI(Transform targetParent, Transform searchRoot, string name)
+    {
+        var direct = targetParent.Find(name);
+        if (direct != null) return (direct.gameObject, false);
+
+        var found = FindInHierarchy(searchRoot, name);
+        if (found != null)
+        {
+            Undo.SetTransformParent(found, targetParent, "Solengard Layout");
+            return (found.gameObject, true);
+        }
+
+        var go = new GameObject(name);
+        Undo.RegisterCreatedObjectUndo(go, "Solengard Layout");
+        go.AddComponent<RectTransform>();
+        go.transform.SetParent(targetParent, false);
         return (go, true);
     }
 
