@@ -275,6 +275,9 @@ public static class SolengardSetup
         var (_, botaoMissoes)       = NewButton(mainButtonsGO.transform, "BotaoMissoes",       "MISSÕES");
         var (_, botaoRanking)       = NewButton(mainButtonsGO.transform, "BotaoRanking",       "RANKING");
         var (_, botaoConfiguracoes) = NewButton(mainButtonsGO.transform, "BotaoConfiguracoes", "CONFIGURAÇÕES");
+        var (_, botaoOfertas)       = NewButton(mainButtonsGO.transform, "BotaoOfertas",       "OFERTAS");
+        var (_, botaoBencaos)       = NewButton(mainButtonsGO.transform, "BotaoBencaos",       "BÊNÇÃOS");
+        var (_, botaoBaus)          = NewButton(mainButtonsGO.transform, "BotaoBaus",          "BAÚS");
 
         // 11. Panels — full-screen, inactive by default
         var painelLoja          = NewPanel(canvasGO.transform, "PainelLoja");
@@ -282,6 +285,9 @@ public static class SolengardSetup
         var painelMissoes       = NewPanel(canvasGO.transform, "PainelMissoes");
         var painelRanking       = NewPanel(canvasGO.transform, "PainelRanking");
         var painelConfiguracoes = NewPanel(canvasGO.transform, "PainelConfiguracoes");
+        var painelOfertas       = NewPanel(canvasGO.transform, "PainelOfertas");
+        var painelBencaos       = NewPanel(canvasGO.transform, "PainelBencaos");
+        var painelBaus          = NewPanel(canvasGO.transform, "PainelBaus");
 
         // 12. PopupRecompensa — centred popup, inactive
         var popupGO = NewUIChild(canvasGO.transform, "PopupRecompensa");
@@ -297,7 +303,7 @@ public static class SolengardSetup
         var (_, botaoColetarRecompensa) = NewButton(popupGO.transform, "BotaoColetarRecompensa", "COLETAR");
         popupGO.SetActive(false);
 
-        // 13. Wire all 19 MainMenuManager references via SerializedObject
+        // 13. Wire all 25 MainMenuManager references via SerializedObject
         var so = new SerializedObject(mmm);
         WireRef(so, "botaoJogar",               botaoJogar);
         WireRef(so, "botaoLoja",                botaoLoja);
@@ -305,6 +311,9 @@ public static class SolengardSetup
         WireRef(so, "botaoMissoes",             botaoMissoes);
         WireRef(so, "botaoRanking",             botaoRanking);
         WireRef(so, "botaoConfiguracoes",       botaoConfiguracoes);
+        WireRef(so, "botaoOfertas",             botaoOfertas);
+        WireRef(so, "botaoBencaos",             botaoBencaos);
+        WireRef(so, "botaoBaus",                botaoBaus);
         WireRef(so, "textoDiamantes",           textoDiamantes);
         WireRef(so, "textoNivelPasse",          textoNivelPasse);
         WireRef(so, "textoStreakLogin",         textoStreakLogin);
@@ -317,6 +326,9 @@ public static class SolengardSetup
         WireRef(so, "painelMissoes",            painelMissoes);
         WireRef(so, "painelRanking",            painelRanking);
         WireRef(so, "painelConfiguracoes",      painelConfiguracoes);
+        WireRef(so, "painelOfertas",            painelOfertas);
+        WireRef(so, "painelBencaos",            painelBencaos);
+        WireRef(so, "painelBaus",               painelBaus);
         so.ApplyModifiedProperties();
 
         // 14. Build Settings: MainMenu[0], GameScene[1]

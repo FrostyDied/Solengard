@@ -163,7 +163,7 @@ public static class SolengardLayoutSetup
         }
 
         // LeftPanel
-        GameObject botaoRankingGO;
+        GameObject botaoOfertasGO, botaoBencaosGO, botaoBausGO;
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,"LeftPanel");
             if(isNew){ SetRect(RT(go),new(0,.35f),new(0,.65f),new(0,.5f),Vector2.zero,new(120,0)); log.AppendLine("  LeftPanel"); total++; }
@@ -174,14 +174,18 @@ public static class SolengardLayoutSetup
             vlg.padding=new RectOffset(10,10,30,30);
             var tr=go.transform;
 
-            { var (c,n)=FindReparentOrCreateUI(tr,canvasTr,"BotaoMissoes"); if(n){ RT(c).sizeDelta=new(100,100); EnsureImage(c,Hex("#1A1A3A")); EnsureButton(c); AddLabel(c,"MISSÕES",22f,Color.white); log.AppendLine("  LeftPanel/BotaoMissoes"); total++; } }
-            { var (c,n)=FindReparentOrCreateUI(tr,canvasTr,"BotaoPasse");   if(n){ RT(c).sizeDelta=new(100,100); EnsureImage(c,Hex("#1A1A3A")); EnsureButton(c); AddLabel(c,"PASSE",22f,Color.white);   log.AppendLine("  LeftPanel/BotaoPasse");   total++; } }
+            var (ofGO,ofN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoOfertas"); botaoOfertasGO=ofGO;
+            if(ofN){ RT(ofGO).sizeDelta=new(100,100); EnsureImage(ofGO,Hex("#2A1A0A")); EnsureButton(ofGO); AddLabel(ofGO,"OFERTAS",22f,Color.white);  log.AppendLine("  LeftPanel/BotaoOfertas");  total++; }
 
-            var (rkGO,rkN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoRanking");
-            botaoRankingGO=rkGO;
-            if(rkN){ RT(rkGO).sizeDelta=new(100,100); EnsureImage(rkGO,Hex("#1A1A3A")); EnsureButton(rkGO); AddLabel(rkGO,"RANKING",22f,Color.white); log.AppendLine("  LeftPanel/BotaoRanking"); total++; }
+            var (beGO,beN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoBencaos"); botaoBencaosGO=beGO;
+            if(beN){ RT(beGO).sizeDelta=new(100,100); EnsureImage(beGO,Hex("#0A1A2A")); EnsureButton(beGO); AddLabel(beGO,"BÊNÇÃOS",22f,Color.white);  log.AppendLine("  LeftPanel/BotaoBencaos");  total++; }
 
-            TryWire(mmmSO,"botaoRanking",botaoRankingGO.GetComponent<Button>(),log);
+            var (baGO,baN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoBaus");    botaoBausGO=baGO;
+            if(baN){ RT(baGO).sizeDelta=new(100,100); EnsureImage(baGO,Hex("#1A0A2A")); EnsureButton(baGO); AddLabel(baGO,"BAÚS",22f,Color.white);      log.AppendLine("  LeftPanel/BotaoBaus");     total++; }
+
+            TryWire(mmmSO,"botaoOfertas",botaoOfertasGO.GetComponent<Button>(),log);
+            TryWire(mmmSO,"botaoBencaos",botaoBencaosGO.GetComponent<Button>(),log);
+            TryWire(mmmSO,"botaoBaus",   botaoBausGO.GetComponent<Button>(),   log);
         }
 
         // RightPanel
@@ -237,15 +241,21 @@ public static class SolengardLayoutSetup
         }
 
         // Panels (full-screen, inactive)
-        var panels = new (string name, string field)[]
+        var panels = new (string name, string field, string color)[]
         {
-            ("PainelLoja","painelLoja"), ("PainelPasse","painelPasse"), ("PainelMissoes","painelMissoes"),
-            ("PainelRanking","painelRanking"), ("PainelConfiguracoes","painelConfiguracoes"),
+            ("PainelLoja",          "painelLoja",          "#0D0D1F"),
+            ("PainelPasse",         "painelPasse",          "#0D0D1F"),
+            ("PainelMissoes",       "painelMissoes",        "#0D0D1F"),
+            ("PainelRanking",       "painelRanking",        "#0D0D1F"),
+            ("PainelConfiguracoes", "painelConfiguracoes",  "#0D0D1F"),
+            ("PainelOfertas",       "painelOfertas",        "#1A0A00"),
+            ("PainelBencaos",       "painelBencaos",        "#000A1A"),
+            ("PainelBaus",          "painelBaus",           "#0A001A"),
         };
-        foreach (var (name,field) in panels)
+        foreach (var (name,field,color) in panels)
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,name);
-            if(isNew){ StretchFull(RT(go)); EnsureImage(go,Hex("#0D0D1F")); go.SetActive(false); log.AppendLine($"  {name}"); total++; }
+            if(isNew){ StretchFull(RT(go)); EnsureImage(go,Hex(color)); go.SetActive(false); log.AppendLine($"  {name}"); total++; }
             TryWire(mmmSO,field,go,log);
         }
 

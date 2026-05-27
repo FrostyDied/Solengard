@@ -15,6 +15,11 @@ public class MainMenuManager : MonoBehaviour
     public Button botaoRanking;
     public Button botaoConfiguracoes;
 
+    [Header("Atalhos laterais (LeftPanel)")]
+    [SerializeField] Button botaoOfertas;
+    [SerializeField] Button botaoBencaos;
+    [SerializeField] Button botaoBaus;
+
     [Header("Informações do jogador")]
     public TextMeshProUGUI textoDiamantes;
     public TextMeshProUGUI textoNivelPasse;
@@ -32,6 +37,11 @@ public class MainMenuManager : MonoBehaviour
     public GameObject painelMissoes;
     public GameObject painelRanking;
     public GameObject painelConfiguracoes;
+
+    [Header("Painéis laterais")]
+    [SerializeField] GameObject painelOfertas;
+    [SerializeField] GameObject painelBencaos;
+    [SerializeField] GameObject painelBaus;
 
     [Header("Nome da cena de jogo")]
     public string nomeGameScene = "GameScene";
@@ -70,10 +80,13 @@ public class MainMenuManager : MonoBehaviour
         SceneManager.LoadScene(nomeGameScene);
     }
 
+    public void AbrirOfertas() => AbrirPainel(painelOfertas);
+    public void AbrirBencaos() => AbrirPainel(painelBencaos);
+    public void AbrirBaus()    => AbrirPainel(painelBaus);
+
     void AbrirPainel(GameObject painel)
     {
-        // Fecha todos antes de abrir o novo
-        foreach (GameObject p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking, painelConfiguracoes })
+        foreach (GameObject p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking, painelConfiguracoes, painelOfertas, painelBencaos, painelBaus })
             p?.SetActive(false);
         painel?.SetActive(true);
     }
@@ -88,6 +101,9 @@ public class MainMenuManager : MonoBehaviour
         botaoMissoes?.onClick.AddListener(() => AbrirPainel(painelMissoes));
         botaoRanking?.onClick.AddListener(() => AbrirPainel(painelRanking));
         botaoConfiguracoes?.onClick.AddListener(() => AbrirPainel(painelConfiguracoes));
+        botaoOfertas?.onClick.AddListener(AbrirOfertas);
+        botaoBencaos?.onClick.AddListener(AbrirBencaos);
+        botaoBaus?.onClick.AddListener(AbrirBaus);
         botaoColetarRecompensa?.onClick.AddListener(ColetarRecompensaDiaria);
     }
 
