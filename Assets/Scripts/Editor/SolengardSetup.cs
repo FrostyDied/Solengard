@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using System.Linq;
 using System.Text;
 using TMPro;
 
@@ -450,11 +451,14 @@ public static class SolengardSetup
 
     static int EnsureSystemObject<T>(string goName, StringBuilder log) where T : Component
     {
-        if (Object.FindFirstObjectByType<T>(FindObjectsInactive.Include) != null) return 0;
+        var activeScene = SceneManager.GetActiveScene();
+        var rootObjects = activeScene.GetRootGameObjects();
+        bool exists = rootObjects.Any(go => go.GetComponentInChildren<T>(true) != null);
+        if (exists) return 0;
 
-        var go = new GameObject(goName);
-        Undo.RegisterCreatedObjectUndo(go, "Solengard Setup All");
-        go.AddComponent<T>();
+        var newGO = new GameObject(goName);
+        Undo.RegisterCreatedObjectUndo(newGO, "Solengard Setup All");
+        newGO.AddComponent<T>();
 
         string msg = $"  Criado GameObject '{goName}' com componente {typeof(T).Name}";
         log.AppendLine(msg);
