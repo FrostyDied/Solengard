@@ -158,6 +158,12 @@ public static class SolengardLayoutSetup
             SetRect(RT(sGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,60),new(400,60)); EnsureTMP(sGO,"🔥 Dia 1",28f,Hex("#FFD700"));
             if(sN){ log.AppendLine("  CenterArea/TextoStreak"); total++; }
 
+            // SeasonBanner — sits 80px below center, between TextoStreak and PlayButton area
+            { var (bn,bnN)=FindOrCreateUI(tr,"SeasonBanner");
+              if(bnN){ SetRect(RT(bn),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-80),new(700,180)); EnsureImage(bn,Hex("#1E0A3C")); log.AppendLine("  CenterArea/SeasonBanner"); total++; }
+              var (bnt,bntN)=FindOrCreateUI(bn.transform,"TextoSeasonBanner");
+              if(bntN){ StretchFull(RT(bnt)); var tmp=EnsureTMP(bnt,"⚔ Temporada das Sombras\nComplete 50 waves para ganhar a skin lendária",28f,Color.white); tmp.enableWordWrapping=true; log.AppendLine("  SeasonBanner/TextoSeasonBanner"); total++; } }
+
             TryWire(mmmSO,"textoNivelPasse", textoTemporadaGO.GetComponent<TextMeshProUGUI>(),log);
             TryWire(mmmSO,"textoStreakLogin",textoStreakGO.GetComponent<TextMeshProUGUI>(),log);
         }
@@ -166,7 +172,9 @@ public static class SolengardLayoutSetup
         GameObject botaoOfertasGO, botaoBencaosGO, botaoBausGO;
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,"LeftPanel");
-            if(isNew){ SetRect(RT(go),new(0,.35f),new(0,.65f),new(0,.5f),Vector2.zero,new(120,0)); log.AppendLine("  LeftPanel"); total++; }
+            // Always apply: single-point anchor at left-center; x=65 keeps button edge 10px from border
+            SetRect(RT(go),new(0,.5f),new(0,.5f),new(0,.5f),new(65,0),new(120,400));
+            if(isNew){ log.AppendLine("  LeftPanel"); total++; }
             var vlg=go.GetComponent<VerticalLayoutGroup>()??go.AddComponent<VerticalLayoutGroup>();
             vlg.spacing=20f; vlg.childAlignment=TextAnchor.MiddleCenter;
             vlg.childControlWidth=false; vlg.childControlHeight=false;
@@ -175,13 +183,13 @@ public static class SolengardLayoutSetup
             var tr=go.transform;
 
             var (ofGO,ofN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoOfertas"); botaoOfertasGO=ofGO;
-            if(ofN){ RT(ofGO).sizeDelta=new(100,100); EnsureImage(ofGO,Hex("#2A1A0A")); EnsureButton(ofGO); AddLabel(ofGO,"OFERTAS",22f,Color.white);  log.AppendLine("  LeftPanel/BotaoOfertas");  total++; }
+            if(ofN){ RT(ofGO).sizeDelta=new(110,100); EnsureImage(ofGO,Hex("#2A1A0A")); EnsureButton(ofGO); var lbl=AddLabel(ofGO,"OFERTAS",20f,Color.white);  lbl.enableWordWrapping=false; log.AppendLine("  LeftPanel/BotaoOfertas");  total++; }
 
             var (beGO,beN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoBencaos"); botaoBencaosGO=beGO;
-            if(beN){ RT(beGO).sizeDelta=new(100,100); EnsureImage(beGO,Hex("#0A1A2A")); EnsureButton(beGO); AddLabel(beGO,"BÊNÇÃOS",22f,Color.white);  log.AppendLine("  LeftPanel/BotaoBencaos");  total++; }
+            if(beN){ RT(beGO).sizeDelta=new(110,100); EnsureImage(beGO,Hex("#0A1A2A")); EnsureButton(beGO); var lbl=AddLabel(beGO,"BÊNÇÃOS",20f,Color.white);  lbl.enableWordWrapping=false; log.AppendLine("  LeftPanel/BotaoBencaos");  total++; }
 
             var (baGO,baN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoBaus");    botaoBausGO=baGO;
-            if(baN){ RT(baGO).sizeDelta=new(100,100); EnsureImage(baGO,Hex("#1A0A2A")); EnsureButton(baGO); AddLabel(baGO,"BAÚS",22f,Color.white);      log.AppendLine("  LeftPanel/BotaoBaus");     total++; }
+            if(baN){ RT(baGO).sizeDelta=new(110,100); EnsureImage(baGO,Hex("#1A0A2A")); EnsureButton(baGO); var lbl=AddLabel(baGO,"BAÚS",20f,Color.white);      lbl.enableWordWrapping=false; log.AppendLine("  LeftPanel/BotaoBaus");     total++; }
 
             TryWire(mmmSO,"botaoOfertas",botaoOfertasGO.GetComponent<Button>(),log);
             TryWire(mmmSO,"botaoBencaos",botaoBencaosGO.GetComponent<Button>(),log);
@@ -191,7 +199,9 @@ public static class SolengardLayoutSetup
         // RightPanel
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,"RightPanel");
-            if(isNew){ SetRect(RT(go),new(1,.5f),new(1,.5f),new(1,.5f),Vector2.zero,new(120,200)); log.AppendLine("  RightPanel"); total++; }
+            // Always apply: anchor at right side, 70% up — below TopBar, above CenterArea midpoint
+            SetRect(RT(go),new(1,.7f),new(1,.7f),new(1,.5f),new(-70,0),new(120,120));
+            if(isNew){ log.AppendLine("  RightPanel"); total++; }
             var (c,n)=FindOrCreateUI(go.transform,"BotaoOferta");
             if(n){ SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),Vector2.zero,new(110,110)); EnsureImage(c,Hex("#3A1A0A")); EnsureButton(c); var lbl=AddLabel(c,"OFERTA\nQUENTE!",22f,Hex("#FF6600")); lbl.enableWordWrapping=false; log.AppendLine("  RightPanel/BotaoOferta"); total++; }
         }
@@ -201,9 +211,10 @@ public static class SolengardLayoutSetup
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,"PlayButton");
             playButtonGO=go;
+            // Always apply position — 160px above BottomTabs (140px tall), leaving 20px gap
+            SetRect(RT(go),new(.5f,0),new(.5f,0),new(.5f,0),new(0,160),new(700,130));
             if(isNew)
             {
-                SetRect(RT(go),new(.5f,0),new(.5f,0),new(.5f,0),new(0,180),new(700,130));
                 EnsureImage(go,Hex("#5A1090")); EnsureButton(go);
                 var lbl=AddLabel(go,"⚔ JOGAR",56f,Color.white); lbl.fontStyle=FontStyles.Bold;
                 var sh=lbl.gameObject.AddComponent<Shadow>(); sh.effectDistance=new(0,-4); sh.effectColor=new Color(0,0,0,.5f);
