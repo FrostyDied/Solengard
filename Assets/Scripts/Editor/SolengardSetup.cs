@@ -162,7 +162,7 @@ public static class SolengardSetup
                 mainCamGO = go;
                 continue;
             }
-            DestroyImmediate(go);
+            Object.DestroyImmediate(go);
         }
 
         // Destroy all children of Main Camera (e.g. misplaced systems parented to it)
@@ -172,7 +172,7 @@ public static class SolengardSetup
             foreach (Transform child in mainCamGO.transform)
                 children.Add(child.gameObject);
             foreach (var child in children)
-                DestroyImmediate(child);
+                Object.DestroyImmediate(child);
 
             mainCamGO.name = "Main Camera";
             try { mainCamGO.tag = "MainCamera"; } catch { }
