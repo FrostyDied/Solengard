@@ -419,11 +419,32 @@ public static class SolengardSetup
     static int RunCreateNewSystemObjects(StringBuilder log)
     {
         int total = 0;
+
+        // ── Core singletons ───────────────────────────────────────────────────────
+        total += EnsureSystemObject<GameManager>          ("GameManager",           log);
+        total += EnsureSystemObject<DiamondSystem>        ("DiamondSystem",         log);
+        total += EnsureSystemObject<ScoreSystem>          ("ScoreSystem",           log);
+        total += EnsureSystemObject<SeasonPassSystem>     ("SeasonPassSystem",      log);
+        total += EnsureSystemObject<DailyRewardSystem>    ("DailyRewardSystem",     log);
+        total += EnsureSystemObject<DailyMissionSystem>   ("DailyMissionSystem",    log);
+        total += EnsureSystemObject<AuthSystem>           ("AuthSystem",            log);
+        total += EnsureSystemObject<IAPSystem>            ("IAPSystem",             log);
+        total += EnsureSystemObject<LocalizationManager>  ("LocalizationManager",   log);
+
+        // ── Gameplay systems ──────────────────────────────────────────────────────
+        total += EnsureSystemObject<WaveManager>          ("WaveManager",           log);
+        total += EnsureSystemObject<ObjectPoolManager>    ("ObjectPoolManager",     log);
+        total += EnsureSystemObject<UpgradeSystem>        ("UpgradeSystem",         log);
+        total += EnsureSystemObject<ProceduralArenaSystem>("ProceduralArenaSystem", log);
+        total += EnsureSystemObject<GameSceneBootstrap>   ("GameSceneBootstrap",    log);
+
+        // ── Difficulty & wave sub-systems ─────────────────────────────────────────
         total += EnsureSystemObject<WaveTimerSystem>         ("WaveTimerSystem",          log);
         total += EnsureSystemObject<DifficultyAdaptiveSystem>("DifficultyAdaptiveSystem", log);
         total += EnsureSystemObject<RunRewardSystem>         ("RunRewardSystem",           log);
         total += EnsureSystemObject<DynamicDifficultySystem> ("DynamicDifficultySystem",  log);
         total += EnsureSystemObject<TemporaryPowerSystem>    ("TemporaryPowerSystem",      log);
+
         return total;
     }
 
