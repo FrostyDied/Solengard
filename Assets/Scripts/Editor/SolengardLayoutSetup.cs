@@ -121,7 +121,7 @@ public static class SolengardLayoutSetup
 
             var (cfgGO,cfgN)=FindOrCreateUI(tr,"BotaoConfiguracoes");
             botaoConfigGO=cfgGO;
-            if(cfgN){ SetRect(RT(cfgGO),new(1,1),new(1,1),new(1,1),new(-20,-35),new(70,70)); EnsureImage(cfgGO,Hex("#1A1A2A")); EnsureButton(cfgGO); AddLabel(cfgGO,"⚙",32f,Color.white); log.AppendLine("  TopBar/BotaoConfiguracoes"); total++; }
+            if(cfgN){ SetRect(RT(cfgGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-60,0),new(70,70)); EnsureImage(cfgGO,Hex("#1A1A2A")); EnsureButton(cfgGO); AddLabel(cfgGO,"⚙",32f,Color.white); log.AppendLine("  TopBar/BotaoConfiguracoes"); total++; }
 
             TryWire(mmmSO,"textoDiamantes",    textoDiamantesGO.GetComponent<TextMeshProUGUI>(),log);
             TryWire(mmmSO,"botaoConfiguracoes",botaoConfigGO.GetComponent<Button>(),log);
@@ -142,7 +142,7 @@ public static class SolengardLayoutSetup
 
             var (sGO,sN)=FindOrCreateUI(tr,"TextoStreak");
             textoStreakGO=sGO;
-            if(sN){ SetRect(RT(sGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,60),new(400,60)); EnsureTMP(sGO,"🔥 Dia 1",28f,Hex("#FFD700")); log.AppendLine("  CenterArea/TextoStreak"); total++; }
+            if(sN){ SetRect(RT(sGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,20),new(400,60)); EnsureTMP(sGO,"🔥 Dia 1",28f,Hex("#FFD700")); log.AppendLine("  CenterArea/TextoStreak"); total++; }
 
             TryWire(mmmSO,"textoNivelPasse", textoTemporadaGO.GetComponent<TextMeshProUGUI>(),log);
             TryWire(mmmSO,"textoStreakLogin",textoStreakGO.GetComponent<TextMeshProUGUI>(),log);
@@ -152,7 +152,7 @@ public static class SolengardLayoutSetup
         GameObject botaoRankingGO;
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,"LeftPanel");
-            if(isNew){ SetRect(RT(go),new(0,.5f),new(0,.5f),new(0,.5f),Vector2.zero,new(120,400)); log.AppendLine("  LeftPanel"); total++; }
+            if(isNew){ SetRect(RT(go),new(0,.35f),new(0,.65f),new(0,.5f),Vector2.zero,new(120,0)); log.AppendLine("  LeftPanel"); total++; }
             var vlg=go.GetComponent<VerticalLayoutGroup>()??go.AddComponent<VerticalLayoutGroup>();
             vlg.spacing=20f; vlg.childAlignment=TextAnchor.MiddleCenter;
             vlg.childControlWidth=false; vlg.childControlHeight=false;
