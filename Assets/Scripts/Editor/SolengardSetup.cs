@@ -132,6 +132,128 @@ public static class SolengardSetup
     static bool ValidateSetupAll() =>
         !string.IsNullOrEmpty(EditorSceneManager.GetActiveScene().name);
 
+    // ── Rebuild GameScene ────────────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Rebuild GameScene")]
+    static void RebuildGameScene()
+    {
+        // 1. Validate — must be GameScene
+        if (!ValidateScene(out var scene)) return;
+        if (!LoadAssets(out var gameConfig, out var playerData)) return;
+
+        // 2. Confirm
+        if (!EditorUtility.DisplayDialog("Rebuild GameScene",
+            "Isso vai recriar todos os GameObjects da GameScene do zero.\n\n" +
+            "A Main Camera será preservada. Continuar?",
+            "Reconstruir", "Cancelar"))
+            return;
+
+        Undo.SetCurrentGroupName("Rebuild GameScene");
+        int undoGroup = Undo.GetCurrentGroup();
+
+        // 3. Delete all root GOs except the one that holds the Camera
+        GameObject mainCamGO = null;
+        foreach (var go in scene.GetRootGameObjects())
+        {
+            if (go.GetComponentInChildren<Camera>(true) != null) { mainCamGO = go; continue; }
+            Undo.DestroyObjectImmediate(go);
+        }
+
+        if (mainCamGO != null)
+        {
+            mainCamGO.name = "Main Camera";
+            try { mainCamGO.tag = "MainCamera"; } catch { }
+            if (mainCamGO.GetComponent<AudioListener>() == null)
+                mainCamGO.AddComponent<AudioListener>();
+            var cam = mainCamGO.GetComponent<Camera>();
+            if (cam != null)
+            {
+                cam.clearFlags      = CameraClearFlags.SolidColor;
+                cam.backgroundColor = new Color(0.05f, 0.05f, 0.1f);
+            }
+        }
+
+        // 4. Create every system as a root GO (same order as RunCreateNewSystemObjects)
+        CreateSceneSystem<GameManager>           ("GameManager");
+        CreateSceneSystem<WaveManager>           ("WaveManager");
+        CreateSceneSystem<ObjectPoolManager>     ("ObjectPoolManager");
+        CreateSceneSystem<UpgradeSystem>         ("UpgradeSystem");
+        CreateSceneSystem<DiamondSystem>         ("DiamondSystem");
+        CreateSceneSystem<DailyMissionSystem>    ("DailyMissionSystem");
+        CreateSceneSystem<DailyRewardSystem>     ("DailyRewardSystem");
+        CreateSceneSystem<ScoreSystem>           ("ScoreSystem");
+        CreateSceneSystem<SeasonPassSystem>      ("SeasonPassSystem");
+        CreateSceneSystem<AuthSystem>            ("AuthSystem");
+        CreateSceneSystem<IAPSystem>             ("IAPSystem");
+        CreateSceneSystem<LocalizationManager>   ("LocalizationManager");
+        CreateSceneSystem<ProceduralArenaSystem> ("ProceduralArenaSystem");
+        CreateSceneSystem<GameSceneBootstrap>    ("GameSceneBootstrap");
+        CreateSceneSystem<WaveTimerSystem>          ("WaveTimerSystem");
+        CreateSceneSystem<DifficultyAdaptiveSystem> ("DifficultyAdaptiveSystem");
+        CreateSceneSystem<RunRewardSystem>          ("RunRewardSystem");
+        CreateSceneSystem<DynamicDifficultySystem>  ("DynamicDifficultySystem");
+        CreateSceneSystem<TemporaryPowerSystem>     ("TemporaryPowerSystem");
+
+        // 5. Player — Square 2D with all player components
+        var playerGO = new GameObject("Player");
+        Undo.RegisterCreatedObjectUndo(playerGO, "Rebuild GameScene");
+        SceneManager.MoveGameObjectToScene(playerGO, scene);
+        playerGO.transform.parent   = null;
+        playerGO.transform.position = Vector3.zero;
+        try { playerGO.tag = "Player"; }
+        catch { Debug.LogWarning("[SolengardSetup] Tag 'Player' não existe — adicione em Project Settings → Tags."); }
+
+        // Placeholder sprite: 32×32 px at 32 PPU = 1×1 unit blue square
+        var sr  = playerGO.AddComponent<SpriteRenderer>();
+        var tex = new Texture2D(32, 32);
+        var px  = new Color[32 * 32];
+        for (int i = 0; i < px.Length; i++) px[i] = new Color(0.2f, 0.55f, 1f);
+        tex.SetPixels(px);
+        tex.Apply();
+        sr.sprite = Sprite.Create(tex, new Rect(0, 0, 32, 32), Vector2.one * 0.5f, 32f);
+
+        var col = playerGO.AddComponent<BoxCollider2D>();
+        col.size = Vector2.one;
+        var rb   = playerGO.AddComponent<Rigidbody2D>();
+        rb.gravityScale   = 0f;
+        rb.freezeRotation = true;
+
+        playerGO.AddComponent<PlayerController>();
+        playerGO.AddComponent<PlayerHealth>();
+        playerGO.AddComponent<PlayerAttack>();
+        playerGO.AddComponent<PlayerWeapon>();
+        playerGO.AddComponent<PassiveItemSystem>();
+        playerGO.AddComponent<WeaponEvolutionSystem>();
+
+        // 6. Wire references — Setup Scene + Systems + Pools
+        var log   = new StringBuilder();
+        var warns = new StringBuilder();
+        log.AppendLine("── Setup Scene ──────────────────────");
+        RunSetupScene(gameConfig, playerData, log);
+        log.AppendLine("\n── Setup Systems ────────────────────");
+        RunSetupSystems(log, warns);
+        log.AppendLine("\n── Setup Pools & Upgrades ───────────");
+        RunSetupPoolsAndUpgrades(log);
+
+        // 7. Collapse Undo + save scene
+        Undo.CollapseUndoOperations(undoGroup);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.Refresh();
+
+        // 8. Summary dialog
+        int rootCount = scene.GetRootGameObjects().Length;
+        var sb = new StringBuilder();
+        sb.AppendLine($"✓ GameScene recriada com {rootCount} GameObjects na raiz da cena.\n");
+        if (warns.Length > 0) sb.AppendLine($"⚠ Avisos:\n{warns}");
+        AppendManualPendencies(sb);
+        EditorUtility.DisplayDialog("Solengard — GameScene Recriada", sb.ToString(), "OK");
+    }
+
+    [MenuItem("Solengard/Rebuild GameScene", validate = true)]
+    static bool ValidateRebuildGameScene() =>
+        EditorSceneManager.GetActiveScene().name == EXPECTED_SCENE;
+
     // ── Create MainMenu Scene ────────────────────────────────────────────────────
 
     [MenuItem("Solengard/Create MainMenu Scene")]
@@ -517,6 +639,17 @@ public static class SolengardSetup
         while (prop.NextVisible(false));
 
         dstSO.ApplyModifiedProperties();
+    }
+
+    // Creates a named GameObject at the root of the active scene with component T attached.
+    static GameObject CreateSceneSystem<T>(string goName) where T : Component
+    {
+        var go = new GameObject(goName);
+        Undo.RegisterCreatedObjectUndo(go, "Rebuild GameScene");
+        SceneManager.MoveGameObjectToScene(go, SceneManager.GetActiveScene());
+        go.transform.parent = null;
+        go.AddComponent<T>();
+        return go;
     }
 
     static int RunSetupPoolsAndUpgrades(StringBuilder log)
