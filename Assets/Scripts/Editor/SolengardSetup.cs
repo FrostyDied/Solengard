@@ -151,16 +151,29 @@ public static class SolengardSetup
         Undo.SetCurrentGroupName("Rebuild GameScene");
         int undoGroup = Undo.GetCurrentGroup();
 
-        // 3. Delete all root GOs except the one that holds the Camera
+        // 3. Collect all root GOs first, then destroy cleanly
+        var rootSnapshot = scene.GetRootGameObjects(); // snapshot before any destruction
+
         GameObject mainCamGO = null;
-        foreach (var go in scene.GetRootGameObjects())
+        foreach (var go in rootSnapshot)
         {
-            if (go.GetComponentInChildren<Camera>(true) != null) { mainCamGO = go; continue; }
-            Undo.DestroyObjectImmediate(go);
+            if (go.GetComponentInChildren<Camera>(true) != null)
+            {
+                mainCamGO = go;
+                continue;
+            }
+            DestroyImmediate(go);
         }
 
+        // Destroy all children of Main Camera (e.g. misplaced systems parented to it)
         if (mainCamGO != null)
         {
+            var children = new System.Collections.Generic.List<GameObject>();
+            foreach (Transform child in mainCamGO.transform)
+                children.Add(child.gameObject);
+            foreach (var child in children)
+                DestroyImmediate(child);
+
             mainCamGO.name = "Main Camera";
             try { mainCamGO.tag = "MainCamera"; } catch { }
             if (mainCamGO.GetComponent<AudioListener>() == null)
