@@ -101,7 +101,10 @@ public static class SolengardSetup
         var log   = new StringBuilder();
         var warns = new StringBuilder();
 
-        log.AppendLine("── Setup Scene ──────────────────────");
+        log.AppendLine("── Criar Sistemas Novos ─────────────");
+        int t0 = RunCreateNewSystemObjects(log);
+
+        log.AppendLine("\n── Setup Scene ──────────────────────");
         int t1 = RunSetupScene(gameConfig, playerData, log);
 
         log.AppendLine("\n── Setup Systems ────────────────────");
@@ -110,7 +113,7 @@ public static class SolengardSetup
         log.AppendLine("\n── Setup Pools & Upgrades ───────────");
         int t3 = RunSetupPoolsAndUpgrades(log);
 
-        int total = t1 + t2 + t3;
+        int total = t0 + t1 + t2 + t3;
         if (total > 0) EditorSceneManager.MarkSceneDirty(scene);
 
         var sb = new StringBuilder();
@@ -375,7 +378,40 @@ public static class SolengardSetup
         // PlayerAttack.enemyLayerMask
         total += TryAssignLayerMask<PlayerAttack>("enemyLayerMask", "Enemy", log, warns);
 
+        // New systems — cross-component wiring
+        total += TryAssignComponent<WaveManager,      WaveTimerSystem>("waveTimerSystem", log);
+        total += TryAssignComponent<GameManager,      RunRewardSystem>("runRewardSystem", log);
+        total += TryAssignComponent<RunRewardSystem,  WaveTimerSystem>("waveTimerSystem", log);
+
+        // DifficultyAdaptiveSystem — presence check only (no reference to wire)
+        if (Object.FindFirstObjectByType<DifficultyAdaptiveSystem>(FindObjectsInactive.Include) == null)
+            warns.AppendLine("  DifficultyAdaptiveSystem não encontrado na cena. Execute 'Setup All' para criá-lo automaticamente.");
+
         return total;
+    }
+
+    // Creates required system GameObjects if absent; called by SetupAll before wiring.
+    static int RunCreateNewSystemObjects(StringBuilder log)
+    {
+        int total = 0;
+        total += EnsureSystemObject<WaveTimerSystem>("WaveTimerSystem", log);
+        total += EnsureSystemObject<DifficultyAdaptiveSystem>("DifficultyAdaptiveSystem", log);
+        total += EnsureSystemObject<RunRewardSystem>("RunRewardSystem", log);
+        return total;
+    }
+
+    static int EnsureSystemObject<T>(string goName, StringBuilder log) where T : Component
+    {
+        if (Object.FindFirstObjectByType<T>(FindObjectsInactive.Include) != null) return 0;
+
+        var go = new GameObject(goName);
+        Undo.RegisterCreatedObjectUndo(go, "Solengard Setup All");
+        go.AddComponent<T>();
+
+        string msg = $"  Criado GameObject '{goName}' com componente {typeof(T).Name}";
+        log.AppendLine(msg);
+        Debug.Log($"[SolengardSetup] {msg}");
+        return 1;
     }
 
     static int RunSetupPoolsAndUpgrades(StringBuilder log)
@@ -739,6 +775,12 @@ public static class SolengardSetup
         sb.AppendLine();
         sb.AppendLine("• HUDComplete, UpgradeUIManager, MainMenuManager, MobileJoystick");
         sb.AppendLine("  (todas as referências de UI — configurar após montar as cenas)");
+        sb.AppendLine();
+        sb.AppendLine("• GameOverScreen → 6 TextMeshProUGUI + painel");
+        sb.AppendLine("  (criar Canvas/Panel, arrastar textos TMP, conectar botões a OnRestartButton/OnMainMenuButton)");
+        sb.AppendLine();
+        sb.AppendLine("• WaveWarningUI → banner + CanvasGroup + TextMeshProUGUI");
+        sb.AppendLine("  (criar banner de aviso na hierarquia da GameScene)");
     }
 
     // ── Helpers — Create MainMenu Scene ──────────────────────────────────────────
