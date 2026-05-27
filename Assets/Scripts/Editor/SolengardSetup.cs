@@ -453,9 +453,25 @@ public static class SolengardSetup
     {
         var activeScene = SceneManager.GetActiveScene();
         var rootObjects = activeScene.GetRootGameObjects();
-        bool exists = rootObjects.Any(go => go.GetComponentInChildren<T>(true) != null);
-        if (exists) return 0;
 
+        // Find existing instance within the active scene only
+        T existing = null;
+        foreach (var root in rootObjects)
+        {
+            existing = root.GetComponentInChildren<T>(true);
+            if (existing != null) break;
+        }
+
+        if (existing != null)
+        {
+            // Already on the correct GO — nothing to do
+            if (existing.gameObject.name == goName) return 0;
+
+            // On the wrong GO (e.g. GameManager on "Main Camera") — move it
+            return MoveSystemComponent(existing, goName, log);
+        }
+
+        // Not in scene at all — create
         var newGO = new GameObject(goName);
         Undo.RegisterCreatedObjectUndo(newGO, "Solengard Setup All");
         newGO.AddComponent<T>();
@@ -464,6 +480,43 @@ public static class SolengardSetup
         log.AppendLine(msg);
         Debug.Log($"[SolengardSetup] {msg}");
         return 1;
+    }
+
+    // Moves component T from its current (wrong) GO to a new correctly-named GO,
+    // copying all serialized references in the process.
+    static int MoveSystemComponent<T>(T oldComponent, string newGoName, StringBuilder log) where T : Component
+    {
+        string oldGoName = oldComponent.gameObject.name;
+
+        var newGO = new GameObject(newGoName);
+        Undo.RegisterCreatedObjectUndo(newGO, "Solengard Setup All");
+        var newComp = newGO.AddComponent<T>();
+        CopySerializedProperties(oldComponent, newComp);
+        Undo.DestroyObjectImmediate(oldComponent); // removes component only, not the GO
+
+        string msg = $"  Movido {typeof(T).Name}: '{oldGoName}' → '{newGoName}'";
+        log.AppendLine(msg);
+        Debug.Log($"[SolengardSetup] {msg}");
+        return 1;
+    }
+
+    // Copies all visible serialized fields from src to dst (skips m_Script).
+    static void CopySerializedProperties(Component src, Component dst)
+    {
+        var srcSO = new SerializedObject(src);
+        var dstSO = new SerializedObject(dst);
+
+        SerializedProperty prop = srcSO.GetIterator();
+        if (!prop.NextVisible(true)) return;
+        do
+        {
+            if (prop.name == "m_Script") continue;
+            SerializedProperty dstProp = dstSO.FindProperty(prop.propertyPath);
+            if (dstProp != null) dstSO.CopyFromSerializedProperty(prop);
+        }
+        while (prop.NextVisible(false));
+
+        dstSO.ApplyModifiedProperties();
     }
 
     static int RunSetupPoolsAndUpgrades(StringBuilder log)
