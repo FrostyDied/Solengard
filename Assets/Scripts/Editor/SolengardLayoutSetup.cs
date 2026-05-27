@@ -144,34 +144,30 @@ public static class SolengardLayoutSetup
             if(isNew){ var rt=RT(go); rt.anchorMin=Vector2.zero; rt.anchorMax=Vector2.one; rt.offsetMin=new(0,140); rt.offsetMax=new(0,-140); log.AppendLine("  CenterArea"); total++; }
             var tr=go.transform;
 
-            // Always apply positions — re-running layout fixes existing overlapping elements
-            // Y layout (relative to CenterArea center): Titulo 300→250-350, Temporada 170→140-200, Streak 60→30-90 (50px gaps)
-            { var (c,n)=FindOrCreateUI(tr,"TextoTitulo"); SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,300),new(800,100)); var t=EnsureTMP(c,"SOLENGARD",72f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold; if(n){ log.AppendLine("  CenterArea/TextoTitulo"); total++; } }
+            // Always apply all positions — re-running layout corrects existing scenes
+            { var (c,n)=FindOrCreateUI(tr,"TextoTitulo"); SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,350),new(800,100)); var t=EnsureTMP(c,"SOLENGARD",72f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold; if(n){ log.AppendLine("  CenterArea/TextoTitulo"); total++; } }
 
             var (tGO,tN)=FindOrCreateUI(tr,"TextoTemporada");
             textoTemporadaGO=tGO;
-            SetRect(RT(tGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,170),new(600,60)); EnsureTMP(tGO,"Temporada 1",28f,Hex("#8080AA"));
+            SetRect(RT(tGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,280),new(600,60)); EnsureTMP(tGO,"Temporada 1",28f,Hex("#8080AA"));
             if(tN){ log.AppendLine("  CenterArea/TextoTemporada"); total++; }
 
             var (sGO,sN)=FindOrCreateUI(tr,"TextoStreak");
             textoStreakGO=sGO;
-            SetRect(RT(sGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,60),new(400,60)); EnsureTMP(sGO,"🔥 Dia 1",28f,Hex("#FFD700"));
+            SetRect(RT(sGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,230),new(400,60)); EnsureTMP(sGO,"🔥 Dia 1",28f,Hex("#FFD700"));
             if(sN){ log.AppendLine("  CenterArea/TextoStreak"); total++; }
 
-            // SeasonBanner — sits 80px below center, between TextoStreak and PlayButton area
+            // SeasonBanner — always apply position
             { var (bn,bnN)=FindOrCreateUI(tr,"SeasonBanner");
-              if(bnN){ SetRect(RT(bn),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-80),new(700,180)); EnsureImage(bn,Hex("#1E0A3C")); log.AppendLine("  CenterArea/SeasonBanner"); total++; }
+              SetRect(RT(bn),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,120),new(700,180));
+              if(bnN){ EnsureImage(bn,Hex("#1E0A3C")); log.AppendLine("  CenterArea/SeasonBanner"); total++; }
               var (bnt,bntN)=FindOrCreateUI(bn.transform,"TextoSeasonBanner");
               if(bntN){ StretchFull(RT(bnt)); var tmp=EnsureTMP(bnt,"⚔ Temporada das Sombras\nComplete 50 waves para ganhar a skin lendária",28f,Color.white); tmp.enableWordWrapping=true; log.AppendLine("  SeasonBanner/TextoSeasonBanner"); total++; } }
 
-            // BotaoOferta — floating card on right edge of CenterArea (migrated from RightPanel)
-            { var (bo,boN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoOferta");
-              SetRect(RT(bo),new(1,.6f),new(1,.6f),new(1,.5f),new(-80,0),new(140,140));
-              if(boN){ EnsureImage(bo,Hex("#3A1A0A")); EnsureButton(bo); var lbl=AddLabel(bo,"OFERTA\nQUENTE!",22f,Hex("#FF6600")); lbl.enableWordWrapping=false; log.AppendLine("  CenterArea/BotaoOferta"); total++; } }
-
-            // FeaturedContent — stats card below SeasonBanner
+            // FeaturedContent — always apply position
             { var (fc,fcN)=FindOrCreateUI(tr,"FeaturedContent");
-              if(fcN){ SetRect(RT(fc),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-280),new(700,160)); EnsureImage(fc,Hex("#0D0D2A")); log.AppendLine("  CenterArea/FeaturedContent"); total++; }
+              SetRect(RT(fc),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-60),new(700,160));
+              if(fcN){ EnsureImage(fc,Hex("#0D0D2A")); log.AppendLine("  CenterArea/FeaturedContent"); total++; }
               var (mp,mpN)=FindOrCreateUI(fc.transform,"TextoMelhorPontuacao");
               if(mpN){ SetRect(RT(mp),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,30),new(680,60)); EnsureTMP(mp,"🏆 Melhor Pontuação: 0",32f,Hex("#FFD700")); log.AppendLine("  FeaturedContent/TextoMelhorPontuacao"); total++; }
               var (ur,urN)=FindOrCreateUI(fc.transform,"TextoUltimaRun");
@@ -185,41 +181,46 @@ public static class SolengardLayoutSetup
         GameObject botaoOfertasGO, botaoBencaosGO, botaoBausGO;
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,"LeftPanel");
-            // Always apply: single-point anchor at left-center; x=70 centers buttons 70px from left border
-            SetRect(RT(go),new(0,.5f),new(0,.5f),new(0,.5f),new(70,0),new(130,320));
+            // Always apply: stretched anchor flush to left edge, pivot left-center (Squad Busters style)
+            SetRect(RT(go),new(0,.35f),new(0,.65f),new(0,.5f),Vector2.zero,new(100,0));
             if(isNew){ log.AppendLine("  LeftPanel"); total++; }
             var vlg=go.GetComponent<VerticalLayoutGroup>()??go.AddComponent<VerticalLayoutGroup>();
             vlg.spacing=20f; vlg.childAlignment=TextAnchor.MiddleCenter;
             vlg.childControlWidth=false; vlg.childControlHeight=false;
             vlg.childForceExpandWidth=false; vlg.childForceExpandHeight=false;
-            vlg.padding=new RectOffset(10,10,30,30);
+            vlg.padding=new RectOffset(5,5,20,20);
             var tr=go.transform;
 
             var (ofGO,ofN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoOfertas"); botaoOfertasGO=ofGO;
-            if(ofN){ RT(ofGO).sizeDelta=new(120,90); EnsureImage(ofGO,Hex("#2A1A0A")); EnsureButton(ofGO); var lbl=AddLabel(ofGO,"OFERTAS",18f,Color.white);  lbl.enableWordWrapping=false; log.AppendLine("  LeftPanel/BotaoOfertas");  total++; }
+            if(ofN){ RT(ofGO).sizeDelta=new(90,90); EnsureImage(ofGO,Hex("#2A1A0A")); EnsureButton(ofGO); var lbl=AddLabel(ofGO,"OFERTAS",16f,Color.white);  lbl.enableWordWrapping=false; log.AppendLine("  LeftPanel/BotaoOfertas");  total++; }
 
             var (beGO,beN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoBencaos"); botaoBencaosGO=beGO;
-            if(beN){ RT(beGO).sizeDelta=new(120,90); EnsureImage(beGO,Hex("#0A1A2A")); EnsureButton(beGO); var lbl=AddLabel(beGO,"BÊNÇÃOS",18f,Color.white);  lbl.enableWordWrapping=false; log.AppendLine("  LeftPanel/BotaoBencaos");  total++; }
+            if(beN){ RT(beGO).sizeDelta=new(90,90); EnsureImage(beGO,Hex("#0A1A2A")); EnsureButton(beGO); var lbl=AddLabel(beGO,"BÊNÇÃOS",16f,Color.white);  lbl.enableWordWrapping=false; log.AppendLine("  LeftPanel/BotaoBencaos");  total++; }
 
             var (baGO,baN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoBaus");    botaoBausGO=baGO;
-            if(baN){ RT(baGO).sizeDelta=new(120,90); EnsureImage(baGO,Hex("#1A0A2A")); EnsureButton(baGO); var lbl=AddLabel(baGO,"BAÚS",18f,Color.white);      lbl.enableWordWrapping=false; log.AppendLine("  LeftPanel/BotaoBaus");     total++; }
+            if(baN){ RT(baGO).sizeDelta=new(90,90); EnsureImage(baGO,Hex("#1A0A2A")); EnsureButton(baGO); var lbl=AddLabel(baGO,"BAÚS",16f,Color.white);      lbl.enableWordWrapping=false; log.AppendLine("  LeftPanel/BotaoBaus");     total++; }
 
             TryWire(mmmSO,"botaoOfertas",botaoOfertasGO.GetComponent<Button>(),log);
             TryWire(mmmSO,"botaoBencaos",botaoBencaosGO.GetComponent<Button>(),log);
             TryWire(mmmSO,"botaoBaus",   botaoBausGO.GetComponent<Button>(),   log);
         }
 
-        // RightPanel — BotaoOferta migrated to CenterArea; destroy if now empty
+        // RightPanel — remove if empty (BotaoOferta is now at canvas level)
         { var rpTr=canvasTr.Find("RightPanel");
           if(rpTr!=null && rpTr.childCount==0) total+=DestroyLegacyGO(canvasTr,"RightPanel",log); }
+
+        // BotaoOferta — flush to right edge, symmetric to LeftPanel
+        { var (bo,boN)=FindReparentOrCreateUI(canvasTr,canvasTr,"BotaoOferta");
+          SetRect(RT(bo),new(1,.5f),new(1,.5f),new(1,.5f),new(-5,0),new(110,110));
+          if(boN){ EnsureImage(bo,Hex("#3A1A0A")); EnsureButton(bo); var lbl=AddLabel(bo,"OFERTA\nQUENTE!",22f,Hex("#FF6600")); lbl.enableWordWrapping=false; log.AppendLine("  BotaoOferta (borda direita)"); total++; } }
 
         // PlayButton
         GameObject playButtonGO;
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,"PlayButton");
             playButtonGO=go;
-            // Always apply position — 160px above BottomTabs (140px tall), leaving 20px gap
-            SetRect(RT(go),new(.5f,0),new(.5f,0),new(.5f,0),new(0,160),new(700,130));
+            // Always apply position — 180px above bottom, clearing BottomTabs (140px) with 40px gap
+            SetRect(RT(go),new(.5f,0),new(.5f,0),new(.5f,0),new(0,180),new(700,130));
             if(isNew)
             {
                 EnsureImage(go,Hex("#5A1090")); EnsureButton(go);
