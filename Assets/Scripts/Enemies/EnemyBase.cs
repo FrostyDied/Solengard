@@ -9,6 +9,11 @@ public class EnemyBase : MonoBehaviour
     public float moveSpeed = 2f;
     public float damage = 10f;
 
+    [Header("Movimento")]
+    public float stoppingDistance   = 0.3f;
+    public float separationRadius   = 1.5f;
+    public float separationStrength = 0.6f;
+
     [Header("Referências")]
     // Deixe vazio para usar busca automática em Awake
     public Transform playerTransform;
@@ -47,13 +52,31 @@ public class EnemyBase : MonoBehaviour
         MoveTowardsPlayer();
     }
 
-    // Move o inimigo em direção ao player a cada frame físico
     void MoveTowardsPlayer()
     {
         if (playerTransform == null) return;
 
-        Vector2 direction = ((Vector2)playerTransform.position - rb.position).normalized;
-        rb.linearVelocity = direction * moveSpeed;
+        float dist = Vector2.Distance(rb.position, (Vector2)playerTransform.position);
+        if (dist <= stoppingDistance) { rb.linearVelocity = Vector2.zero; return; }
+
+        Vector2 toPlayer   = ((Vector2)playerTransform.position - rb.position).normalized;
+        Vector2 separation = ComputeSeparation();
+        rb.linearVelocity  = (toPlayer + separation * separationStrength).normalized * moveSpeed;
+    }
+
+    Vector2 ComputeSeparation()
+    {
+        Vector2 sep    = Vector2.zero;
+        var     nearby = Physics2D.OverlapCircleAll(rb.position, separationRadius);
+        foreach (var col in nearby)
+        {
+            if (col.gameObject == gameObject) continue;
+            if (col.GetComponent<EnemyBase>() == null) continue;
+            Vector2 away = rb.position - (Vector2)col.transform.position;
+            float   d    = away.magnitude;
+            if (d > 0.01f) sep += away / d;
+        }
+        return sep;
     }
 
     // Recebe dano e dispara Die() quando a vida chega a zero

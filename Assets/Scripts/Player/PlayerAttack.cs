@@ -23,6 +23,10 @@ public class PlayerAttack : MonoBehaviour
     {
         weapon = GetComponent<PlayerWeapon>();
         SyncFromWeapon();
+
+        // Fallbacks para quando o campo não foi configurado no Inspector
+        if (enemyLayerMask == 0) enemyLayerMask = LayerMask.GetMask("Enemy");
+        if (attackRange    <= 0f) attackRange   = 3f;
     }
 
     void OnEnable()  => PlayerWeapon.OnWeaponUpgraded += AoUpgradeArma;
