@@ -238,6 +238,15 @@ public static class SolengardSetup
         playerGO.AddComponent<PassiveItemSystem>();
         playerGO.AddComponent<WeaponEvolutionSystem>();
 
+        // Wire CameraFollow on Main Camera — target = Player
+        if (mainCamGO != null)
+        {
+            var cf   = mainCamGO.AddComponent<CameraFollow>();
+            var cfSO = new SerializedObject(cf);
+            var prop = cfSO.FindProperty("target");
+            if (prop != null) { prop.objectReferenceValue = playerGO.transform; cfSO.ApplyModifiedProperties(); }
+        }
+
         // 6. Wire references — Setup Scene + Systems + Pools
         var log   = new StringBuilder();
         var warns = new StringBuilder();

@@ -21,8 +21,11 @@ public class WaveManager : MonoBehaviour
     [Header("Pontos de Spawn")]
     public List<Transform> spawnPoints = new();
 
+    [Header("Spawn contínuo")]
+    [SerializeField] float spawnInterval = 0.3f;
+
     [Header("Sistemas")]
-    [SerializeField] WaveTimerSystem        waveTimerSystem;
+    [SerializeField] WaveTimerSystem         waveTimerSystem;
     [SerializeField] DynamicDifficultySystem dynamicDifficulty;
 
     // ── Valores lidos do GameConfig (com fallback nos padrões) ──────────────────
@@ -37,7 +40,9 @@ public class WaveManager : MonoBehaviour
     // ── Estado interno ──────────────────────────────────────────────────────────
 
     int  currentWave  = 0;
-    int  enemiesAlive = 0;
+    int  enemiesAlive = 0;  // inimigos atualmente ativos na tela
+    int  killCount    = 0;  // kills realizados nesta wave
+    int  killQuota    = 0;  // kills necessários para concluir a wave
     bool isSpawning   = false;
 
     static readonly Vector2[] fallbackSpawnPositions =
@@ -59,40 +64,46 @@ public class WaveManager : MonoBehaviour
         if (isSpawning) return;
 
         currentWave++;
-        int count = EnemyCountForWave(currentWave);
+        killQuota    = EnemyCountForWave(currentWave);
+        killCount    = 0;
+        enemiesAlive = 0;
 
-        // Limita pelo maxEnemiesOnScreen do tier atual
-        if (dynamicDifficulty != null)
-            count = Mathf.Min(count, dynamicDifficulty.MaxEnemiesOnScreen);
-
-        enemiesAlive = count;
-
-        Debug.Log($"[WaveManager] Wave {currentWave}/{TotalWavesConfig} iniciada — {count} inimigos");
+        Debug.Log($"[WaveManager] Wave {currentWave}/{TotalWavesConfig} — quota: {killQuota} kills");
 
         waveTimerSystem?.StartTimer();
-        StartCoroutine(SpawnWave(count));
+        StartCoroutine(SpawnLoop());
     }
 
+    // Chamado pelo OnDeathCallback de cada inimigo
     public void OnEnemyDied()
     {
         enemiesAlive--;
-        if (enemiesAlive <= 0)
+        killCount++;
+
+        if (killCount >= killQuota)
             EndWave();
     }
 
     // ── Lógica interna ──────────────────────────────────────────────────────────
 
-    IEnumerator SpawnWave(int count)
+    // Spawna continuamente enquanto a wave está ativa,
+    // respeitando o limite de inimigos na tela.
+    IEnumerator SpawnLoop()
     {
         isSpawning = true;
 
-        for (int i = 0; i < count; i++)
+        while (isSpawning)
         {
-            SpawnEnemy();
-            yield return new WaitForSeconds(0.4f);
-        }
+            int maxOnScreen = dynamicDifficulty != null ? dynamicDifficulty.MaxEnemiesOnScreen : 20;
 
-        isSpawning = false;
+            if (enemiesAlive < maxOnScreen)
+            {
+                SpawnEnemy();
+                enemiesAlive++;
+            }
+
+            yield return new WaitForSeconds(spawnInterval);
+        }
     }
 
     void SpawnEnemy()
@@ -147,7 +158,7 @@ public class WaveManager : MonoBehaviour
         float mod = DifficultyAdaptiveSystem.Instance.EnemyHealthModifier;
         if (Mathf.Approximately(mod, 1f)) return;
 
-        enemy.maxHealth = enemy.maxHealth * mod;
+        enemy.maxHealth *= mod;
         enemy.InitializeHealth();
     }
 
@@ -162,7 +173,9 @@ public class WaveManager : MonoBehaviour
 
     void EndWave()
     {
-        Debug.Log($"[WaveManager] Wave {currentWave} concluída.");
+        isSpawning = false; // para o SpawnLoop
+
+        Debug.Log($"[WaveManager] Wave {currentWave} concluída ({killCount} kills). Inimigos restantes na tela NÃO são destruídos.");
         waveTimerSystem?.StopTimer();
         OnWaveCompleted?.Invoke(currentWave);
 
@@ -196,8 +209,8 @@ public class WaveManager : MonoBehaviour
     {
         get
         {
-            if (currentWave >= TotalWavesConfig)        return WaveType.Boss;
-            if (currentWave == 5 || currentWave == 8)   return WaveType.Elite;
+            if (currentWave >= TotalWavesConfig)       return WaveType.Boss;
+            if (currentWave == 5 || currentWave == 8)  return WaveType.Elite;
             return WaveType.Normal;
         }
     }
@@ -205,4 +218,6 @@ public class WaveManager : MonoBehaviour
     public int CurrentWave  => currentWave;
     public int TotalWaves   => TotalWavesConfig;
     public int EnemiesAlive => enemiesAlive;
+    public int KillCount    => killCount;
+    public int KillQuota    => killQuota;
 }
