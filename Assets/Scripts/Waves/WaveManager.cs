@@ -179,6 +179,7 @@ public class WaveManager : MonoBehaviour
         isSpawning = false; // para o SpawnLoop
 
         Debug.Log($"[WaveManager] Wave {currentWave} concluída ({killCount} kills). Inimigos restantes na tela NÃO são destruídos.");
+        GameManager.Instance?.IncrementWave(currentWave);
         waveTimerSystem?.StopTimer();
         OnWaveCompleted?.Invoke(currentWave);
 

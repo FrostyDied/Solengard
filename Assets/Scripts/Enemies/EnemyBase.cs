@@ -124,6 +124,7 @@ public class EnemyBase : MonoBehaviour
 
     void Die()
     {
+        GameManager.Instance?.IncrementKill();
         OnDie();
         OnDeathCallback?.Invoke();
         OnEnemyDied?.Invoke();

@@ -31,6 +31,7 @@ public class RunRewardSystem : MonoBehaviour
     {
         if (waveTimerSystem == null)
             waveTimerSystem = Object.FindFirstObjectByType<WaveTimerSystem>();
+        Debug.Log($"[RunReward] Calculando: kills={runData.totalKills} wave={runData.waveReached} timer={waveTimerSystem != null}");
         float timeBonus = waveTimerSystem != null ? waveTimerSystem.TimeRemaining / 10f : 0f;
         int   score     = (runData.waveReached * 10) + (runData.totalKills * 2) + Mathf.FloorToInt(timeBonus);
 

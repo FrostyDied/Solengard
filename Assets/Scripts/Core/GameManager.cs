@@ -74,7 +74,6 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded        += OnSceneLoaded;
         WaveManager.OnAllWavesCompleted += HandleAllWavesCompleted;
         WaveManager.OnWaveCompleted     += HandleWaveCompleted;
-        EnemyBase.OnEnemyDied           += HandleEnemyDied;
     }
 
     void OnDisable()
@@ -82,7 +81,6 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded        -= OnSceneLoaded;
         WaveManager.OnAllWavesCompleted -= HandleAllWavesCompleted;
         WaveManager.OnWaveCompleted     -= HandleWaveCompleted;
-        EnemyBase.OnEnemyDied           -= HandleEnemyDied;
     }
 
     // Refreshes scene-bound references after reload — serialized fields point to destroyed instances
@@ -151,6 +149,8 @@ public class GameManager : MonoBehaviour
         currentRunData.waveReached  = waveManager != null ? waveManager.CurrentWave : currentRunData.wavesCompleted;
         currentRunData.timeSurvived = runTimer;
 
+        Debug.Log($"[GameOver] kills={currentRunData.totalKills} wave={currentRunData.waveReached} time={RunTimeSeconds:F1} runRewardSystem={runRewardSystem != null}");
+
         try { runRewardSystem?.CalculateAndDeliverReward(currentRunData); }
         catch (System.Exception e) { Debug.LogError($"[GameManager] RunRewardSystem exception: {e.Message}"); }
 
@@ -194,9 +194,16 @@ public class GameManager : MonoBehaviour
         currentRunData.wavesCompleted = wave;
     }
 
-    void HandleEnemyDied()
+    // ── API pública de tracking (chamada diretamente por EnemyBase e WaveManager) ─
+
+    public void IncrementKill()
     {
         currentRunData.totalKills++;
+    }
+
+    public void IncrementWave(int wave)
+    {
+        currentRunData.waveReached = wave;
     }
 
     void SetState(GameState newState)
