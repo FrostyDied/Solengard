@@ -69,6 +69,13 @@ public class EnemyBoss : EnemyBase
         if (eb != null) { eb.poolTag = ZumbiTag; eb.OnDeathCallback = null; }
     }
 
+    protected override void NotifyDeathCause()
+    {
+        if (GameManager.Instance == null) return;
+        GameManager.Instance.currentRunData.causeOfDeath   = "Boss";
+        GameManager.Instance.currentRunData.lastDeathCause = DeathCause.Boss;
+    }
+
     protected override void OnDie()
     {
         phase2Active = false;

@@ -10,14 +10,24 @@ public enum GameState
     Victory
 }
 
+public enum DeathCause
+{
+    Inimigo,
+    TempoEsgotado,
+    Boss,
+    Veneno,
+    Sangramento
+}
+
 [System.Serializable]
 public struct RunData
 {
-    public int    wavesCompleted;
-    public int    waveReached;
-    public int    totalKills;
-    public float  timeSurvived;
-    public string causeOfDeath;
+    public int        wavesCompleted;
+    public int        waveReached;
+    public int        totalKills;
+    public float      timeSurvived;
+    public string     causeOfDeath;
+    public DeathCause lastDeathCause;
 }
 
 public class GameManager : MonoBehaviour
@@ -175,7 +185,8 @@ public class GameManager : MonoBehaviour
 
     void HandleTimerExpired()
     {
-        currentRunData.causeOfDeath = "tempo esgotado";
+        currentRunData.causeOfDeath   = "tempo esgotado";
+        currentRunData.lastDeathCause = DeathCause.TempoEsgotado;
     }
 
     void SetState(GameState newState)

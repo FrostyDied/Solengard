@@ -90,9 +90,12 @@ public class EnemyBase : MonoBehaviour
         PlayerHealth ph = collision.collider.GetComponent<PlayerHealth>();
         if (ph == null) return;
 
+        NotifyDeathCause();
         ph.TakeDamage(damage);
         contactDamageTimer = 1f;
     }
+
+    protected virtual void NotifyDeathCause() { }
 
     void OnCollisionExit2D(Collision2D collision)
     {

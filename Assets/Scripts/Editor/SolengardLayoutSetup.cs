@@ -532,15 +532,16 @@ public static class SolengardLayoutSetup
             // GameOverScreen no Canvas (sempre ativo) para que OnEnable dispare corretamente
             var gos   = gcGO.GetComponent<GameOverScreen>() ?? gcGO.AddComponent<GameOverScreen>();
             var gosSO = new SerializedObject(gos);
-            TryWire(gosSO, "panel",         panelGO,                                    log);
-            TryWire(gosSO, "waveText",      waveGO.GetComponent<TextMeshProUGUI>(),      log);
-            TryWire(gosSO, "killsText",     killsGO.GetComponent<TextMeshProUGUI>(),     log);
-            TryWire(gosSO, "timeText",      tempoGO.GetComponent<TextMeshProUGUI>(),     log);
-            TryWire(gosSO, "causeText",     causaGO.GetComponent<TextMeshProUGUI>(),     log);
-            TryWire(gosSO, "scoreText",     scoreGO.GetComponent<TextMeshProUGUI>(),     log);
-            TryWire(gosSO, "diamondsText",  diamanGO.GetComponent<TextMeshProUGUI>(),    log);
-            TryWire(gosSO, "restartButton", restartGO.GetComponent<Button>(),            log);
-            TryWire(gosSO, "menuButton",    menuGO.GetComponent<Button>(),               log);
+            TryWire(gosSO, "panel",              panelGO,                                    log);
+            TryWire(gosSO, "waveText",           waveGO.GetComponent<TextMeshProUGUI>(),      log);
+            TryWire(gosSO, "killsText",          killsGO.GetComponent<TextMeshProUGUI>(),     log);
+            TryWire(gosSO, "timeText",           tempoGO.GetComponent<TextMeshProUGUI>(),     log);
+            TryWire(gosSO, "causeText",          causaGO.GetComponent<TextMeshProUGUI>(),     log);
+            TryWire(gosSO, "scoreText",          scoreGO.GetComponent<TextMeshProUGUI>(),     log);
+            TryWire(gosSO, "diamondsText",       diamanGO.GetComponent<TextMeshProUGUI>(),    log);
+            TryWire(gosSO, "ressuscitarButton",  ressGO.GetComponent<Button>(),               log);
+            TryWire(gosSO, "restartButton",      restartGO.GetComponent<Button>(),            log);
+            TryWire(gosSO, "menuButton",         menuGO.GetComponent<Button>(),               log);
             gosSO.ApplyModifiedProperties();
         }
 

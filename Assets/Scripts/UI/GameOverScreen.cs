@@ -20,6 +20,7 @@ public class GameOverScreen : MonoBehaviour
     [SerializeField] GameObject panel;
 
     [Header("Botões")]
+    [SerializeField] Button ressuscitarButton;
     [SerializeField] Button restartButton;
     [SerializeField] Button menuButton;
 
@@ -29,6 +30,7 @@ public class GameOverScreen : MonoBehaviour
     void Awake()
     {
         panel?.SetActive(false);
+        ressuscitarButton?.onClick.AddListener(OnRessuscitarButton);
         restartButton?.onClick.AddListener(OnRestartButton);
         menuButton?.onClick.AddListener(OnMainMenuButton);
     }
@@ -77,7 +79,7 @@ public class GameOverScreen : MonoBehaviour
             if (waveText     != null) waveText.text     = $"Wave {s.waveReached}";
             if (killsText    != null) killsText.text    = $"Kills: {s.totalKills}";
             if (timeText     != null) timeText.text     = $"Tempo: {FormatTime(s.timeSurvived)}";
-            if (causeText    != null) causeText.text    = $"Causa: {s.causeOfDeath}";
+            if (causeText    != null) causeText.text    = GetCauseFlavorText(s.lastDeathCause);
             if (scoreText    != null) scoreText.text    = $"Score: {s.score}";
             if (diamondsText != null) diamondsText.text = $"+{s.diamondsEarned} diamantes";
         }
@@ -109,15 +111,32 @@ public class GameOverScreen : MonoBehaviour
         return $"{m:00}:{s:00}";
     }
 
+    public void OnRessuscitarButton()
+    {
+        Debug.Log("[GameOverScreen] OnRessuscitarButton chamado");
+        // Placeholder: integrar com sistema de anúncios
+    }
+
     public void OnRestartButton()
     {
+        Debug.Log("[GameOverScreen] OnRestartButton chamado");
         Time.timeScale = 1f;
         GameManager.Instance?.RestartRun();
     }
 
     public void OnMainMenuButton()
     {
+        Debug.Log("[GameOverScreen] OnMainMenuButton chamado");
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
     }
+
+    string GetCauseFlavorText(DeathCause cause) => cause switch
+    {
+        DeathCause.TempoEsgotado => "Consumido pela fúria sombria",
+        DeathCause.Boss          => "Derrotado pelo Boss das Sombras",
+        DeathCause.Veneno        => "Sucumbiu ao veneno",
+        DeathCause.Sangramento   => "Esvaiu-se em sangue",
+        _                        => "Abatido pelos inimigos",
+    };
 }
