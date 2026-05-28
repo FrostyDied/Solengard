@@ -1,6 +1,7 @@
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using TMPro;
@@ -315,6 +316,26 @@ public static class SolengardLayoutSetup
     {
         int total = 0;
 
+        // EventSystem — obrigatório para clicks de UI funcionarem
+        {
+            var scene = EditorSceneManager.GetActiveScene();
+            bool hasES = false;
+            foreach (var root in scene.GetRootGameObjects())
+                if (root.GetComponentInChildren<EventSystem>(true) != null) { hasES = true; break; }
+            if (!hasES)
+            {
+                var esGO = new GameObject("EventSystem");
+                Undo.RegisterCreatedObjectUndo(esGO, "Layout GameScene");
+                esGO.AddComponent<EventSystem>();
+#if ENABLE_INPUT_SYSTEM
+                esGO.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+#else
+                esGO.AddComponent<StandaloneInputModule>();
+#endif
+                log.AppendLine("  EventSystem criado"); total++;
+            }
+        }
+
         // HUD Canvas
         var hudGO = GameObject.Find("HUD Canvas");
         if (hudGO == null)
@@ -328,9 +349,9 @@ public static class SolengardLayoutSetup
             s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             s.referenceResolution = new Vector2(1080f, 1920f);
             s.matchWidthOrHeight  = 0.5f;
-            hudGO.AddComponent<GraphicRaycaster>();
             log.AppendLine("  HUD Canvas criado"); total++;
         }
+        if (hudGO.GetComponent<GraphicRaycaster>() == null) { hudGO.AddComponent<GraphicRaycaster>(); log.AppendLine("  HUD Canvas: GraphicRaycaster adicionado"); total++; }
         var hudTr = hudGO.transform;
 
         var hud   = Object.FindFirstObjectByType<HUDComplete>(FindObjectsInactive.Include);
@@ -416,9 +437,9 @@ public static class SolengardLayoutSetup
                 s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
                 s.referenceResolution = new Vector2(1080f, 1920f);
                 s.matchWidthOrHeight  = 0.5f;
-                jcGO.AddComponent<GraphicRaycaster>();
                 log.AppendLine("  JoystickCanvas criado"); total++;
             }
+            if (jcGO.GetComponent<GraphicRaycaster>() == null) { jcGO.AddComponent<GraphicRaycaster>(); log.AppendLine("  JoystickCanvas: GraphicRaycaster adicionado"); total++; }
             var jcTr = jcGO.transform;
 
             var (bgGO, bgNew) = FindOrCreateUI(jcTr, "JoystickBackground");
@@ -459,9 +480,9 @@ public static class SolengardLayoutSetup
                 s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
                 s.referenceResolution = new Vector2(1080f, 1920f);
                 s.matchWidthOrHeight  = 0.5f;
-                gcGO.AddComponent<GraphicRaycaster>();
                 log.AppendLine("  GameOverCanvas criado"); total++;
             }
+            if (gcGO.GetComponent<GraphicRaycaster>() == null) { gcGO.AddComponent<GraphicRaycaster>(); log.AppendLine("  GameOverCanvas: GraphicRaycaster adicionado"); total++; }
             var gcTr = gcGO.transform;
 
             // Painel central (inativo por padrão)
@@ -542,6 +563,9 @@ public static class SolengardLayoutSetup
             TryWire(gosSO, "ressuscitarButton",  ressGO.GetComponent<Button>(),               log);
             TryWire(gosSO, "restartButton",      restartGO.GetComponent<Button>(),            log);
             TryWire(gosSO, "menuButton",         menuGO.GetComponent<Button>(),               log);
+            var panelProp = gosSO.FindProperty("panel");
+            if (panelProp != null && panelProp.objectReferenceValue == null)
+                Debug.LogError("[Layout GameScene] GameOverScreen.panel ficou null após wiring — verifique GameOverPanel na hierarquia.");
             gosSO.ApplyModifiedProperties();
         }
 

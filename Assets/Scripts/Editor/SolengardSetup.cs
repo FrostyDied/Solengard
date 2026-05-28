@@ -207,6 +207,19 @@ public static class SolengardSetup
         CreateSceneSystem<DynamicDifficultySystem>  ("DynamicDifficultySystem");
         CreateSceneSystem<TemporaryPowerSystem>     ("TemporaryPowerSystem");
 
+        // EventSystem — required for UI clicks; module depends on Input System setting
+        {
+            var esGO = new GameObject("EventSystem");
+            Undo.RegisterCreatedObjectUndo(esGO, "Rebuild GameScene");
+            SceneManager.MoveGameObjectToScene(esGO, scene);
+            esGO.AddComponent<EventSystem>();
+#if ENABLE_INPUT_SYSTEM
+            esGO.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+#else
+            esGO.AddComponent<StandaloneInputModule>();
+#endif
+        }
+
         // 5. Player — Square 2D with all player components
         var playerGO = new GameObject("Player");
         Undo.RegisterCreatedObjectUndo(playerGO, "Rebuild GameScene");

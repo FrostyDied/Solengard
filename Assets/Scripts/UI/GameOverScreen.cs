@@ -30,6 +30,9 @@ public class GameOverScreen : MonoBehaviour
     void Awake()
     {
         panel?.SetActive(false);
+        if (ressuscitarButton == null) Debug.LogError("[GameOverScreen] ressuscitarButton é null!");
+        if (restartButton     == null) Debug.LogError("[GameOverScreen] restartButton é null!");
+        if (menuButton        == null) Debug.LogError("[GameOverScreen] menuButton é null!");
         ressuscitarButton?.onClick.AddListener(OnRessuscitarButton);
         restartButton?.onClick.AddListener(OnRestartButton);
         menuButton?.onClick.AddListener(OnMainMenuButton);
