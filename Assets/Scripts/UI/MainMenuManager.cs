@@ -67,8 +67,10 @@ public class MainMenuManager : MonoBehaviour
 
     void Start()
     {
-        if (botaoJogar    == null) botaoJogar    = GameObject.Find("PlayButton")?.GetComponent<Button>();
-        if (botaoTabJogar == null) botaoTabJogar = GameObject.Find("TabJogar")?.GetComponent<Button>();
+        if (botaoJogar           == null) botaoJogar           = GameObject.Find("PlayButton")?.GetComponent<Button>();
+        if (botaoTabJogar        == null) botaoTabJogar        = GameObject.Find("TabJogar")?.GetComponent<Button>();
+        if (textoMelhorPontuacao == null) textoMelhorPontuacao = GameObject.Find("TextoMelhorPontuacao")?.GetComponent<TextMeshProUGUI>();
+        if (textoUltimaRun       == null) textoUltimaRun       = GameObject.Find("TextoUltimaRun")?.GetComponent<TextMeshProUGUI>();
 
         ConfigurarBotoes();
         AtualizarInfosJogador();
@@ -115,6 +117,11 @@ public class MainMenuManager : MonoBehaviour
 
     void AtualizarInfosJogador()
     {
+        Debug.Log($"[MainMenu] sol_best_score={PlayerPrefs.GetInt("sol_best_score", 0)}");
+        Debug.Log($"[MainMenu] sol_last_run={PlayerPrefs.GetString("sol_last_run", "vazio")}");
+        Debug.Log($"[MainMenu] textoMelhorPontuacao null={textoMelhorPontuacao == null}");
+        Debug.Log($"[MainMenu] textoUltimaRun null={textoUltimaRun == null}");
+
         int saldo = DiamondSystem.Instance?.GetBalance() ?? 0;
         AtualizarDiamantes(saldo);
 
