@@ -79,6 +79,17 @@ public class PlayerHealth : MonoBehaviour
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
+    // Revive o player após game over (usado pelo sistema de ressuscitar via anúncio)
+    public void Revive(float healthFraction = 0.5f)
+    {
+        isDead        = false;
+        iFrameCoroutine = null;
+        isInvincible  = false;
+        currentHealth = maxHealth * Mathf.Clamp01(healthFraction);
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        Debug.Log($"[PlayerHealth] Player revivido com {currentHealth:F0}/{maxHealth:F0} HP.");
+    }
+
     // ── Lógica interna ──────────────────────────────────────────────────────────
 
     void Die()

@@ -172,7 +172,9 @@ public static class SolengardLayoutSetup
               var (mp,mpN)=FindOrCreateUI(fc.transform,"TextoMelhorPontuacao");
               if(mpN){ SetRect(RT(mp),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,30),new(680,60)); EnsureTMP(mp,"🏆 Melhor Pontuação: 0",32f,Hex("#FFD700")); log.AppendLine("  FeaturedContent/TextoMelhorPontuacao"); total++; }
               var (ur,urN)=FindOrCreateUI(fc.transform,"TextoUltimaRun");
-              if(urN){ SetRect(RT(ur),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-30),new(680,50)); EnsureTMP(ur,"⚔ Última Run: —",26f,Hex("#AAAAAA")); log.AppendLine("  FeaturedContent/TextoUltimaRun"); total++; } }
+              if(urN){ SetRect(RT(ur),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-30),new(680,50)); EnsureTMP(ur,"⚔ Última Run: —",26f,Hex("#AAAAAA")); log.AppendLine("  FeaturedContent/TextoUltimaRun"); total++; }
+              TryWire(mmmSO,"textoMelhorPontuacao",mp.GetComponent<TextMeshProUGUI>(),log);
+              TryWire(mmmSO,"textoUltimaRun",      ur.GetComponent<TextMeshProUGUI>(),log); }
 
             TryWire(mmmSO,"textoNivelPasse", textoTemporadaGO.GetComponent<TextMeshProUGUI>(),log);
             TryWire(mmmSO,"textoStreakLogin",textoStreakGO.GetComponent<TextMeshProUGUI>(),log);
@@ -248,7 +250,8 @@ public static class SolengardLayoutSetup
             var (mGO,mN)=FindOrCreateUI(tr,"TabMissoes"); tabMissoesGO=mGO;
             if(mN){ EnsureImage(mGO,Hex("#0D0D1F")); EnsureButton(mGO); AddLabel(mGO,"MISSÕES",24f,Color.white); log.AppendLine("  BottomTabs/TabMissoes"); total++; }
 
-            { var (c,n)=FindOrCreateUI(tr,"TabJogar"); if(n){ EnsureImage(c,Hex("#5A1090")); EnsureButton(c); AddLabel(c,"⚔ JOGAR",24f,Color.white); log.AppendLine("  BottomTabs/TabJogar"); total++; } }
+            var (tjGO,tjN)=FindOrCreateUI(tr,"TabJogar");
+            if(tjN){ EnsureImage(tjGO,Hex("#5A1090")); EnsureButton(tjGO); AddLabel(tjGO,"⚔ JOGAR",24f,Color.white); log.AppendLine("  BottomTabs/TabJogar"); total++; }
 
             var (pGO,pN)=FindOrCreateUI(tr,"TabPasse");   tabPasseGO=pGO;
             if(pN){ EnsureImage(pGO,Hex("#0D0D1F")); EnsureButton(pGO); AddLabel(pGO,"PASSE",24f,Color.white);   log.AppendLine("  BottomTabs/TabPasse");   total++; }
@@ -258,6 +261,7 @@ public static class SolengardLayoutSetup
             TryWire(mmmSO,"botaoLoja",    tabLojaGO.GetComponent<Button>(),    log);
             TryWire(mmmSO,"botaoMissoes", tabMissoesGO.GetComponent<Button>(), log);
             TryWire(mmmSO,"botaoPasse",   tabPasseGO.GetComponent<Button>(),   log);
+            TryWire(mmmSO,"botaoTabJogar",tjGO.GetComponent<Button>(),         log);
         }
 
         // Panels (full-screen, inactive)
@@ -419,6 +423,51 @@ public static class SolengardLayoutSetup
             TryWire(hudSO,"painelMissao",        mpGO,                                     log);
             TryWire(hudSO,"textoMissao",         tmGO.GetComponent<TextMeshProUGUI>(),     log);
             TryWire(hudSO,"textoProgressoMissao",tpGO.GetComponent<TextMeshProUGUI>(),     log);
+        }
+
+        // PauseCanvas (sortingOrder 25 — acima do HUD e Joystick, abaixo do GameOver)
+        {
+            var pcGO = GameObject.Find("PauseCanvas");
+            if (pcGO == null)
+            {
+                pcGO = new GameObject("PauseCanvas");
+                Undo.RegisterCreatedObjectUndo(pcGO, "Layout GameScene");
+                var c = pcGO.AddComponent<Canvas>();
+                c.renderMode   = RenderMode.ScreenSpaceOverlay;
+                c.sortingOrder = 25;
+                var s = pcGO.AddComponent<CanvasScaler>();
+                s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                s.referenceResolution = new Vector2(1080f, 1920f);
+                s.matchWidthOrHeight  = 0.5f;
+                log.AppendLine("  PauseCanvas criado"); total++;
+            }
+            if (pcGO.GetComponent<GraphicRaycaster>() == null) { pcGO.AddComponent<GraphicRaycaster>(); log.AppendLine("  PauseCanvas: GraphicRaycaster adicionado"); total++; }
+            var pcTr = pcGO.transform;
+
+            var (pausePanelGO,ppNew)=FindOrCreateUI(pcTr,"PausePanel");
+            if(ppNew)
+            {
+                SetRect(RT(pausePanelGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),Vector2.zero,new(800f,900f));
+                EnsureImage(pausePanelGO,Hex("#00000095"));
+                pausePanelGO.SetActive(false);
+                log.AppendLine("  PausePanel"); total++;
+            }
+            var ppTr = pausePanelGO.transform;
+
+            { var (go,n)=FindOrCreateUI(ppTr,"TextoPausado");
+              if(n){ SetRect(RT(go),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,300),new(600,80));
+                     var t=EnsureTMP(go,"⏸ PAUSADO",72f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold;
+                     log.AppendLine("  PausePanel/TextoPausado"); total++; } }
+
+            var (retomarGO,retomarN)=FindOrCreateUI(ppTr,"BotaoRetomar");
+            if(retomarN){ SetRect(RT(retomarGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,50),new(500,100)); EnsureImage(retomarGO,Hex("#5A1090")); EnsureButton(retomarGO); AddLabel(retomarGO,"▶ RETOMAR",36f,Color.white); log.AppendLine("  PausePanel/BotaoRetomar"); total++; }
+
+            var (menuPauseGO,menuPauseN)=FindOrCreateUI(ppTr,"BotaoMenuPrincipalPause");
+            if(menuPauseN){ SetRect(RT(menuPauseGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-80),new(500,100)); EnsureImage(menuPauseGO,Hex("#2A2A4A")); EnsureButton(menuPauseGO); AddLabel(menuPauseGO,"\U0001F3E0 MENU PRINCIPAL",36f,Color.white); log.AppendLine("  PausePanel/BotaoMenuPrincipalPause"); total++; }
+
+            TryWire(hudSO,"pausePanel",             pausePanelGO,                            log);
+            TryWire(hudSO,"botaoRetomar",           retomarGO.GetComponent<Button>(),        log);
+            TryWire(hudSO,"botaoMenuPrincipalPause",menuPauseGO.GetComponent<Button>(),      log);
         }
 
         hudSO.ApplyModifiedProperties();

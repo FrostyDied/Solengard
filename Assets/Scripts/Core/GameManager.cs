@@ -158,6 +158,13 @@ public class GameManager : MonoBehaviour
         OnGameOver?.Invoke();
     }
 
+    // Retorna ao estado Playing após revive — só aplicável quando em GameOver
+    public void SetStatePlaying()
+    {
+        if (currentState == GameState.GameOver)
+            SetState(GameState.Playing);
+    }
+
     // Recarrega a cena ativa para iniciar uma nova run
     public void RestartRun()
     {

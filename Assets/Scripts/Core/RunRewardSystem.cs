@@ -62,6 +62,15 @@ public class RunRewardSystem : MonoBehaviour
             history.runs.RemoveAt(0);
 
         PlayerPrefs.SetString(PREF_KEY, JsonUtility.ToJson(history));
+
+        int bestScore = PlayerPrefs.GetInt("sol_best_score", 0);
+        if (summary.score > bestScore)
+            PlayerPrefs.SetInt("sol_best_score", summary.score);
+
+        int m = Mathf.FloorToInt(summary.timeSurvived / 60f);
+        int s = Mathf.FloorToInt(summary.timeSurvived % 60f);
+        PlayerPrefs.SetString("sol_last_run", $"Wave {summary.waveReached} • {summary.totalKills} kills • {m:00}:{s:00}");
+
         PlayerPrefs.Save();
     }
 

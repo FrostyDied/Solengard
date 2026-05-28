@@ -26,6 +26,7 @@ public class GameOverScreen : MonoBehaviour
 
     RunSummary cachedSummary;
     bool       summaryReceived;
+    bool       reviverUsado;
 
     void Awake()
     {
@@ -40,6 +41,8 @@ public class GameOverScreen : MonoBehaviour
 
     void OnEnable()
     {
+        reviverUsado = false;
+        ressuscitarButton?.gameObject.SetActive(true);
         GameManager.OnGameOver                += OnGameOver;
         RunRewardSystem.OnRunRewardCalculated += CacheSummary;
     }
@@ -119,7 +122,34 @@ public class GameOverScreen : MonoBehaviour
     public void OnRessuscitarButton()
     {
         Debug.Log("[GameOverScreen] OnRessuscitarButton chamado");
-        // Placeholder: integrar com sistema de anúncios
+        if (reviverUsado)
+        {
+            ressuscitarButton?.gameObject.SetActive(false);
+            return;
+        }
+        if (AdSystem.Instance == null || !AdSystem.Instance.IsAdAvailable())
+        {
+            Debug.LogWarning("[GameOverScreen] AdSystem não disponível — revive bloqueado.");
+            return;
+        }
+        AdSystem.Instance.ShowRewardedAd(RevivePlayer);
+    }
+
+    void RevivePlayer()
+    {
+        var ph = Object.FindFirstObjectByType<PlayerHealth>();
+        if (ph == null)
+        {
+            Debug.LogError("[GameOverScreen] PlayerHealth não encontrado para reviver.");
+            return;
+        }
+        ph.Revive(0.5f);
+        panel?.SetActive(false);
+        Time.timeScale = 1f;
+        GameManager.Instance?.SetStatePlaying();
+        reviverUsado = true;
+        ressuscitarButton?.gameObject.SetActive(false);
+        Debug.Log("[GameOverScreen] Player revivido com sucesso.");
     }
 
     public void OnRestartButton()

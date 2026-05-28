@@ -37,6 +37,20 @@ public class UpgradeSystem : MonoBehaviour
     void OnEnable()  => WaveManager.OnWaveCompleted += AoFimDeWave;
     void OnDisable() => WaveManager.OnWaveCompleted -= AoFimDeWave;
 
+    void Start()
+    {
+        if (poolDeUpgrades.Count != 0) return;
+        poolDeUpgrades.AddRange(new[]
+        {
+            new UpgradeOption { nome = "Cura Instantânea", descricao = "Restaura 50 HP",       tipo = UpgradeType.CuraInstantanea    },
+            new UpgradeOption { nome = "Vida Máxima",      descricao = "+25 HP máximos",        tipo = UpgradeType.AumentarVidaMaxima },
+            new UpgradeOption { nome = "Nova Arma",        descricao = "Equipa uma nova arma",  tipo = UpgradeType.NovaArma           },
+            new UpgradeOption { nome = "Upgrade de Arma",  descricao = "Melhora a arma atual",  tipo = UpgradeType.UpgradeArma        },
+            new UpgradeOption { nome = "Item Passivo",     descricao = "Adiciona item passivo", tipo = UpgradeType.ItemPassivo         },
+        });
+        Debug.Log("[UpgradeSystem] Pool populada com 5 opções padrão.");
+    }
+
     void AoFimDeWave(int waveNumber) => GerarENotificar();
 
     // Sorteia 3 upgrades distintos da pool configurada
@@ -85,10 +99,23 @@ public class UpgradeSystem : MonoBehaviour
                 break;
 
             case UpgradeType.NovaArma:
-            case UpgradeType.UpgradeArma:
-                // TODO: integrar com WeaponEvolutionSystem quando prefabs de armas estiverem prontos
-                Debug.Log($"[UpgradeSystem] Arma aplicada: {opcao.nome}");
+            {
+                var playerGO = GameObject.FindWithTag("Player");
+                if (playerGO == null) { Debug.LogWarning("[UpgradeSystem] Player não encontrado para NovaArma."); break; }
+                var weapon = playerGO.GetComponent<PlayerWeapon>() ?? playerGO.AddComponent<PlayerWeapon>();
+                if (!weapon.IsMaxLevel) weapon.Upgrade();
                 break;
+            }
+
+            case UpgradeType.UpgradeArma:
+            {
+                var playerGO = GameObject.FindWithTag("Player");
+                if (playerGO == null) { Debug.LogWarning("[UpgradeSystem] Player não encontrado para UpgradeArma."); break; }
+                var weapon = playerGO.GetComponent<PlayerWeapon>();
+                if (weapon != null && !weapon.IsMaxLevel) weapon.Upgrade();
+                else if (weapon == null) Debug.LogWarning("[UpgradeSystem] PlayerWeapon não encontrado para UpgradeArma.");
+                break;
+            }
         }
 
         Debug.Log($"[UpgradeSystem] Upgrade aplicado: {opcao.nome}");

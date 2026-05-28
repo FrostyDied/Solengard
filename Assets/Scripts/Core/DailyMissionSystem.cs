@@ -27,6 +27,8 @@ public class DailyMissionSystem : MonoBehaviour
     const string PREF_MISSOES_JSON = "sol_missions";
 
     List<DailyMission> missoesHoje = new();
+    int  ultimoSaldoDiamantes = -1;
+    bool tomouDanoNaWave;
 
     // Definições do pool de missões com variantes de dificuldade
     static readonly (MissionType tipo, string desc, int meta, int recompensa)[] poolMissoes =
@@ -45,20 +47,48 @@ public class DailyMissionSystem : MonoBehaviour
 
     void OnEnable()
     {
-        EnemyBase.OnEnemyDied       += AoInimigoMorrer;
-        WaveManager.OnWaveCompleted += AoWaveConcluida;
+        EnemyBase.OnEnemyDied           += AoInimigoMorrer;
+        WaveManager.OnWaveCompleted     += AoWaveConcluida;
+        DiamondSystem.OnDiamondsChanged += AoColetarDiamantes;
+        PlayerHealth.OnHealthChanged    += AoHealthChanged;
     }
 
     void OnDisable()
     {
-        EnemyBase.OnEnemyDied       -= AoInimigoMorrer;
-        WaveManager.OnWaveCompleted -= AoWaveConcluida;
+        EnemyBase.OnEnemyDied           -= AoInimigoMorrer;
+        WaveManager.OnWaveCompleted     -= AoWaveConcluida;
+        DiamondSystem.OnDiamondsChanged -= AoColetarDiamantes;
+        PlayerHealth.OnHealthChanged    -= AoHealthChanged;
     }
 
-    void AoInimigoMorrer()      => UpdateMissionProgress(nameof(MissionType.MatarInimigos),   1);
-    void AoWaveConcluida(int w) => UpdateMissionProgress(nameof(MissionType.SobreviverWaves), 1);
+    void AoInimigoMorrer() => UpdateMissionProgress(nameof(MissionType.MatarInimigos), 1);
 
-    void Start() => CarregarOuGerarMissoes();
+    void AoWaveConcluida(int w)
+    {
+        if (!tomouDanoNaWave)
+            UpdateMissionProgress(nameof(MissionType.VencerSemTomarDano), 1);
+        tomouDanoNaWave = false;
+        UpdateMissionProgress(nameof(MissionType.SobreviverWaves), 1);
+    }
+
+    void AoColetarDiamantes(int novoSaldo)
+    {
+        if (ultimoSaldoDiamantes < 0) { ultimoSaldoDiamantes = novoSaldo; return; }
+        int delta = novoSaldo - ultimoSaldoDiamantes;
+        if (delta > 0) UpdateMissionProgress(nameof(MissionType.ColetarDiamantes), delta);
+        ultimoSaldoDiamantes = novoSaldo;
+    }
+
+    void AoHealthChanged(float current, float max)
+    {
+        if (current < max) tomouDanoNaWave = true;
+    }
+
+    void Start()
+    {
+        CarregarOuGerarMissoes();
+        ultimoSaldoDiamantes = DiamondSystem.Instance?.GetBalance() ?? -1;
+    }
 
     // Retorna as missões do dia atual
     public List<DailyMission> GetTodayMissions() => missoesHoje;

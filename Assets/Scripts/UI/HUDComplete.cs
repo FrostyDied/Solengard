@@ -28,6 +28,11 @@ public class HUDComplete : MonoBehaviour
     [Header("Botão Pause")]
     public Button              botaoPause;
 
+    [Header("Painel de Pausa")]
+    [SerializeField] GameObject pausePanel;
+    [SerializeField] Button     botaoRetomar;
+    [SerializeField] Button     botaoMenuPrincipalPause;
+
     int ultimaWaveExibida = -1;
     ScoreSystem scoreSystem;
 
@@ -50,8 +55,11 @@ public class HUDComplete : MonoBehaviour
     void Start()
     {
         botaoPause?.onClick.AddListener(PausarJogo);
+        botaoRetomar?.onClick.AddListener(RetormarJogo);
+        botaoMenuPrincipalPause?.onClick.AddListener(IrParaMenuPrincipal);
         bannerWave?.SetActive(false);
         painelMissao?.SetActive(false);
+        pausePanel?.SetActive(false);
 
         scoreSystem = FindFirstObjectByType<ScoreSystem>();
         AtualizarDiamantes(DiamondSystem.Instance?.GetBalance() ?? 0);
@@ -78,7 +86,8 @@ public class HUDComplete : MonoBehaviour
 
     void AoMudarEstado(GameState estado)
     {
-        if (estado == GameState.Playing) ultimaWaveExibida = -1;
+        if (estado == GameState.Playing)  { ultimaWaveExibida = -1; pausePanel?.SetActive(false); }
+        if (estado == GameState.GameOver) pausePanel?.SetActive(false);
     }
 
     void AoCompletarMissao(DailyMission missao)
@@ -128,5 +137,21 @@ public class HUDComplete : MonoBehaviour
         painelMissao?.SetActive(false);
     }
 
-    void PausarJogo() => GameManager.Instance?.PauseGame();
+    void PausarJogo()
+    {
+        GameManager.Instance?.PauseGame();
+        pausePanel?.SetActive(true);
+    }
+
+    void RetormarJogo()
+    {
+        GameManager.Instance?.ResumeGame();
+        pausePanel?.SetActive(false);
+    }
+
+    void IrParaMenuPrincipal()
+    {
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+    }
 }

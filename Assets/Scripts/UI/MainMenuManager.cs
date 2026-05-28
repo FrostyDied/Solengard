@@ -9,6 +9,7 @@ public class MainMenuManager : MonoBehaviour
 {
     [Header("Botões principais")]
     public Button botaoJogar;
+    [SerializeField] Button botaoTabJogar;
     public Button botaoLoja;
     public Button botaoPasse;
     public Button botaoMissoes;
@@ -24,6 +25,8 @@ public class MainMenuManager : MonoBehaviour
     public TextMeshProUGUI textoDiamantes;
     public TextMeshProUGUI textoNivelPasse;
     public TextMeshProUGUI textoStreakLogin;
+    [SerializeField] TextMeshProUGUI textoMelhorPontuacao;
+    [SerializeField] TextMeshProUGUI textoUltimaRun;
 
     [Header("Popup de recompensa diária")]
     public GameObject      popupRecompensa;
@@ -64,11 +67,13 @@ public class MainMenuManager : MonoBehaviour
 
     void Start()
     {
+        if (botaoJogar    == null) botaoJogar    = GameObject.Find("PlayButton")?.GetComponent<Button>();
+        if (botaoTabJogar == null) botaoTabJogar = GameObject.Find("TabJogar")?.GetComponent<Button>();
+
         ConfigurarBotoes();
         AtualizarInfosJogador();
         popupRecompensa?.SetActive(false);
 
-        // Verifica recompensa diária logo ao abrir o menu
         FindFirstObjectByType<DailyRewardSystem>()?.CheckDailyReward();
     }
 
@@ -96,6 +101,7 @@ public class MainMenuManager : MonoBehaviour
     void ConfigurarBotoes()
     {
         botaoJogar?.onClick.AddListener(LoadGameScene);
+        botaoTabJogar?.onClick.AddListener(LoadGameScene);
         botaoLoja?.onClick.AddListener(() => AbrirPainel(painelLoja));
         botaoPasse?.onClick.AddListener(() => AbrirPainel(painelPasse));
         botaoMissoes?.onClick.AddListener(() => AbrirPainel(painelMissoes));
@@ -117,6 +123,14 @@ public class MainMenuManager : MonoBehaviour
 
         int streak = PlayerPrefs.GetInt(DailyRewardSystem.PREF_DIA_STREAK, 0);
         if (textoStreakLogin != null) textoStreakLogin.text = $"Streak: {streak} dia(s)";
+
+        int melhorScore = PlayerPrefs.GetInt("sol_best_score", 0);
+        if (textoMelhorPontuacao != null)
+            textoMelhorPontuacao.text = $"🏆 Melhor Pontuação: {melhorScore:N0}";
+
+        string ultimaRun = PlayerPrefs.GetString("sol_last_run", "—");
+        if (textoUltimaRun != null)
+            textoUltimaRun.text = $"⚔ Última Run: {ultimaRun}";
     }
 
     void AtualizarDiamantes(int saldo)
