@@ -38,9 +38,13 @@ public class RunRewardSystem : MonoBehaviour
 
     public RunSummary CalculateAndDeliverReward(RunData runData)
     {
+        Debug.Log($"[RunReward] INICIO kills={runData.totalKills} wave={runData.waveReached}");
+
         if (waveTimerSystem == null)
             waveTimerSystem = Object.FindFirstObjectByType<WaveTimerSystem>();
         var scoreSystem = Object.FindFirstObjectByType<ScoreSystem>();
+        Debug.Log($"[RunReward] ScoreSystem found={scoreSystem != null} score={scoreSystem?.ScoreAtual}");
+
         int score;
         if (scoreSystem != null)
         {
@@ -65,7 +69,11 @@ public class RunRewardSystem : MonoBehaviour
             diamondsEarned = Mathf.Max(1, score / 10)
         };
 
+        Debug.Log($"[RunReward] Diamonds a entregar={summary.diamondsEarned}");
         DiamondSystem.Instance?.AddDiamonds(summary.diamondsEarned);
+        Debug.Log("[RunReward] AddDiamonds chamado");
+
+        Debug.Log($"[RunReward] Salvando score={summary.score}");
         SaveRunHistory(summary);
         OnRunRewardCalculated?.Invoke(summary);
 

@@ -47,8 +47,19 @@ public class ScoreSystem : MonoBehaviour
         }
     }
 
-    public void RegistrarKill() => inimigosMortos++;
-    public void RegistrarWaveConcluida() => wavesCompletadas++;
+    public void RegistrarKill()
+    {
+        inimigosMortos++;
+        scoreAtual = CalcularScore();
+        Debug.Log($"[ScoreSystem] ScoreAtual={ScoreAtual} kills={inimigosMortos} waves={wavesCompletadas}");
+    }
+
+    public void RegistrarWaveConcluida()
+    {
+        wavesCompletadas++;
+        scoreAtual = CalcularScore();
+        Debug.Log($"[ScoreSystem] ScoreAtual={ScoreAtual} kills={inimigosMortos} waves={wavesCompletadas}");
+    }
 
     // ── Cálculo e persistência ──────────────────────────────────────────────────
 

@@ -139,6 +139,7 @@ public class GameManager : MonoBehaviour
 
     public void TriggerGameOver()
     {
+        Debug.Log($"[TriggerGameOver] estado={currentState} runReward={runRewardSystem != null}");
         if (currentState != GameState.Playing && currentState != GameState.Paused)
         {
             Debug.LogWarning($"[GameManager] TriggerGameOver ignorado — estado: {currentState}");
