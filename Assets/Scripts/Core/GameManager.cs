@@ -128,6 +128,7 @@ public class GameManager : MonoBehaviour
 
         runRewardSystem?.CalculateAndDeliverReward(currentRunData);
 
+        Time.timeScale = 0f;
         SetState(GameState.GameOver);
         OnGameOver?.Invoke();
     }

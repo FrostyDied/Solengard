@@ -80,6 +80,7 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         isDead = true;
+        Debug.Log("PLAYER MORREU - chamando GameOver");
         OnPlayerDied?.Invoke();
         GameManager.Instance.TriggerGameOver();
     }
