@@ -22,8 +22,13 @@ public class WaveManager : MonoBehaviour
     public List<Transform> spawnPoints = new();
 
     [Header("Spawn contínuo")]
-    [SerializeField] float spawnInterval        = 0.5f;
-    [SerializeField] float minimumWaveDuration  = 60f;
+    [SerializeField] float spawnInterval       = 0.5f;
+    [SerializeField] float minimumWaveDuration = 60f;
+
+    [Header("Spawn dinâmico")]
+    [SerializeField] float     spawnMinDistance = 8f;
+    [SerializeField] float     spawnMaxDistance = 12f;
+    [SerializeField] LayerMask obstacleMask;
 
     [Header("Sistemas")]
     [SerializeField] WaveTimerSystem         waveTimerSystem;
@@ -47,13 +52,6 @@ public class WaveManager : MonoBehaviour
     bool  isSpawning   = false;
     float waveStartTime;
 
-    static readonly Vector2[] fallbackSpawnPositions =
-    {
-        new Vector2(-5f,  5f),
-        new Vector2( 5f,  5f),
-        new Vector2( 5f, -5f),
-        new Vector2(-5f, -5f),
-    };
 
     // ── Unity ───────────────────────────────────────────────────────────────────
 
@@ -167,11 +165,54 @@ public class WaveManager : MonoBehaviour
 
     Vector3 ObterPosicaoDeSpawn()
     {
-        if (spawnPoints.Count > 0)
-            return spawnPoints[Random.Range(0, spawnPoints.Count)].position;
+        GameObject playerGO = GameObject.FindGameObjectWithTag("Player");
+        Vector2    playerPos = playerGO != null ? (Vector2)playerGO.transform.position : Vector2.zero;
 
-        Debug.LogWarning("[WaveManager] SpawnPoints não configurados — usando posições de fallback para testes.");
-        return fallbackSpawnPositions[Random.Range(0, fallbackSpawnPositions.Length)];
+        // 40 % de chance de pressionar o quadrante com menos inimigos; 60 % aleatório
+        float baseAngle = Random.value < 0.4f
+            ? GetLeastPopulatedQuadrantAngle(playerPos)
+            : Random.Range(0f, 360f);
+
+        Vector2 bestCandidate = playerPos + AngleToDir(baseAngle) * spawnMaxDistance;
+
+        for (int attempt = 0; attempt < 5; attempt++)
+        {
+            float angle    = attempt == 0 ? baseAngle : Random.Range(0f, 360f);
+            float distance = Random.Range(spawnMinDistance, spawnMaxDistance);
+            Vector2 candidate = playerPos + AngleToDir(angle) * distance;
+
+            // obstacleMask == 0 → nenhuma máscara configurada, aceita qualquer posição
+            if (Physics2D.OverlapCircle(candidate, 0.5f, obstacleMask) == null)
+                return candidate;
+
+            bestCandidate = candidate;
+        }
+        return bestCandidate;
+    }
+
+    // Retorna o ângulo central (±30°) do quadrante ao redor do player com menos inimigos
+    float GetLeastPopulatedQuadrantAngle(Vector2 playerPos)
+    {
+        int[] counts = new int[4]; // 0=NE  1=NW  2=SW  3=SE
+        foreach (Collider2D col in Physics2D.OverlapCircleAll(playerPos, spawnMaxDistance + 2f))
+        {
+            if (col.GetComponent<EnemyBase>() == null) continue;
+            Vector2 rel = (Vector2)col.transform.position - playerPos;
+            int q = rel.x >= 0 ? (rel.y >= 0 ? 0 : 3) : (rel.y >= 0 ? 1 : 2);
+            counts[q]++;
+        }
+        int minQ = 0;
+        for (int i = 1; i < 4; i++)
+            if (counts[i] < counts[minQ]) minQ = i;
+
+        float[] baseAngles = { 45f, 135f, 225f, 315f }; // NE NW SW SE
+        return baseAngles[minQ] + Random.Range(-30f, 30f);
+    }
+
+    static Vector2 AngleToDir(float degrees)
+    {
+        float rad = degrees * Mathf.Deg2Rad;
+        return new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
     }
 
     void EndWave()

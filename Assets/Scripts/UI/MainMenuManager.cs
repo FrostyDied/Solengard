@@ -128,9 +128,23 @@ public class MainMenuManager : MonoBehaviour
         if (textoMelhorPontuacao != null)
             textoMelhorPontuacao.text = $"🏆 Melhor Pontuação: {melhorScore:N0}";
 
-        string ultimaRun = PlayerPrefs.GetString("sol_last_run", "—");
         if (textoUltimaRun != null)
-            textoUltimaRun.text = $"⚔ Última Run: {ultimaRun}";
+        {
+            string lastRunJson = PlayerPrefs.GetString("sol_last_run", "");
+            if (!string.IsNullOrEmpty(lastRunJson))
+            {
+                try
+                {
+                    var lr = JsonUtility.FromJson<LastRunData>(lastRunJson);
+                    int mm = Mathf.FloorToInt(lr.time / 60f);
+                    int ss = Mathf.FloorToInt(lr.time % 60f);
+                    textoUltimaRun.text = $"⚔ Última Run: Wave {lr.wave} • {lr.kills} kills • {mm:00}:{ss:00}";
+                }
+                catch { textoUltimaRun.text = "⚔ Última Run: —"; }
+            }
+            else
+                textoUltimaRun.text = "⚔ Última Run: —";
+        }
     }
 
     void AtualizarDiamantes(int saldo)

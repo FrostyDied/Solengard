@@ -80,8 +80,10 @@ public class ScoreSystem : MonoBehaviour
 
     int CalcularScore()
     {
+        // waveAtual = completed + 1 para creditar a wave em andamento (mínimo 1)
+        int waveAtual = wavesCompletadas + 1;
         return (inimigosMortos * 10)
-             + (wavesCompletadas * 100)
+             + (waveAtual * 100)
              + (Mathf.FloorToInt(tempoSobrevivido) * 2)
              + bonusDificuldade;
     }

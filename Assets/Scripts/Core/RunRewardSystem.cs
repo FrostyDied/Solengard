@@ -2,6 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
+public class LastRunData
+{
+    public int   wave;
+    public int   kills;
+    public float time;
+    public int   score;
+}
+
+[System.Serializable]
 public class RunSummary
 {
     public int        waveReached;
@@ -76,9 +85,14 @@ public class RunRewardSystem : MonoBehaviour
         if (summary.score > bestScore)
             PlayerPrefs.SetInt("sol_best_score", summary.score);
 
-        int m = Mathf.FloorToInt(summary.timeSurvived / 60f);
-        int s = Mathf.FloorToInt(summary.timeSurvived % 60f);
-        PlayerPrefs.SetString("sol_last_run", $"Wave {summary.waveReached} • {summary.totalKills} kills • {m:00}:{s:00}");
+        var lastRun = new LastRunData
+        {
+            wave  = summary.waveReached,
+            kills = summary.totalKills,
+            time  = summary.timeSurvived,
+            score = summary.score,
+        };
+        PlayerPrefs.SetString("sol_last_run", JsonUtility.ToJson(lastRun));
 
         PlayerPrefs.Save();
     }

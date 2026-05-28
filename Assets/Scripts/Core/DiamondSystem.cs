@@ -27,6 +27,7 @@ public class DiamondSystem : MonoBehaviour
 
     public void AddDiamonds(int quantidade)
     {
+        Debug.Log($"[DiamondSystem] AddDiamonds({quantidade}) — saldo atual: {saldoAtual}");
         if (quantidade <= 0) return;
         saldoAtual += quantidade;
         SalvarSaldo();
