@@ -444,6 +444,92 @@ public static class SolengardLayoutSetup
             joystickSO.ApplyModifiedProperties();
         }
 
+        // Game Over Canvas (sortingOrder 30, acima de tudo)
+        // IMPORTANTE: GameOverScreen vai no Canvas (sempre ativo), não no painel (inativo).
+        {
+            var gcGO = GameObject.Find("GameOverCanvas");
+            if (gcGO == null)
+            {
+                gcGO = new GameObject("GameOverCanvas");
+                Undo.RegisterCreatedObjectUndo(gcGO, "Layout GameScene");
+                var c = gcGO.AddComponent<Canvas>();
+                c.renderMode   = RenderMode.ScreenSpaceOverlay;
+                c.sortingOrder = 30;
+                var s = gcGO.AddComponent<CanvasScaler>();
+                s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                s.referenceResolution = new Vector2(1080f, 1920f);
+                s.matchWidthOrHeight  = 0.5f;
+                gcGO.AddComponent<GraphicRaycaster>();
+                log.AppendLine("  GameOverCanvas criado"); total++;
+            }
+            var gcTr = gcGO.transform;
+
+            // Painel central (inativo por padrão)
+            var (panelGO, panelNew) = FindOrCreateUI(gcTr, "GameOverPanel");
+            if (panelNew)
+            {
+                SetRect(RT(panelGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), Vector2.zero, new(800f,1000f));
+                EnsureImage(panelGO, Hex("#0D0020"));
+                panelGO.SetActive(false);
+                log.AppendLine("  GameOverPanel"); total++;
+            }
+            var pTr = panelGO.transform;
+
+            // Título
+            { var (go,n)=FindOrCreateUI(pTr,"TituloGameOver");
+              if(n){ SetRect(RT(go),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,390f),new(740f,80f));
+                     var t=EnsureTMP(go,"A ESCURIDÃO PREVALECEU",48f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold;
+                     log.AppendLine("  TituloGameOver"); total++; } }
+
+            // 6 stats empilhados verticalmente
+            var (waveGO,   wN) = FindOrCreateUI(pTr, "textoWaveAtingida");
+            var (killsGO,  kN) = FindOrCreateUI(pTr, "textoKills");
+            var (tempoGO,  tN) = FindOrCreateUI(pTr, "textoTempo");
+            var (causaGO,  cN) = FindOrCreateUI(pTr, "textoCausa");
+            var (scoreGO,  sN) = FindOrCreateUI(pTr, "textoScore");
+            var (diamanGO, dN) = FindOrCreateUI(pTr, "textoDiamantes");
+
+            if(wN){ SetRect(RT(waveGO),  new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,260f),new(700f,50f)); EnsureTMP(waveGO,  "Wave —",        32f,Color.white); log.AppendLine("  textoWaveAtingida"); total++; }
+            if(kN){ SetRect(RT(killsGO), new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,195f),new(700f,50f)); EnsureTMP(killsGO, "Kills: —",       32f,Color.white); log.AppendLine("  textoKills");        total++; }
+            if(tN){ SetRect(RT(tempoGO), new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,130f),new(700f,50f)); EnsureTMP(tempoGO, "Tempo: 00:00",   32f,Color.white); log.AppendLine("  textoTempo");        total++; }
+            if(cN){ SetRect(RT(causaGO), new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f, 65f),new(700f,50f)); EnsureTMP(causaGO, "Causa: —",       32f,Color.white); log.AppendLine("  textoCausa");        total++; }
+            if(sN){ SetRect(RT(scoreGO), new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,  0f),new(700f,50f)); EnsureTMP(scoreGO, "Score: —",        32f,Color.white); log.AppendLine("  textoScore");        total++; }
+            if(dN){ SetRect(RT(diamanGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,-65f),new(700f,50f)); EnsureTMP(diamanGO,"+0 diamantes",    32f,Color.white); log.AppendLine("  textoDiamantes");    total++; }
+
+            // Botões
+            var (restartGO, restartNew) = FindOrCreateUI(pTr, "BotaoJogarNovamente");
+            if (restartNew)
+            {
+                SetRect(RT(restartGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-200f), new(600f,100f));
+                EnsureImage(restartGO, Hex("#5A1090")); EnsureButton(restartGO);
+                AddLabel(restartGO, "⚔ JOGAR NOVAMENTE", 36f, Color.white);
+                log.AppendLine("  BotaoJogarNovamente"); total++;
+            }
+
+            var (menuGO, menuNew) = FindOrCreateUI(pTr, "BotaoMenuPrincipal");
+            if (menuNew)
+            {
+                SetRect(RT(menuGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-320f), new(600f,100f));
+                EnsureImage(menuGO, Hex("#2A2A4A")); EnsureButton(menuGO);
+                AddLabel(menuGO, "\U0001F3E0 MENU PRINCIPAL", 36f, Color.white);
+                log.AppendLine("  BotaoMenuPrincipal"); total++;
+            }
+
+            // GameOverScreen no Canvas (sempre ativo) para que OnEnable dispare corretamente
+            var gos   = gcGO.GetComponent<GameOverScreen>() ?? gcGO.AddComponent<GameOverScreen>();
+            var gosSO = new SerializedObject(gos);
+            TryWire(gosSO, "panel",         panelGO,                                    log);
+            TryWire(gosSO, "waveText",      waveGO.GetComponent<TextMeshProUGUI>(),      log);
+            TryWire(gosSO, "killsText",     killsGO.GetComponent<TextMeshProUGUI>(),     log);
+            TryWire(gosSO, "timeText",      tempoGO.GetComponent<TextMeshProUGUI>(),     log);
+            TryWire(gosSO, "causeText",     causaGO.GetComponent<TextMeshProUGUI>(),     log);
+            TryWire(gosSO, "scoreText",     scoreGO.GetComponent<TextMeshProUGUI>(),     log);
+            TryWire(gosSO, "diamondsText",  diamanGO.GetComponent<TextMeshProUGUI>(),    log);
+            TryWire(gosSO, "restartButton", restartGO.GetComponent<Button>(),            log);
+            TryWire(gosSO, "menuButton",    menuGO.GetComponent<Button>(),               log);
+            gosSO.ApplyModifiedProperties();
+        }
+
         return total;
     }
 

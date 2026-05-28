@@ -557,6 +557,10 @@ public static class SolengardSetup
         if (Object.FindFirstObjectByType<DifficultyAdaptiveSystem>(FindObjectsInactive.Include) == null)
             warns.AppendLine("  DifficultyAdaptiveSystem não encontrado na cena. Execute 'Setup All' para criá-lo automaticamente.");
 
+        // GameOverScreen — criado e conectado via Layout GameScene; apenas verificação de presença
+        if (Object.FindFirstObjectByType<GameOverScreen>(FindObjectsInactive.Include) == null)
+            warns.AppendLine("  GameOverScreen não encontrado na cena. Execute 'Layout GameScene' para criá-lo automaticamente.");
+
         return total;
     }
 
@@ -1036,8 +1040,7 @@ public static class SolengardSetup
         sb.AppendLine("• HUDComplete, UpgradeUIManager, MainMenuManager, MobileJoystick");
         sb.AppendLine("  (todas as referências de UI — configurar após montar as cenas)");
         sb.AppendLine();
-        sb.AppendLine("• GameOverScreen → 6 TextMeshProUGUI + painel");
-        sb.AppendLine("  (criar Canvas/Panel, arrastar textos TMP, conectar botões a OnRestartButton/OnMainMenuButton)");
+        sb.AppendLine("• GameOverScreen — execute 'Layout GameScene' para criar e conectar automaticamente");
         sb.AppendLine();
         sb.AppendLine("• WaveWarningUI → banner + CanvasGroup + TextMeshProUGUI");
         sb.AppendLine("  (criar banner de aviso na hierarquia da GameScene)");
