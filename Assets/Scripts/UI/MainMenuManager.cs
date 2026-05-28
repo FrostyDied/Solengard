@@ -126,7 +126,7 @@ public class MainMenuManager : MonoBehaviour
 
         int melhorScore = PlayerPrefs.GetInt("sol_best_score", 0);
         if (textoMelhorPontuacao != null)
-            textoMelhorPontuacao.text = $"🏆 Melhor Pontuação: {melhorScore:N0}";
+            textoMelhorPontuacao.text = $"TOP Melhor Pontuacao: {melhorScore:N0}";
 
         if (textoUltimaRun != null)
         {
@@ -138,12 +138,12 @@ public class MainMenuManager : MonoBehaviour
                     var lr = JsonUtility.FromJson<LastRunData>(lastRunJson);
                     int mm = Mathf.FloorToInt(lr.time / 60f);
                     int ss = Mathf.FloorToInt(lr.time % 60f);
-                    textoUltimaRun.text = $"⚔ Última Run: Wave {lr.wave} • {lr.kills} kills • {mm:00}:{ss:00}";
+                    textoUltimaRun.text = $"> Ultima Run: Wave {lr.wave} - {lr.kills} kills - {mm:00}:{ss:00}";
                 }
-                catch { textoUltimaRun.text = "⚔ Última Run: —"; }
+                catch { textoUltimaRun.text = "> Ultima Run: --"; }
             }
             else
-                textoUltimaRun.text = "⚔ Última Run: —";
+                textoUltimaRun.text = "> Ultima Run: --";
         }
     }
 
@@ -160,7 +160,7 @@ public class MainMenuManager : MonoBehaviour
         if (textoRecompensaDia != null)
             textoRecompensaDia.text = $"Dia {dia} de 7";
         if (textoRecompensaDiamantes != null)
-            textoRecompensaDiamantes.text = $"+{diamantes} diamantes" + (dia == 7 ? "\n🎁 Item especial!" : "");
+            textoRecompensaDiamantes.text = $"+{diamantes} diamantes" + (dia == 7 ? "\n+ Item especial!" : "");
 
         popupRecompensa?.SetActive(true);
     }

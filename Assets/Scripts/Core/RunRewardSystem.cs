@@ -40,9 +40,19 @@ public class RunRewardSystem : MonoBehaviour
     {
         if (waveTimerSystem == null)
             waveTimerSystem = Object.FindFirstObjectByType<WaveTimerSystem>();
-        Debug.Log($"[RunReward] Calculando: kills={runData.totalKills} wave={runData.waveReached} timer={waveTimerSystem != null}");
-        float timeBonus = waveTimerSystem != null ? waveTimerSystem.TimeRemaining / 10f : 0f;
-        int   score     = (runData.waveReached * 10) + (runData.totalKills * 2) + Mathf.FloorToInt(timeBonus);
+        var scoreSystem = Object.FindFirstObjectByType<ScoreSystem>();
+        int score;
+        if (scoreSystem != null)
+        {
+            score = scoreSystem.ScoreAtual;
+            Debug.Log($"[RunReward] Calculando: kills={runData.totalKills} wave={runData.waveReached} score={score} (via ScoreSystem)");
+        }
+        else
+        {
+            float timeBonus = waveTimerSystem != null ? waveTimerSystem.TimeRemaining / 10f : 0f;
+            score = (runData.waveReached * 10) + (runData.totalKills * 2) + Mathf.FloorToInt(timeBonus);
+            Debug.Log($"[RunReward] Calculando: kills={runData.totalKills} wave={runData.waveReached} score={score} (ScoreSystem nao encontrado, calculo proprio)");
+        }
 
         var summary = new RunSummary
         {

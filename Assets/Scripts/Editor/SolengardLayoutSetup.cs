@@ -126,9 +126,9 @@ public static class SolengardLayoutSetup
 
             var (dGO,dN)=FindReparentOrCreateUI(tr,canvasTr,"TextoDiamantes");
             textoDiamantesGO=dGO;
-            if(dN){ SetRect(RT(dGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(80,0),new(220,56)); EnsureTMP(dGO,"0 💎",36f,Hex("#FFD700")); log.AppendLine("  TopBar/TextoDiamantes"); total++; }
+            if(dN){ SetRect(RT(dGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(80,0),new(220,56)); EnsureTMP(dGO,"0 DIA",36f,Hex("#FFD700")); log.AppendLine("  TopBar/TextoDiamantes"); total++; }
 
-            { var (c,n)=FindReparentOrCreateUI(tr,canvasTr,"TextoMoedas"); if(n){ SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(310,0),new(220,56)); EnsureTMP(c,"0 🪙",36f,Hex("#C0C0C0")); log.AppendLine("  TopBar/TextoMoedas"); total++; } }
+            { var (c,n)=FindReparentOrCreateUI(tr,canvasTr,"TextoMoedas"); if(n){ SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(310,0),new(220,56)); EnsureTMP(c,"0 G",36f,Hex("#C0C0C0")); log.AppendLine("  TopBar/TextoMoedas"); total++; } }
 
             var (cfgGO,cfgN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoConfiguracoes");
             botaoConfigGO=cfgGO;
@@ -155,7 +155,7 @@ public static class SolengardLayoutSetup
 
             var (sGO,sN)=FindOrCreateUI(tr,"TextoStreak");
             textoStreakGO=sGO;
-            SetRect(RT(sGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,230),new(400,60)); EnsureTMP(sGO,"🔥 Dia 1",28f,Hex("#FFD700"));
+            SetRect(RT(sGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,230),new(400,60)); EnsureTMP(sGO,"* Dia 1",28f,Hex("#FFD700"));
             if(sN){ log.AppendLine("  CenterArea/TextoStreak"); total++; }
 
             // SeasonBanner — always apply position
@@ -163,16 +163,16 @@ public static class SolengardLayoutSetup
               SetRect(RT(bn),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,120),new(700,180));
               if(bnN){ EnsureImage(bn,Hex("#1E0A3C")); log.AppendLine("  CenterArea/SeasonBanner"); total++; }
               var (bnt,bntN)=FindOrCreateUI(bn.transform,"TextoSeasonBanner");
-              if(bntN){ StretchFull(RT(bnt)); var tmp=EnsureTMP(bnt,"⚔ Temporada das Sombras\nComplete 50 waves para ganhar a skin lendária",28f,Color.white); tmp.textWrappingMode=TMPro.TextWrappingModes.Normal; log.AppendLine("  SeasonBanner/TextoSeasonBanner"); total++; } }
+              if(bntN){ StretchFull(RT(bnt)); var tmp=EnsureTMP(bnt,"> Temporada das Sombras\nComplete 50 waves para ganhar a skin lendaria",28f,Color.white); tmp.textWrappingMode=TMPro.TextWrappingModes.Normal; log.AppendLine("  SeasonBanner/TextoSeasonBanner"); total++; } }
 
             // FeaturedContent — always apply position
             { var (fc,fcN)=FindOrCreateUI(tr,"FeaturedContent");
               SetRect(RT(fc),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-60),new(700,160));
               if(fcN){ EnsureImage(fc,Hex("#0D0D2A")); log.AppendLine("  CenterArea/FeaturedContent"); total++; }
               var (mp,mpN)=FindOrCreateUI(fc.transform,"TextoMelhorPontuacao");
-              if(mpN){ SetRect(RT(mp),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,30),new(680,60)); EnsureTMP(mp,"🏆 Melhor Pontuação: 0",32f,Hex("#FFD700")); log.AppendLine("  FeaturedContent/TextoMelhorPontuacao"); total++; }
+              if(mpN){ SetRect(RT(mp),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,30),new(680,60)); EnsureTMP(mp,"TOP Melhor Pontuacao: 0",32f,Hex("#FFD700")); log.AppendLine("  FeaturedContent/TextoMelhorPontuacao"); total++; }
               var (ur,urN)=FindOrCreateUI(fc.transform,"TextoUltimaRun");
-              if(urN){ SetRect(RT(ur),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-30),new(680,50)); EnsureTMP(ur,"⚔ Última Run: —",26f,Hex("#AAAAAA")); log.AppendLine("  FeaturedContent/TextoUltimaRun"); total++; }
+              if(urN){ SetRect(RT(ur),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-30),new(680,50)); EnsureTMP(ur,"> Ultima Run: --",26f,Hex("#AAAAAA")); log.AppendLine("  FeaturedContent/TextoUltimaRun"); total++; }
               TryWire(mmmSO,"textoMelhorPontuacao",mp.GetComponent<TextMeshProUGUI>(),log);
               TryWire(mmmSO,"textoUltimaRun",      ur.GetComponent<TextMeshProUGUI>(),log); }
 
@@ -227,7 +227,7 @@ public static class SolengardLayoutSetup
             if(isNew)
             {
                 EnsureImage(go,Hex("#5A1090")); EnsureButton(go);
-                var lbl=AddLabel(go,"⚔ JOGAR",56f,Color.white); lbl.fontStyle=FontStyles.Bold;
+                var lbl=AddLabel(go,"> JOGAR",56f,Color.white); lbl.fontStyle=FontStyles.Bold;
                 var sh=lbl.gameObject.AddComponent<Shadow>(); sh.effectDistance=new(0,-4); sh.effectColor=new Color(0,0,0,.5f);
                 log.AppendLine("  PlayButton"); total++;
             }
@@ -251,7 +251,7 @@ public static class SolengardLayoutSetup
             if(mN){ EnsureImage(mGO,Hex("#0D0D1F")); EnsureButton(mGO); AddLabel(mGO,"MISSÕES",24f,Color.white); log.AppendLine("  BottomTabs/TabMissoes"); total++; }
 
             var (tjGO,tjN)=FindOrCreateUI(tr,"TabJogar");
-            if(tjN){ EnsureImage(tjGO,Hex("#5A1090")); EnsureButton(tjGO); AddLabel(tjGO,"⚔ JOGAR",24f,Color.white); log.AppendLine("  BottomTabs/TabJogar"); total++; }
+            if(tjN){ EnsureImage(tjGO,Hex("#5A1090")); EnsureButton(tjGO); AddLabel(tjGO,"> JOGAR",24f,Color.white); log.AppendLine("  BottomTabs/TabJogar"); total++; }
 
             var (pGO,pN)=FindOrCreateUI(tr,"TabPasse");   tabPasseGO=pGO;
             if(pN){ EnsureImage(pGO,Hex("#0D0D1F")); EnsureButton(pGO); AddLabel(pGO,"PASSE",24f,Color.white);   log.AppendLine("  BottomTabs/TabPasse");   total++; }
@@ -379,7 +379,7 @@ public static class SolengardLayoutSetup
             if(wtN){ SetRect(RT(wtGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-50),new(400,60)); var t=EnsureTMP(wtGO,"Wave 1/5",40f,Color.white); t.fontStyle=FontStyles.Bold; log.AppendLine("  WaveText"); total++; }
 
             var (dtGO,dtN)=FindOrCreateUI(tr,"DiamondText");
-            if(dtN){ SetRect(RT(dtGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-20,-50),new(250,55)); EnsureTMP(dtGO,"0 💎",34f,Hex("#FFD700")); log.AppendLine("  DiamondText"); total++; }
+            if(dtN){ SetRect(RT(dtGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-20,-50),new(250,55)); EnsureTMP(dtGO,"0 DIA",34f,Hex("#FFD700")); log.AppendLine("  DiamondText"); total++; }
 
             TryWire(hudSO,"barraVida",     slGO.GetComponent<Slider>(),                log);
             TryWire(hudSO,"textoWave",     wtGO.GetComponent<TextMeshProUGUI>(),       log);
@@ -456,18 +456,40 @@ public static class SolengardLayoutSetup
 
             { var (go,n)=FindOrCreateUI(ppTr,"TextoPausado");
               if(n){ SetRect(RT(go),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,300),new(600,80));
-                     var t=EnsureTMP(go,"⏸ PAUSADO",72f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold;
+                     var t=EnsureTMP(go,"|| PAUSADO",72f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold;
                      log.AppendLine("  PausePanel/TextoPausado"); total++; } }
 
             var (retomarGO,retomarN)=FindOrCreateUI(ppTr,"BotaoRetomar");
-            if(retomarN){ SetRect(RT(retomarGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,50),new(500,100)); EnsureImage(retomarGO,Hex("#5A1090")); EnsureButton(retomarGO); AddLabel(retomarGO,"▶ RETOMAR",36f,Color.white); log.AppendLine("  PausePanel/BotaoRetomar"); total++; }
+            if(retomarN){ SetRect(RT(retomarGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,50),new(500,100)); EnsureImage(retomarGO,Hex("#5A1090")); EnsureButton(retomarGO); AddLabel(retomarGO,"> RETOMAR",36f,Color.white); log.AppendLine("  PausePanel/BotaoRetomar"); total++; }
 
             var (menuPauseGO,menuPauseN)=FindOrCreateUI(ppTr,"BotaoMenuPrincipalPause");
-            if(menuPauseN){ SetRect(RT(menuPauseGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-80),new(500,100)); EnsureImage(menuPauseGO,Hex("#2A2A4A")); EnsureButton(menuPauseGO); AddLabel(menuPauseGO,"\U0001F3E0 MENU PRINCIPAL",36f,Color.white); log.AppendLine("  PausePanel/BotaoMenuPrincipalPause"); total++; }
+            if(menuPauseN){ SetRect(RT(menuPauseGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-80),new(500,100)); EnsureImage(menuPauseGO,Hex("#2A2A4A")); EnsureButton(menuPauseGO); AddLabel(menuPauseGO,"MENU PRINCIPAL",36f,Color.white); log.AppendLine("  PausePanel/BotaoMenuPrincipalPause"); total++; }
 
             TryWire(hudSO,"pausePanel",             pausePanelGO,                            log);
             TryWire(hudSO,"botaoRetomar",           retomarGO.GetComponent<Button>(),        log);
             TryWire(hudSO,"botaoMenuPrincipalPause",menuPauseGO.GetComponent<Button>(),      log);
+        }
+
+        // BannerWave — overlay centralizado exibido ao iniciar cada wave
+        {
+            var (bwGO, bwN) = FindOrCreateUI(hudTr, "BannerWave");
+            if (bwN)
+            {
+                SetRect(RT(bwGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,200f), new(900f,100f));
+                EnsureImage(bwGO, Hex("#1E0A3C80"));
+                bwGO.SetActive(false);
+                log.AppendLine("  BannerWave"); total++;
+            }
+            var (bwtGO, bwtN) = FindOrCreateUI(bwGO.transform, "TextoBannerWave");
+            if (bwtN)
+            {
+                StretchFull(RT(bwtGO));
+                var t = EnsureTMP(bwtGO, "WAVE 1", 48f, Hex("#C8A0FF"));
+                t.fontStyle = FontStyles.Bold;
+                log.AppendLine("  BannerWave/TextoBannerWave"); total++;
+            }
+            TryWire(hudSO, "bannerWave",      bwGO,                                          log);
+            TryWire(hudSO, "textoBannerWave", bwtGO.GetComponent<TextMeshProUGUI>(),         log);
         }
 
         hudSO.ApplyModifiedProperties();
@@ -572,7 +594,7 @@ public static class SolengardLayoutSetup
             {
                 SetRect(RT(ressGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-130f), new(500f,90f));
                 EnsureImage(ressGO, Hex("#8A6000")); EnsureButton(ressGO);
-                AddLabel(ressGO, "▶ RESSUSCITAR", 36f, Color.white);
+                AddLabel(ressGO, "> RESSUSCITAR", 36f, Color.white);
 
                 // Hint de anúncio abaixo do botão (filho, fora do rect do botão)
                 var (subGO, _) = FindOrCreateUI(ressGO.transform, "SubtituloRessuscitar");
@@ -586,7 +608,7 @@ public static class SolengardLayoutSetup
             {
                 SetRect(RT(restartGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-280f), new(600f,100f));
                 EnsureImage(restartGO, Hex("#5A1090")); EnsureButton(restartGO);
-                AddLabel(restartGO, "⚔ JOGAR NOVAMENTE", 36f, Color.white);
+                AddLabel(restartGO, "> JOGAR NOVAMENTE", 36f, Color.white);
                 log.AppendLine("  BotaoJogarNovamente"); total++;
             }
 
@@ -595,7 +617,7 @@ public static class SolengardLayoutSetup
             {
                 SetRect(RT(menuGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-410f), new(600f,100f));
                 EnsureImage(menuGO, Hex("#2A2A4A")); EnsureButton(menuGO);
-                AddLabel(menuGO, "\U0001F3E0 MENU PRINCIPAL", 36f, Color.white);
+                AddLabel(menuGO, "MENU PRINCIPAL", 36f, Color.white);
                 log.AppendLine("  BotaoMenuPrincipal"); total++;
             }
 
