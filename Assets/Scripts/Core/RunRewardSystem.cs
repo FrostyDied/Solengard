@@ -4,12 +4,13 @@ using UnityEngine;
 [System.Serializable]
 public class RunSummary
 {
-    public int    waveReached;
-    public int    totalKills;
-    public float  timeSurvived;
-    public string causeOfDeath;
-    public int    score;
-    public int    diamondsEarned;
+    public int        waveReached;
+    public int        totalKills;
+    public float      timeSurvived;
+    public string     causeOfDeath;
+    public DeathCause lastDeathCause;
+    public int        score;
+    public int        diamondsEarned;
 }
 
 public class RunRewardSystem : MonoBehaviour
@@ -31,6 +32,7 @@ public class RunRewardSystem : MonoBehaviour
             totalKills     = runData.totalKills,
             timeSurvived   = runData.timeSurvived,
             causeOfDeath   = runData.causeOfDeath,
+            lastDeathCause = runData.lastDeathCause,
             score          = score,
             diamondsEarned = score
         };
