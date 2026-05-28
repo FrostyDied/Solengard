@@ -59,6 +59,18 @@ public class WaveManager : MonoBehaviour
 
     // ── API pública ─────────────────────────────────────────────────────────────
 
+    // Restaura o WaveManager para uma wave específica sem animação de countdown
+    public void RestoreToWave(int wave)
+    {
+        currentWave  = Mathf.Max(1, wave) - 1; // StartWave() incrementa antes de rodar
+        killQuota    = 0;
+        killCount    = 0;
+        enemiesAlive = 0;
+        isSpawning   = false;
+        Debug.Log($"[WaveManager] RestoreToWave({wave})");
+        StartWave();
+    }
+
     public void StartWave()
     {
         if (isSpawning) return;

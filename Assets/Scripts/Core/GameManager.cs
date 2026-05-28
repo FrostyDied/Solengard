@@ -38,8 +38,9 @@ public class GameManager : MonoBehaviour
 
     // ── Eventos estáticos ────────────────────────────────────────────────────────
 
-    public static event System.Action<GameState> OnGameStateChanged;
-    public static event System.Action            OnGameOver;
+    public static event System.Action<GameState>      OnGameStateChanged;
+    public static event System.Action                 OnGameOver;
+    public static event System.Action<RunSessionData> OnSessionFound;
 
     // ── Referências ─────────────────────────────────────────────────────────────
 
@@ -96,6 +97,13 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         SetState(GameState.MainMenu);
+
+        if (RunSessionManager.Instance != null && RunSessionManager.Instance.HasActiveSession())
+        {
+            var session = RunSessionManager.Instance.LoadSession();
+            Debug.Log($"[GameManager] Sessao ativa encontrada — wave={session.currentWave} kills={session.killCount}");
+            OnSessionFound?.Invoke(session);
+        }
     }
 
     void Update()
@@ -110,6 +118,13 @@ public class GameManager : MonoBehaviour
     {
         if (currentState != GameState.MainMenu && currentState != GameState.GameOver) return;
 
+        // Sessão ativa → restaurar em vez de começar do zero
+        if (RunSessionManager.Instance != null && RunSessionManager.Instance.HasActiveSession())
+        {
+            RestoreSession(RunSessionManager.Instance.LoadSession());
+            return;
+        }
+
         currentRunData = new RunData { causeOfDeath = "inimigo" };
         runStartTime   = Time.time;
         runTimer       = 0f;
@@ -121,6 +136,35 @@ public class GameManager : MonoBehaviour
             waveManager.StartWave();
         else
             Debug.LogWarning("[GameManager] WaveManager não atribuído no Inspector.");
+    }
+
+    // Restaura o estado de jogo a partir de uma sessão salva
+    public void RestoreSession(RunSessionData session)
+    {
+        currentRunData = new RunData
+        {
+            waveReached    = session.currentWave,
+            wavesCompleted = Mathf.Max(0, session.currentWave - 1),
+            totalKills     = session.killCount,
+            timeSurvived   = session.timeElapsed,
+            causeOfDeath   = string.IsNullOrEmpty(session.causeOfDeath) ? "inimigo" : session.causeOfDeath,
+        };
+        runTimer     = session.timeElapsed;
+        runStartTime = Time.time;
+
+        SetState(GameState.Playing);
+        proceduralArena?.InitializeRun();
+
+        var ph = Object.FindFirstObjectByType<PlayerHealth>();
+        if (ph != null) ph.RestoreHealth(session.currentHealth, session.maxHealth);
+
+        if (waveManager != null)
+            waveManager.RestoreToWave(session.currentWave);
+        else
+            Debug.LogWarning("[GameManager] WaveManager nao encontrado para restaurar wave.");
+
+        RunSessionManager.Instance?.ClearSession();
+        Debug.Log($"[GameManager] Sessao restaurada — wave={session.currentWave} kills={session.killCount} hp={session.currentHealth:F0}");
     }
 
     public void PauseGame()
@@ -152,6 +196,8 @@ public class GameManager : MonoBehaviour
         currentRunData.timeSurvived = runTimer;
 
         Debug.Log($"[GameOver] kills={currentRunData.totalKills} wave={currentRunData.waveReached} time={RunTimeSeconds:F1} runRewardSystem={runRewardSystem != null}");
+
+        RunSessionManager.Instance?.ClearSession();
 
         try { runRewardSystem?.CalculateAndDeliverReward(currentRunData); }
         catch (System.Exception e) { Debug.LogError($"[GameManager] RunRewardSystem exception: {e.Message}"); }
@@ -186,6 +232,7 @@ public class GameManager : MonoBehaviour
         currentRunData.timeSurvived   = runTimer;
         currentRunData.causeOfDeath   = "vitória";
 
+        RunSessionManager.Instance?.ClearSession();
         runRewardSystem?.CalculateAndDeliverReward(currentRunData);
 
         SetState(GameState.Victory);

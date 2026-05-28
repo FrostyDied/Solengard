@@ -79,6 +79,17 @@ public class PlayerHealth : MonoBehaviour
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
+    // Restaura vida e maxHealth ao retomar uma sessão salva
+    public void RestoreHealth(float current, float max)
+    {
+        maxHealth     = max;
+        currentHealth = Mathf.Clamp(current, 0f, max);
+        isDead        = currentHealth <= 0f;
+        isInvincible  = false;
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        Debug.Log($"[PlayerHealth] RestoreHealth: {currentHealth:F0}/{maxHealth:F0}");
+    }
+
     // Revive o player após game over (usado pelo sistema de ressuscitar via anúncio)
     public void Revive(float healthFraction = 0.5f)
     {

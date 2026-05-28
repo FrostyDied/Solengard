@@ -311,6 +311,60 @@ public static class SolengardLayoutSetup
         total += DestroyLegacyGO(canvasTr, "MainButtons",     log);
 
         mmmSO.ApplyModifiedProperties();
+
+        // SessionRestoreCanvas — sortingOrder 50, acima de tudo no MainMenu
+        {
+            var srcGO = GameObject.Find("SessionRestoreCanvas");
+            if (srcGO == null)
+            {
+                srcGO = new GameObject("SessionRestoreCanvas");
+                Undo.RegisterCreatedObjectUndo(srcGO, "Layout MainMenu");
+                var c = srcGO.AddComponent<Canvas>();
+                c.renderMode   = RenderMode.ScreenSpaceOverlay;
+                c.sortingOrder = 50;
+                var s = srcGO.AddComponent<CanvasScaler>();
+                s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                s.referenceResolution = new Vector2(1080f, 1920f);
+                s.matchWidthOrHeight  = 0.5f;
+                log.AppendLine("  SessionRestoreCanvas criado"); total++;
+            }
+            if (srcGO.GetComponent<GraphicRaycaster>() == null) { srcGO.AddComponent<GraphicRaycaster>(); log.AppendLine("  SessionRestoreCanvas: GraphicRaycaster adicionado"); total++; }
+            var srcTr = srcGO.transform;
+
+            var srui   = srcGO.GetComponent<SessionRestoreUI>() ?? srcGO.AddComponent<SessionRestoreUI>();
+            var sruiSO = new SerializedObject(srui);
+
+            var (panelGO, panelNew) = FindOrCreateUI(srcTr, "SessionRestorePanel");
+            if (panelNew)
+            {
+                SetRect(RT(panelGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), Vector2.zero, new(800f,500f));
+                EnsureImage(panelGO, Hex("#0D0020"));
+                panelGO.SetActive(false);
+                log.AppendLine("  SessionRestorePanel"); total++;
+            }
+            var spTr = panelGO.transform;
+
+            { var (go,n)=FindOrCreateUI(spTr,"TituloSessao");
+              if(n){ SetRect(RT(go),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,180f),new(740f,70f));
+                     var t=EnsureTMP(go,"SESSAO ANTERIOR",48f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold;
+                     log.AppendLine("  SessionRestorePanel/TituloSessao"); total++; } }
+
+            var (detGO,detN)=FindOrCreateUI(spTr,"TextoDetalhes");
+            if(detN){ SetRect(RT(detGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,80f),new(720f,60f)); EnsureTMP(detGO,"Wave 1  0 kills  00:00",32f,Color.white); log.AppendLine("  SessionRestorePanel/TextoDetalhes"); total++; }
+
+            var (btnCGO,btnCN)=FindOrCreateUI(spTr,"BotaoContinuar");
+            if(btnCN){ SetRect(RT(btnCGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,-30f),new(500f,90f)); EnsureImage(btnCGO,Hex("#5A1090")); EnsureButton(btnCGO); AddLabel(btnCGO,"CONTINUAR",36f,Color.white); log.AppendLine("  SessionRestorePanel/BotaoContinuar"); total++; }
+
+            var (btnNGO,btnNN)=FindOrCreateUI(spTr,"BotaoNovaRun");
+            if(btnNN){ SetRect(RT(btnNGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,-150f),new(500f,90f)); EnsureImage(btnNGO,Hex("#2A2A4A")); EnsureButton(btnNGO); AddLabel(btnNGO,"NOVA RUN",36f,Color.white); log.AppendLine("  SessionRestorePanel/BotaoNovaRun"); total++; }
+
+            TryWire(sruiSO,"panel",         panelGO,                                    log);
+            TryWire(sruiSO,"textoDetalhes", detGO.GetComponent<TextMeshProUGUI>(),      log);
+            TryWire(sruiSO,"botaoContinuar",btnCGO.GetComponent<Button>(),              log);
+            TryWire(sruiSO,"botaoNovaRun",  btnNGO.GetComponent<Button>(),              log);
+            sruiSO.ApplyModifiedProperties();
+        }
+
         return total;
     }
 
