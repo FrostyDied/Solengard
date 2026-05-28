@@ -68,8 +68,11 @@ public class IAPSystem : MonoBehaviour
         storeController.InitiatePurchase(productId);
 #else
         Debug.Log($"[IAPSystem] BuyProduct stub: {productId}");
-        // Simula sucesso no editor para facilitar testes
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         AplicarCompra(productId);
+#else
+        Debug.LogWarning("[IAPSystem] Compra ignorada: Unity IAP não instalado em build de produção.");
+#endif
 #endif
     }
 

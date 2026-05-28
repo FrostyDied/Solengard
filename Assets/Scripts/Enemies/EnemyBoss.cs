@@ -31,6 +31,13 @@ public class EnemyBoss : EnemyBase
         phase2Triggered = false;
     }
 
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        phase2Active = false;
+        StopAllCoroutines();
+    }
+
     protected override void FixedUpdate()
     {
         CheckPhaseTransition();

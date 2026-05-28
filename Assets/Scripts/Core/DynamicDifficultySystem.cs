@@ -51,14 +51,17 @@ public class DynamicDifficultySystem : MonoBehaviour
 
     void TryAdvanceTier()
     {
-        int next = currentTierIndex + 1;
-        if (next >= Tiers.Length) return;
-        if (ElapsedTime < Tiers[next].timeThreshold) return;
+        // Iterative loop handles multiple simultaneous tier jumps (e.g., editor timeskips) without stack overflow
+        while (true)
+        {
+            int next = currentTierIndex + 1;
+            if (next >= Tiers.Length) return;
+            if (ElapsedTime < Tiers[next].timeThreshold) return;
 
-        currentTierIndex = next;
-        Debug.Log($"[DynamicDifficultySystem] Tier {next} ({ElapsedTime:F0}s) — HP×{HealthMultiplier} DMG×{DamageMultiplier}");
-        OnDifficultyTierChanged?.Invoke(next);
-        TryAdvanceTier(); // handle multiple simultaneous tier jumps
+            currentTierIndex = next;
+            Debug.Log($"[DynamicDifficultySystem] Tier {next} ({ElapsedTime:F0}s) — HP×{HealthMultiplier} DMG×{DamageMultiplier}");
+            OnDifficultyTierChanged?.Invoke(next);
+        }
     }
 
     public string[] GetAvailableEnemyTypes() => Tiers[currentTierIndex].availableEnemyTypes;

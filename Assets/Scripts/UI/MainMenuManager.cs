@@ -115,8 +115,7 @@ public class MainMenuManager : MonoBehaviour
         int nivelPasse = SeasonPassSystem.Instance?.NivelAtual ?? 0;
         if (textoNivelPasse != null) textoNivelPasse.text = $"Nível {nivelPasse}";
 
-        // Streak de login lido do PlayerPrefs diretamente
-        int streak = PlayerPrefs.GetInt("sol_streak_day", 0);
+        int streak = PlayerPrefs.GetInt(DailyRewardSystem.PREF_DIA_STREAK, 0);
         if (textoStreakLogin != null) textoStreakLogin.text = $"Streak: {streak} dia(s)";
     }
 

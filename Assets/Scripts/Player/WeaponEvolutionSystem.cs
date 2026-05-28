@@ -68,6 +68,11 @@ public class WeaponEvolutionSystem : MonoBehaviour
     public void VerificarEvolucoesPossiveis()
     {
         if (passiveItemSystem == null) return;
+        if (armasEquipadas.Count == 0)
+        {
+            Debug.LogWarning("[WeaponEvolutionSystem] Nenhuma arma registrada — chame AdicionarArma() ao equipar.");
+            return;
+        }
 
         foreach (PlayerWeapon arma in armasEquipadas)
         {

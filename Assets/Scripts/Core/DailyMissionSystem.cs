@@ -55,8 +55,8 @@ public class DailyMissionSystem : MonoBehaviour
         WaveManager.OnWaveCompleted -= AoWaveConcluida;
     }
 
-    void AoInimigoMorrer()      => UpdateMissionProgress("MatarInimigos",   1);
-    void AoWaveConcluida(int w) => UpdateMissionProgress("SobreviverWaves", 1);
+    void AoInimigoMorrer()      => UpdateMissionProgress(nameof(MissionType.MatarInimigos),   1);
+    void AoWaveConcluida(int w) => UpdateMissionProgress(nameof(MissionType.SobreviverWaves), 1);
 
     void Start() => CarregarOuGerarMissoes();
 

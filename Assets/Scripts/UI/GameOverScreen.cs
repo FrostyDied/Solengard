@@ -58,6 +58,8 @@ public class GameOverScreen : MonoBehaviour
 
     void OnGameOver()
     {
+        StopAllCoroutines(); // prevent multiple AnimateStats from a previous incomplete run
+        summaryReceived = false;
         panel?.SetActive(true);
         StartCoroutine(AnimateStats());
     }

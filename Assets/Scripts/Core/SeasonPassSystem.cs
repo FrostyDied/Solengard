@@ -99,7 +99,7 @@ public class SeasonPassSystem : MonoBehaviour
             return false;
         }
 
-        string chave = $"nivel_{nivel}_premium_{isPremiumTier}";
+        string chave = $"sol_sp_claimed_{nivel}_{isPremiumTier}";
         if (PlayerPrefs.GetInt(chave, 0) == 1) return false; // já resgatado
 
         SeasonReward reward = recompensas.Find(r => r.nivel == nivel && r.apenasPremiun == isPremiumTier);

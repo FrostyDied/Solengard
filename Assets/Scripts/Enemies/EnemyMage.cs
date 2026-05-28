@@ -24,6 +24,12 @@ public class EnemyMage : EnemyBase
         StartCoroutine(SummonRoutine());
     }
 
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        StopAllCoroutines();
+    }
+
     IEnumerator SummonRoutine()
     {
         yield return new WaitForSeconds(summonInterval * 0.5f);

@@ -97,6 +97,8 @@ public class ScoreSystem : MonoBehaviour
 
     void AoMudarEstado(GameState estado)
     {
+        // Note: RunRewardSystem also computes a summary score independently.
+        // ScoreSystem owns the leaderboard; RunRewardSystem owns the run-end display.
         if (estado == GameState.GameOver || estado == GameState.Victory)
             CalculateRunScore();
 

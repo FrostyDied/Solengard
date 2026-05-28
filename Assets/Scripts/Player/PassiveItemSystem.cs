@@ -30,6 +30,17 @@ public class PassiveItemSystem : MonoBehaviour
     List<PassiveItem> itensAtivos = new();
 
     public IReadOnlyList<PassiveItem> ItensAtivos => itensAtivos;
+
+    void Awake()
+    {
+        if (playerHealth     == null) playerHealth     = Object.FindFirstObjectByType<PlayerHealth>();
+        if (playerAttack     == null) playerAttack     = Object.FindFirstObjectByType<PlayerAttack>();
+        if (playerController == null) playerController = Object.FindFirstObjectByType<PlayerController>();
+
+        if (playerHealth     == null) Debug.LogWarning("[PassiveItemSystem] PlayerHealth não encontrado.");
+        if (playerAttack     == null) Debug.LogWarning("[PassiveItemSystem] PlayerAttack não encontrado.");
+        if (playerController == null) Debug.LogWarning("[PassiveItemSystem] PlayerController não encontrado.");
+    }
     public bool EstaCheia => itensAtivos.Count >= 6;
 
     // Adiciona um item passivo e aplica seu efeito imediatamente; retorna false se cheio

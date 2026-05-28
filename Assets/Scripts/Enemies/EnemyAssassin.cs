@@ -25,6 +25,13 @@ public class EnemyAssassin : EnemyBase
         StartCoroutine(TeleportRoutine());
     }
 
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        isPostTeleportInvincible = false;
+        StopAllCoroutines();
+    }
+
     protected override bool CanTakeDamage() => !isPostTeleportInvincible;
 
     IEnumerator TeleportRoutine()

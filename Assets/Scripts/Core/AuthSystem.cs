@@ -96,7 +96,8 @@ public class AuthSystem : MonoBehaviour
 
     void SalvarTokenLocal(string token, string userId)
     {
-        // Armazenamento simples — considere SecurePlayerPrefs ou Keychain em produção
+        // SECURITY: JWT stored in plaintext PlayerPrefs. Before shipping, replace with
+        // iOS Keychain (Unity.Keychain or plugin) / Android Keystore secure storage.
         PlayerPrefs.SetString(PREF_TOKEN, token);
         PlayerPrefs.SetString(PREF_USER_ID, userId);
         PlayerPrefs.Save();

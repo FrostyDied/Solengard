@@ -84,6 +84,9 @@ public class LocalizationManager : MonoBehaviour
 
         if (dados?.keys == null) return;
 
+        if (dados.keys.Count != dados.values.Count)
+            Debug.LogWarning($"[LocalizationManager] {arquivo}: {dados.keys.Count} keys mas {dados.values.Count} values — arquivo de localização inconsistente.");
+
         for (int i = 0; i < dados.keys.Count && i < dados.values.Count; i++)
             traducoes[dados.keys[i]] = dados.values[i];
 

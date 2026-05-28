@@ -24,9 +24,10 @@ public class PlayerHealth : MonoBehaviour
 
     // ── Estado interno ──────────────────────────────────────────────────────────
 
-    float currentHealth;
-    bool isInvincible = false;
-    bool isDead = false;
+    float     currentHealth;
+    bool      isInvincible = false;
+    bool      isDead = false;
+    Coroutine iFrameCoroutine;
 
     // ── Propriedades de leitura ─────────────────────────────────────────────────
 
@@ -63,7 +64,10 @@ public class PlayerHealth : MonoBehaviour
         if (currentHealth <= 0f)
             Die();
         else
-            StartCoroutine(IFrameRoutine());
+        {
+            if (iFrameCoroutine != null) StopCoroutine(iFrameCoroutine);
+            iFrameCoroutine = StartCoroutine(IFrameRoutine());
+        }
     }
 
     // Restaura vida sem ultrapassar o máximo
@@ -80,7 +84,7 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         isDead = true;
-        Debug.Log("PLAYER MORREU - chamando GameOver");
+        Debug.Log("[PlayerHealth] Player morreu — chamando GameOver");
         OnPlayerDied?.Invoke();
 
         if (GameManager.Instance == null)

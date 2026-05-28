@@ -10,8 +10,6 @@ public class EnemyArcher : EnemyBase
 
     const string ProjectileTag = "EnemyProjectile";
 
-    static bool poolRegistered;
-
     protected override void Awake()
     {
         maxHealth = 40f;
@@ -25,6 +23,12 @@ public class EnemyArcher : EnemyBase
     {
         base.OnEnable();
         StartCoroutine(ShootRoutine());
+    }
+
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        StopAllCoroutines();
     }
 
     // Sobrescreve o movimento padrão: recua se muito perto, avança se muito longe
@@ -64,10 +68,11 @@ public class EnemyArcher : EnemyBase
         if (ep != null) { ep.poolTag = ProjectileTag; ep.Launch(dir, damage); }
     }
 
-    // Registra a pool de projéteis na primeira vez que um Archer acorda
+    // Registra a pool de projéteis se ainda não existe no ObjectPoolManager
     static void EnsureProjectilePool()
     {
-        if (poolRegistered || ObjectPoolManager.Instance == null) return;
+        if (ObjectPoolManager.Instance == null) return;
+        if (ObjectPoolManager.Instance.HasPool(ProjectileTag)) return;
 
         var template = new GameObject("EnemyProjectile_Template");
         template.AddComponent<EnemyProjectile>();
@@ -78,6 +83,5 @@ public class EnemyArcher : EnemyBase
         DontDestroyOnLoad(template);
 
         ObjectPoolManager.Instance.RegisterPool(ProjectileTag, template, 30);
-        poolRegistered = true;
     }
 }

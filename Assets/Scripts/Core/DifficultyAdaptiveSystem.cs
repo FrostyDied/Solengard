@@ -40,9 +40,11 @@ public class DifficultyAdaptiveSystem : MonoBehaviour
     {
         if (state == GameState.Playing)
         {
+            // Always start fresh — stale prefs from a crash would incorrectly apply the reducer
+            ClearSavedDeaths();
             currentWave     = 1;
-            deathsThisWave  = PlayerPrefs.GetInt(PREF_PREFIX + currentWave, 0);
-            modifierApplied = deathsThisWave >= 3;
+            deathsThisWave  = 0;
+            modifierApplied = false;
         }
         else if (state == GameState.GameOver || state == GameState.Victory)
         {

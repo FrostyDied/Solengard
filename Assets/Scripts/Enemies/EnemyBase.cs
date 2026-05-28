@@ -48,7 +48,15 @@ public class EnemyBase : MonoBehaviour
     {
         currentHealth      = maxHealth;
         contactDamageTimer = 0f;
+        // Re-find player in case the scene was reloaded and the reference became stale
+        if (playerTransform == null)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null) playerTransform = player.transform;
+        }
     }
+
+    protected virtual void OnDisable() { }
 
     protected virtual void FixedUpdate()
     {

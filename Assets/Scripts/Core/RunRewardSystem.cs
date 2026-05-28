@@ -34,7 +34,7 @@ public class RunRewardSystem : MonoBehaviour
             causeOfDeath   = runData.causeOfDeath,
             lastDeathCause = runData.lastDeathCause,
             score          = score,
-            diamondsEarned = score
+            diamondsEarned = Mathf.Max(1, score / 10)
         };
 
         DiamondSystem.Instance?.AddDiamonds(summary.diamondsEarned);

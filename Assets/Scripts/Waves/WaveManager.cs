@@ -23,7 +23,7 @@ public class WaveManager : MonoBehaviour
 
     [Header("Spawn contínuo")]
     [SerializeField] float spawnInterval        = 0.5f;
-    [SerializeField] float minimumWaveDuration  = 120f;
+    [SerializeField] float minimumWaveDuration  = 60f;
 
     [Header("Sistemas")]
     [SerializeField] WaveTimerSystem         waveTimerSystem;

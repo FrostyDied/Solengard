@@ -9,8 +9,8 @@ public class DailyRewardSystem : MonoBehaviour
     // Passa: dia atual da sequência (1-7), quantidade de diamantes
     public static event System.Action<int, int> OnDailyRewardAvailable;
 
-    const string PREF_ULTIMO_LOGIN = "sol_last_login";
-    const string PREF_DIA_STREAK   = "sol_streak_day";
+    const string PREF_ULTIMO_LOGIN    = "sol_last_login";
+    public const string PREF_DIA_STREAK = "sol_streak_day";
 
     // Recompensas indexadas por dia (índice 0 = dia 1)
     static readonly int[] recompensasDiamantes = { 10, 15, 20, 25, 30, 50, 100 };

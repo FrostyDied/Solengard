@@ -67,6 +67,8 @@ public class ObjectPoolManager : MonoBehaviour
         return obj;
     }
 
+    public bool HasPool(string tag) => poolDic.ContainsKey(tag);
+
     // Registra uma pool em runtime (usada por sistemas que criam prefabs proceduralmente)
     public void RegisterPool(string tag, GameObject prefab, int initialSize)
     {

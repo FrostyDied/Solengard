@@ -19,6 +19,11 @@ public class TemporaryPowerSystem : MonoBehaviour
 
     bool isPowerActive;
 
+    // Snapshots captured before modifying player stats — restored on revert to avoid float drift
+    float snapDamage;
+    float snapSpeed;
+    float snapCooldown;
+
     PlayerAttack     playerAttack;
     PlayerHealth     playerHealth;
     PlayerController playerController;
@@ -68,8 +73,8 @@ public class TemporaryPowerSystem : MonoBehaviour
         switch (type)
         {
             case PowerType.FuriaSombria:
-                if (playerAttack     != null) playerAttack.attackDamage  *= 1.5f;
-                if (playerController != null) playerController.moveSpeed *= 1.3f;
+                if (playerAttack     != null) { snapDamage = playerAttack.attackDamage;     playerAttack.attackDamage  = snapDamage * 1.5f; }
+                if (playerController != null) { snapSpeed  = playerController.moveSpeed;    playerController.moveSpeed = snapSpeed  * 1.3f; }
                 return duracaoFuriaSombria;
 
             case PowerType.EscudoAncestral:
@@ -77,7 +82,7 @@ public class TemporaryPowerSystem : MonoBehaviour
                 return duracaoEscudoAncestral;
 
             case PowerType.ChuvaDeProjeteis:
-                if (playerAttack != null) playerAttack.attackCooldown /= 3f;
+                if (playerAttack != null) { snapCooldown = playerAttack.attackCooldown; playerAttack.attackCooldown = snapCooldown / 3f; }
                 return duracaoChuvaProjeteis;
 
             case PowerType.InvocarAliado:
@@ -93,8 +98,8 @@ public class TemporaryPowerSystem : MonoBehaviour
         switch (type)
         {
             case PowerType.FuriaSombria:
-                if (playerAttack     != null) playerAttack.attackDamage  /= 1.5f;
-                if (playerController != null) playerController.moveSpeed /= 1.3f;
+                if (playerAttack     != null) playerAttack.attackDamage  = snapDamage;
+                if (playerController != null) playerController.moveSpeed = snapSpeed;
                 break;
 
             case PowerType.EscudoAncestral:
@@ -102,7 +107,7 @@ public class TemporaryPowerSystem : MonoBehaviour
                 break;
 
             case PowerType.ChuvaDeProjeteis:
-                if (playerAttack != null) playerAttack.attackCooldown *= 3f;
+                if (playerAttack != null) playerAttack.attackCooldown = snapCooldown;
                 break;
 
             case PowerType.InvocarAliado:

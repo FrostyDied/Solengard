@@ -4,12 +4,12 @@ using UnityEngine;
 // Herda toda a lógica de movimento, vida e dano por contato de EnemyBase.
 public class EnemySlime : EnemyBase
 {
-    void Start()
+    protected override void Awake()
     {
-        maxHealth     = 60f;
-        moveSpeed     = 1.5f;
-        damage        = 10f;
-        currentHealth = maxHealth;
+        maxHealth = 60f;
+        moveSpeed = 1.5f;
+        damage    = 10f;
+        base.Awake(); // sets currentHealth = maxHealth with correct values
     }
 
     protected override void OnDie()

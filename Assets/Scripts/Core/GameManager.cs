@@ -71,6 +71,7 @@ public class GameManager : MonoBehaviour
 
     void OnEnable()
     {
+        SceneManager.sceneLoaded           += OnSceneLoaded;
         WaveManager.OnAllWavesCompleted    += HandleAllWavesCompleted;
         WaveManager.OnWaveCompleted        += HandleWaveCompleted;
         EnemyBase.OnEnemyDied              += HandleEnemyDied;
@@ -79,10 +80,18 @@ public class GameManager : MonoBehaviour
 
     void OnDisable()
     {
+        SceneManager.sceneLoaded           -= OnSceneLoaded;
         WaveManager.OnAllWavesCompleted    -= HandleAllWavesCompleted;
         WaveManager.OnWaveCompleted        -= HandleWaveCompleted;
         EnemyBase.OnEnemyDied              -= HandleEnemyDied;
         WaveTimerSystem.OnWaveTimerExpired -= HandleTimerExpired;
+    }
+
+    // Refreshes waveManager after a scene reload — the serialized field points to the old scene's destroyed instance
+    void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        if (waveManager == null)
+            waveManager = Object.FindFirstObjectByType<WaveManager>();
     }
 
     void Start()
@@ -140,7 +149,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f; // pausa o jogo imediatamente, antes de qualquer outra operação
 
         currentRunData.waveReached  = waveManager != null ? waveManager.CurrentWave : currentRunData.wavesCompleted;
-        currentRunData.timeSurvived = Time.time - runStartTime;
+        currentRunData.timeSurvived = runTimer;
 
         try { runRewardSystem?.CalculateAndDeliverReward(currentRunData); }
         catch (System.Exception e) { Debug.LogError($"[GameManager] RunRewardSystem exception: {e.Message}"); }
@@ -165,7 +174,7 @@ public class GameManager : MonoBehaviour
 
         currentRunData.wavesCompleted = waveManager != null ? waveManager.TotalWaves : currentRunData.wavesCompleted;
         currentRunData.waveReached    = currentRunData.wavesCompleted;
-        currentRunData.timeSurvived   = Time.time - runStartTime;
+        currentRunData.timeSurvived   = runTimer;
         currentRunData.causeOfDeath   = "vitória";
 
         runRewardSystem?.CalculateAndDeliverReward(currentRunData);
