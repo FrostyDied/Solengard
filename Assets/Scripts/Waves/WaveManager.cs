@@ -22,7 +22,8 @@ public class WaveManager : MonoBehaviour
     public List<Transform> spawnPoints = new();
 
     [Header("Spawn contínuo")]
-    [SerializeField] float spawnInterval = 0.3f;
+    [SerializeField] float spawnInterval        = 0.5f;
+    [SerializeField] float minimumWaveDuration  = 120f;
 
     [Header("Sistemas")]
     [SerializeField] WaveTimerSystem         waveTimerSystem;
@@ -32,18 +33,19 @@ public class WaveManager : MonoBehaviour
 
     int   TotalWavesConfig    => gameConfig != null ? gameConfig.totalWaves               : totalWaves;
     float RawTimeBetweenWaves => gameConfig != null ? gameConfig.intervaloEntreWaves       : 8f;
-    int   BaseEnemyCount      => gameConfig != null ? gameConfig.inimigosBaseWave1         : 20;
+    int   BaseEnemyCount      => gameConfig != null ? gameConfig.inimigosBaseWave1         : 50;
     int   EnemyCountIncrement => gameConfig != null ? gameConfig.incrementoInimigosPorWave : 10;
 
     public float TimeBetweenWaves => RawTimeBetweenWaves;
 
     // ── Estado interno ──────────────────────────────────────────────────────────
 
-    int  currentWave  = 0;
-    int  enemiesAlive = 0;  // inimigos atualmente ativos na tela
-    int  killCount    = 0;  // kills realizados nesta wave
-    int  killQuota    = 0;  // kills necessários para concluir a wave
-    bool isSpawning   = false;
+    int   currentWave  = 0;
+    int   enemiesAlive = 0;  // inimigos atualmente ativos na tela
+    int   killCount    = 0;  // kills realizados nesta wave
+    int   killQuota    = 0;  // kills necessários para concluir a wave
+    bool  isSpawning   = false;
+    float waveStartTime;
 
     static readonly Vector2[] fallbackSpawnPositions =
     {
@@ -64,9 +66,10 @@ public class WaveManager : MonoBehaviour
         if (isSpawning) return;
 
         currentWave++;
-        killQuota    = EnemyCountForWave(currentWave);
-        killCount    = 0;
-        enemiesAlive = 0;
+        killQuota     = EnemyCountForWave(currentWave);
+        killCount     = 0;
+        enemiesAlive  = 0;
+        waveStartTime = Time.time;
 
         Debug.Log($"[WaveManager] Wave {currentWave}/{TotalWavesConfig} — quota: {killQuota} kills");
 
@@ -80,7 +83,7 @@ public class WaveManager : MonoBehaviour
         enemiesAlive--;
         killCount++;
 
-        if (killCount >= killQuota)
+        if (killCount >= killQuota && Time.time - waveStartTime >= minimumWaveDuration)
             EndWave();
     }
 

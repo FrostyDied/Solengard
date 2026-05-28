@@ -21,9 +21,11 @@ public class PlayerController : MonoBehaviour
     {
 #if ENABLE_INPUT_SYSTEM
         moveInput.x = Keyboard.current != null ?
-            (Keyboard.current.dKey.isPressed ? 1 : Keyboard.current.aKey.isPressed ? -1 : 0) : 0;
+            (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed ? 1 :
+             Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed  ? -1 : 0) : 0;
         moveInput.y = Keyboard.current != null ?
-            (Keyboard.current.wKey.isPressed ? 1 : Keyboard.current.sKey.isPressed ? -1 : 0) : 0;
+            (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed   ? 1 :
+             Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed ? -1 : 0) : 0;
 #else
         moveInput.x = Input.GetAxisRaw("Horizontal");
         moveInput.y = Input.GetAxisRaw("Vertical");

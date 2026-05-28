@@ -27,6 +27,8 @@ public class EnemyBase : MonoBehaviour
     protected float currentHealth;
     protected Rigidbody2D rb;
 
+    float contactDamageTimer;
+
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -44,7 +46,8 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual void OnEnable()
     {
-        currentHealth = maxHealth;
+        currentHealth      = maxHealth;
+        contactDamageTimer = 0f;
     }
 
     protected virtual void FixedUpdate()
@@ -77,6 +80,23 @@ public class EnemyBase : MonoBehaviour
             if (d > 0.01f) sep += away / d;
         }
         return sep;
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        contactDamageTimer -= Time.fixedDeltaTime;
+        if (contactDamageTimer > 0f) return;
+
+        PlayerHealth ph = collision.collider.GetComponent<PlayerHealth>();
+        if (ph == null) return;
+
+        ph.TakeDamage(damage);
+        contactDamageTimer = 1f;
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        contactDamageTimer = 0f;
     }
 
     // Recebe dano e dispara Die() quando a vida chega a zero

@@ -36,7 +36,7 @@ public class GameConfig : ScriptableObject
     [Header("Wave System")]
     public int   totalWaves               = 10;
     public float intervaloEntreWaves      = 8f;
-    public int   inimigosBaseWave1        = 20;
+    public int   inimigosBaseWave1        = 50;
     public int   incrementoInimigosPorWave = 10;
 
     // Retorna o multiplicador de dificuldade para a wave informada
