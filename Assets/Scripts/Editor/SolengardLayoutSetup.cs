@@ -497,10 +497,24 @@ public static class SolengardLayoutSetup
             if(dN){ SetRect(RT(diamanGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0f,-65f),new(700f,50f)); EnsureTMP(diamanGO,"+0 diamantes",    32f,Color.white); log.AppendLine("  textoDiamantes");    total++; }
 
             // Botões
+            var (ressGO, ressNew) = FindOrCreateUI(pTr, "BotaoRessuscitar");
+            if (ressNew)
+            {
+                SetRect(RT(ressGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-130f), new(500f,90f));
+                EnsureImage(ressGO, Hex("#8A6000")); EnsureButton(ressGO);
+                AddLabel(ressGO, "▶ RESSUSCITAR", 36f, Color.white);
+
+                // Hint de anúncio abaixo do botão (filho, fora do rect do botão)
+                var (subGO, _) = FindOrCreateUI(ressGO.transform, "SubtituloRessuscitar");
+                SetRect(RT(subGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-35f), new(500f,30f));
+                EnsureTMP(subGO, "( assista um anúncio )", 20f, Hex("#888888"));
+                log.AppendLine("  BotaoRessuscitar + subtítulo"); total++;
+            }
+
             var (restartGO, restartNew) = FindOrCreateUI(pTr, "BotaoJogarNovamente");
             if (restartNew)
             {
-                SetRect(RT(restartGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-200f), new(600f,100f));
+                SetRect(RT(restartGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-280f), new(600f,100f));
                 EnsureImage(restartGO, Hex("#5A1090")); EnsureButton(restartGO);
                 AddLabel(restartGO, "⚔ JOGAR NOVAMENTE", 36f, Color.white);
                 log.AppendLine("  BotaoJogarNovamente"); total++;
@@ -509,7 +523,7 @@ public static class SolengardLayoutSetup
             var (menuGO, menuNew) = FindOrCreateUI(pTr, "BotaoMenuPrincipal");
             if (menuNew)
             {
-                SetRect(RT(menuGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-320f), new(600f,100f));
+                SetRect(RT(menuGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,-410f), new(600f,100f));
                 EnsureImage(menuGO, Hex("#2A2A4A")); EnsureButton(menuGO);
                 AddLabel(menuGO, "\U0001F3E0 MENU PRINCIPAL", 36f, Color.white);
                 log.AppendLine("  BotaoMenuPrincipal"); total++;
