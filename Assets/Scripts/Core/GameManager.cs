@@ -71,27 +71,27 @@ public class GameManager : MonoBehaviour
 
     void OnEnable()
     {
-        SceneManager.sceneLoaded           += OnSceneLoaded;
-        WaveManager.OnAllWavesCompleted    += HandleAllWavesCompleted;
-        WaveManager.OnWaveCompleted        += HandleWaveCompleted;
-        EnemyBase.OnEnemyDied              += HandleEnemyDied;
-        WaveTimerSystem.OnWaveTimerExpired += HandleTimerExpired;
+        SceneManager.sceneLoaded        += OnSceneLoaded;
+        WaveManager.OnAllWavesCompleted += HandleAllWavesCompleted;
+        WaveManager.OnWaveCompleted     += HandleWaveCompleted;
+        EnemyBase.OnEnemyDied           += HandleEnemyDied;
     }
 
     void OnDisable()
     {
-        SceneManager.sceneLoaded           -= OnSceneLoaded;
-        WaveManager.OnAllWavesCompleted    -= HandleAllWavesCompleted;
-        WaveManager.OnWaveCompleted        -= HandleWaveCompleted;
-        EnemyBase.OnEnemyDied              -= HandleEnemyDied;
-        WaveTimerSystem.OnWaveTimerExpired -= HandleTimerExpired;
+        SceneManager.sceneLoaded        -= OnSceneLoaded;
+        WaveManager.OnAllWavesCompleted -= HandleAllWavesCompleted;
+        WaveManager.OnWaveCompleted     -= HandleWaveCompleted;
+        EnemyBase.OnEnemyDied           -= HandleEnemyDied;
     }
 
-    // Refreshes waveManager after a scene reload — the serialized field points to the old scene's destroyed instance
+    // Refreshes scene-bound references after reload — serialized fields point to destroyed instances
     void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
     {
         if (waveManager == null)
             waveManager = Object.FindFirstObjectByType<WaveManager>();
+        if (runRewardSystem == null)
+            runRewardSystem = Object.FindFirstObjectByType<RunRewardSystem>();
     }
 
     void Start()
@@ -197,12 +197,6 @@ public class GameManager : MonoBehaviour
     void HandleEnemyDied()
     {
         currentRunData.totalKills++;
-    }
-
-    void HandleTimerExpired()
-    {
-        currentRunData.causeOfDeath   = "tempo esgotado";
-        currentRunData.lastDeathCause = DeathCause.TempoEsgotado;
     }
 
     void SetState(GameState newState)

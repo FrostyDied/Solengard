@@ -21,10 +21,18 @@ public class RunRewardSystem : MonoBehaviour
 
     [SerializeField] WaveTimerSystem waveTimerSystem;
 
+    void OnEnable()
+    {
+        if (waveTimerSystem == null)
+            waveTimerSystem = Object.FindFirstObjectByType<WaveTimerSystem>();
+    }
+
     public RunSummary CalculateAndDeliverReward(RunData runData)
     {
-        float timeBonus    = waveTimerSystem != null ? waveTimerSystem.TimeRemaining / 10f : 0f;
-        int   score        = (runData.wavesCompleted * 10) + (runData.totalKills * 2) + Mathf.FloorToInt(timeBonus);
+        if (waveTimerSystem == null)
+            waveTimerSystem = Object.FindFirstObjectByType<WaveTimerSystem>();
+        float timeBonus = waveTimerSystem != null ? waveTimerSystem.TimeRemaining / 10f : 0f;
+        int   score     = (runData.waveReached * 10) + (runData.totalKills * 2) + Mathf.FloorToInt(timeBonus);
 
         var summary = new RunSummary
         {
