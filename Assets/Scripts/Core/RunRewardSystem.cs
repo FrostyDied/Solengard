@@ -75,6 +75,7 @@ public class RunRewardSystem : MonoBehaviour
 
         Debug.Log($"[RunReward] Salvando score={summary.score}");
         SaveRunHistory(summary);
+        Debug.Log($"[RunReward] Invocando OnRunRewardCalculated subscribers={OnRunRewardCalculated?.GetInvocationList()?.Length}");
         OnRunRewardCalculated?.Invoke(summary);
 
         Debug.Log($"[RunRewardSystem] Run finalizada — score: {score}, diamantes: {summary.diamondsEarned}");

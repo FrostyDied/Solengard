@@ -44,25 +44,40 @@ public class GameOverScreen : MonoBehaviour
         reviverUsado = false;
         ressuscitarButton?.gameObject.SetActive(true);
         GameManager.OnGameOver                += OnGameOver;
+        GameManager.OnGameStateChanged        += OnGameStateChanged;
         RunRewardSystem.OnRunRewardCalculated += CacheSummary;
     }
 
     void OnDisable()
     {
         GameManager.OnGameOver                -= OnGameOver;
+        GameManager.OnGameStateChanged        -= OnGameStateChanged;
         RunRewardSystem.OnRunRewardCalculated -= CacheSummary;
+    }
+
+    void OnGameStateChanged(GameState state)
+    {
+        // Reset summary flags at the start of a new run, not in OnGameOver.
+        // CacheSummary fires BEFORE OnGameOver (RunRewardSystem is called first in TriggerGameOver),
+        // so resetting here avoids wiping a summary that already arrived.
+        if (state == GameState.Playing)
+        {
+            summaryReceived = false;
+            cachedSummary   = null;
+        }
     }
 
     void CacheSummary(RunSummary summary)
     {
         cachedSummary   = summary;
         summaryReceived = true;
+        Debug.Log("[GameOverScreen] OnRunRewardCalculated recebido score=" + summary.score);
     }
 
     void OnGameOver()
     {
-        StopAllCoroutines(); // prevent multiple AnimateStats from a previous incomplete run
-        summaryReceived = false;
+        StopAllCoroutines();
+        // NOTE: do NOT reset summaryReceived here — CacheSummary already fired before this handler
         panel?.SetActive(true);
         StartCoroutine(AnimateStats());
     }
@@ -76,6 +91,15 @@ public class GameOverScreen : MonoBehaviour
             waited += Time.unscaledDeltaTime;
             yield return null;
         }
+
+        Debug.Log($"[GameOverScreen] AnimateStats — summaryReceived={summaryReceived} waited={waited:F2}s");
+
+        if (waveText     == null) Debug.LogError("[GameOverScreen] waveText é null — verifique wire no Inspector");
+        if (killsText    == null) Debug.LogError("[GameOverScreen] killsText é null");
+        if (timeText     == null) Debug.LogError("[GameOverScreen] timeText é null");
+        if (causeText    == null) Debug.LogError("[GameOverScreen] causeText é null");
+        if (scoreText    == null) Debug.LogError("[GameOverScreen] scoreText é null");
+        if (diamondsText == null) Debug.LogError("[GameOverScreen] diamondsText é null");
 
         TextMeshProUGUI[] stats = { waveText, killsText, timeText, causeText, scoreText, diamondsText };
         foreach (var t in stats)
