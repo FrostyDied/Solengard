@@ -64,6 +64,7 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
+        Debug.Log($"[GameManager] Awake — Instance={(Instance == null ? "null" : Instance.GetInstanceID().ToString())} ThisID={GetInstanceID()}");
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
@@ -138,13 +139,13 @@ public class GameManager : MonoBehaviour
 
     public void TriggerGameOver()
     {
-        if (currentState != GameState.Playing)
+        if (currentState != GameState.Playing && currentState != GameState.Paused)
         {
-            Debug.LogWarning($"[GameManager] TriggerGameOver ignorado — estado atual: {currentState}");
+            Debug.LogWarning($"[GameManager] TriggerGameOver ignorado — estado: {currentState}");
             return;
         }
 
-        Time.timeScale = 0f; // pausa o jogo imediatamente, antes de qualquer outra operação
+        Time.timeScale = 0f; // garante pausa mesmo se já estava Paused
 
         currentRunData.waveReached  = waveManager != null ? waveManager.CurrentWave : currentRunData.wavesCompleted;
         currentRunData.timeSurvived = runTimer;
@@ -199,6 +200,8 @@ public class GameManager : MonoBehaviour
     public void IncrementKill()
     {
         currentRunData.totalKills++;
+        if (currentRunData.totalKills % 5 == 0)
+            Debug.Log($"[GameManager] totalKills={currentRunData.totalKills}");
     }
 
     public void IncrementWave(int wave)

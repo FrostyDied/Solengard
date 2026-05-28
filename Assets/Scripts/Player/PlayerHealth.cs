@@ -56,7 +56,7 @@ public class PlayerHealth : MonoBehaviour
     // Aplica dano ao player; ignorado durante iframes ou após a morte
     public void TakeDamage(float amount)
     {
-        if (isInvincible || isDead) return;
+        if (Time.timeScale == 0f || isInvincible || isDead) return;
 
         currentHealth = Mathf.Max(currentHealth - amount, 0f);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
