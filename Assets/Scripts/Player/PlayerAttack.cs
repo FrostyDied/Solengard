@@ -6,9 +6,9 @@ using UnityEngine;
 public class PlayerAttack : MonoBehaviour
 {
     [Header("Atributos de Ataque")]
-    public float attackDamage   = 20f;
-    public float attackRange    = 5f;
-    public float attackCooldown = 1f;
+    public float attackDamage   = 35f;
+    public float attackRange    = 3f;
+    public float attackCooldown = 0.6f;
 
     [Header("Detecção")]
     // Layer "Enemy" deve estar configurada no projeto para que a detecção funcione
@@ -27,6 +27,8 @@ public class PlayerAttack : MonoBehaviour
         // Fallbacks para quando o campo não foi configurado no Inspector
         if (enemyLayerMask == 0) enemyLayerMask = LayerMask.GetMask("Enemy");
         if (attackRange    <= 0f) attackRange   = 3f;
+
+        Debug.Log($"[PlayerAttack] Awake — damage={attackDamage} range={attackRange} cooldown={attackCooldown} layerMask={enemyLayerMask.value}");
     }
 
     void OnEnable()  => PlayerWeapon.OnWeaponUpgraded += AoUpgradeArma;
@@ -51,6 +53,7 @@ public class PlayerAttack : MonoBehaviour
 
         if (alvo == null) return;
 
+        Debug.Log($"[PlayerAttack] Atacando {alvo.name} — damage={attackDamage}");
         alvo.TakeDamage(attackDamage);
     }
 
