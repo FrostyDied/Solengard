@@ -104,3 +104,9 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Assets de arte - grande demais para o Git
+Assets/Art/
+
+# Manter só os prefabs e sprites que forem usados nos prefabs
+!Assets/Art/Characters/Enemies/Slime/PNG/
