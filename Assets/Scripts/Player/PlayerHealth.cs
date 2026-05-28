@@ -82,6 +82,13 @@ public class PlayerHealth : MonoBehaviour
         isDead = true;
         Debug.Log("PLAYER MORREU - chamando GameOver");
         OnPlayerDied?.Invoke();
+
+        if (GameManager.Instance == null)
+        {
+            Debug.LogError("[PlayerHealth] GameManager.Instance é null — TriggerGameOver não será chamado!");
+            return;
+        }
+
         GameManager.Instance.TriggerGameOver();
     }
 

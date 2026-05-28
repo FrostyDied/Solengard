@@ -90,7 +90,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
-        if (currentState != GameState.MainMenu) return;
+        if (currentState != GameState.MainMenu && currentState != GameState.GameOver) return;
 
         currentRunData = new RunData { causeOfDeath = "inimigo" };
         runStartTime   = Time.time;
@@ -121,14 +121,20 @@ public class GameManager : MonoBehaviour
 
     public void TriggerGameOver()
     {
-        if (currentState != GameState.Playing) return;
+        if (currentState != GameState.Playing)
+        {
+            Debug.LogWarning($"[GameManager] TriggerGameOver ignorado — estado atual: {currentState}");
+            return;
+        }
+
+        Time.timeScale = 0f; // pausa o jogo imediatamente, antes de qualquer outra operação
 
         currentRunData.waveReached  = waveManager != null ? waveManager.CurrentWave : currentRunData.wavesCompleted;
         currentRunData.timeSurvived = Time.time - runStartTime;
 
-        runRewardSystem?.CalculateAndDeliverReward(currentRunData);
+        try { runRewardSystem?.CalculateAndDeliverReward(currentRunData); }
+        catch (System.Exception e) { Debug.LogError($"[GameManager] RunRewardSystem exception: {e.Message}"); }
 
-        Time.timeScale = 0f;
         SetState(GameState.GameOver);
         OnGameOver?.Invoke();
     }
@@ -136,6 +142,7 @@ public class GameManager : MonoBehaviour
     // Recarrega a cena ativa para iniciar uma nova run
     public void RestartRun()
     {
+        SetState(GameState.MainMenu); // reseta estado antes de recarregar para GameSceneBootstrap encontrar MainMenu
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
