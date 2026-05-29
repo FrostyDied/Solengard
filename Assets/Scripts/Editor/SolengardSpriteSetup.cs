@@ -67,11 +67,18 @@ public static class SolengardSpriteSetup
         importer.textureType = TextureImporterType.Sprite;
         importer.filterMode = FilterMode.Point;
         importer.textureCompression = TextureImporterCompression.Uncompressed;
-        importer.maxTextureSize = 512;
+        // Character sheets can be 768 px+ wide; 512 would downsample them. UI/environment stay smaller.
+        bool isCharacter = ContainsAny(path, "Characters", "Enemies", "Hero", "Boss");
+        importer.maxTextureSize = isCharacter ? 2048 : 512;
         importer.alphaIsTransparency = true;
         importer.wrapMode = TextureWrapMode.Clamp;
 
-        bool isSpritesheet = path.IndexOf("Spritesheets", System.StringComparison.Ordinal) >= 0;
+        // "Spritesheets" = boss packed sheets; "With_shadow"/"Without_shadow" = per-animation
+        // character sheets (e.g. 768×256 = 8 frames). Both need Multiple. Everything else
+        // (single environment props, effect PNGs) stays Single.
+        bool isSpritesheet = path.IndexOf("Spritesheets",   System.StringComparison.Ordinal) >= 0
+                          || path.IndexOf("With_shadow",    System.StringComparison.Ordinal) >= 0
+                          || path.IndexOf("Without_shadow", System.StringComparison.Ordinal) >= 0;
         importer.spriteImportMode = isSpritesheet ? SpriteImportMode.Multiple : SpriteImportMode.Single;
 
         // Part 2 — pixelsPerUnit by path
