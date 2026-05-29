@@ -1,54 +1,54 @@
 ﻿=== AUDIT DE PREFABS - Solengard ===
-Data: 2026-05-29 09:44:54
+Data: 2026-05-29 13:12:23
 
 PERSONAGENS (Assets/Prefabs/Characters/):
-- Player_Level1.prefab → Swordsman_lvl1_Idle_without_shadow
-- Player_Level2.prefab → Swordsman_lvl2_Idle_without_shadow
-- Player_Level3.prefab → Swordsman_lvl3_Idle_without_shadow
-- Player_Level4.prefab → lvl4_Idle_without_shadow
-- Player_Level5.prefab → lvl5_Idle_without_shadow
-- Player_Level6.prefab → lvl6_Idle_without_shadow
-- Player_Level7.prefab → lvl7_Idle_without_shadow
-- Player_Level8.prefab → lvl8_Idle_without_shadow
-- Player_Level9.prefab → lvl9_Idle_without_shadow
+- Player_Level1.prefab → Swordsman_lvl1_Idle_body_0
+- Player_Level2.prefab → Swordsman_lvl2_Idle_body_0
+- Player_Level3.prefab → Swordsman_lvl3_Idle_body_0
+- Player_Level4.prefab → lvl4_Idle_body_0
+- Player_Level5.prefab → lvl5_Idle_body_0
+- Player_Level6.prefab → lvl6_Idle_body_0
+- Player_Level7.prefab → lvl7_Idle_body_0
+- Player_Level8.prefab → lvl8_Idle_body_0
+- Player_Level9.prefab → lvl9_Idle_body_0
 
 INIMIGOS (Assets/Prefabs/Enemies/):
 - BossCaveman.prefab → Front - Idle_000
 - BossGiantGoblin.prefab → Front - Idle_000
 - BossVikingLeader.prefab → Front - Idle_000
-- EnemyArcher.prefab → Skeleton1_Idle_without_shadow
-- EnemyArcher2.prefab → Skeleton2_Idle_without_shadow
-- EnemyArcher3.prefab → Skeleton3_Idle_without_shadow
-- EnemyAssassin.prefab → Ghost1_Idle_without_shadow
-- EnemyAssassin2.prefab → Ghost2_Idle_without_shadow
-- EnemyAssassin3.prefab → Ghost3_Idle_without_shadow
-- EnemyBoss.prefab → Lich1_Idle_without_shadow
-- EnemyBoss2.prefab → Lich2_Idle_without_shadow
-- EnemyBoss3.prefab → Lich3_Idle_without_shadow
-- EnemyDarkElf.prefab → Idle
-- EnemyDarkElf2.prefab → Idle
-- EnemyDarkElf3.prefab → Idle
-- EnemyGoblin.prefab → Idle0_without_shadow
-- EnemyGoblin2.prefab → Idle_without_shadow
-- EnemyGoblin3.prefab → Idle_without_shadow
-- EnemyGolem.prefab → Golem1_Idle_without_shadow
-- EnemyGolem2.prefab → Golem2_Idle_without_shadow
-- EnemyGolem3.prefab → Golem3_Idle_without_shadow
-- EnemyMage.prefab → Demon1_Idle_without_shadow
-- EnemyMage2.prefab → Demon2_Idle_without_shadow
-- EnemyMage3.prefab → Demon3_Idle_without_shadow
-- EnemyOrc.prefab → Gnoll1_Idle_without_shadow
-- EnemyOrc2.prefab → Gnoll2_Idle_without_shadow
-- EnemyOrc3.prefab → Gnoll3_Idle_without_shadow
-- EnemyOrcHeavy.prefab → orc1_idle_without_shadow
-- EnemyOrcHeavy2.prefab → orc2_idle_without_shadow
-- EnemyOrcHeavy3.prefab → orc3_idle_without_shadow
-- EnemySlime.prefab → Slime1_Idle_without_shadow
-- EnemySlime2.prefab → Slime2_Idle_without_shadow
-- EnemySlime3.prefab → Slime3_Idle_without_shadow
-- EnemyZumbi.prefab → Zombie1_Idle_without_shadow
-- EnemyZumbi2.prefab → Zombie2_Idle_without_shadow
-- EnemyZumbi3.prefab → Zombie3_Idle_without_shadow
+- EnemyArcher.prefab → Skeleton1_Idle_body_0
+- EnemyArcher2.prefab → Skeleton2_Idle_body_0
+- EnemyArcher3.prefab → Skeleton3_Idle_body_0
+- EnemyAssassin.prefab → Ghost1_Idle_body_0
+- EnemyAssassin2.prefab → Ghost2_Idle_body_0
+- EnemyAssassin3.prefab → Ghost3_Idle_body_0
+- EnemyBoss.prefab → Lich1_Idle_body_0
+- EnemyBoss2.prefab → Lich2_Idle_body_0
+- EnemyBoss3.prefab → Lich3_Idle_body_0
+- EnemyDarkElf.prefab → Attack
+- EnemyDarkElf2.prefab → Attack
+- EnemyDarkElf3.prefab → Attack
+- EnemyGoblin.prefab → Idle4_body_0
+- EnemyGoblin2.prefab → Idle_body_0
+- EnemyGoblin3.prefab → Idle_body_0
+- EnemyGolem.prefab → Golem1_Idle_body_0
+- EnemyGolem2.prefab → Golem2_Idle_body_0
+- EnemyGolem3.prefab → Golem3_Idle_body_0
+- EnemyMage.prefab → Demon1_Idle_Body_0
+- EnemyMage2.prefab → Demon2_Idle_Body_0
+- EnemyMage3.prefab → Demon3_Idle_Body_0
+- EnemyOrc.prefab → Gnoll1_Idle_body_0
+- EnemyOrc2.prefab → Gnoll2_Idle_body_0
+- EnemyOrc3.prefab → Gnoll3_Idle_body_0
+- EnemyOrcHeavy.prefab → orc1_idle_body_0
+- EnemyOrcHeavy2.prefab → orc2_idle_body_0
+- EnemyOrcHeavy3.prefab → orc3_idle_body_0
+- EnemySlime.prefab → Slime1_Idle_body_0
+- EnemySlime2.prefab → Slime2_Idle_body_0
+- EnemySlime3.prefab → Slime3_Idle_body_0
+- EnemyZumbi.prefab → Zombie1_Idle_body_0
+- EnemyZumbi2.prefab → Zombie2_Idle_body_0
+- EnemyZumbi3.prefab → Zombie3_Idle_body_0
 
 EFEITOS (Assets/Prefabs/Effects/):
 - EnemyProjectile.prefab → Projectile

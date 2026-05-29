@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1423210572191732446
+--- !u!1 &6475018081397593862
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,11 +8,11 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6918655295291784274}
-  - component: {fileID: 1044754050721010229}
-  - component: {fileID: 6207928501023627246}
-  - component: {fileID: 6176415306375924102}
-  - component: {fileID: 2370311732326239267}
+  - component: {fileID: 389200523552218998}
+  - component: {fileID: 7958395147347286935}
+  - component: {fileID: 3151155290550767460}
+  - component: {fileID: 7853847641001826746}
+  - component: {fileID: 1983238574984984770}
   m_Layer: 6
   m_Name: BossCaveman
   m_TagString: Untagged
@@ -20,13 +20,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6918655295291784274
+--- !u!4 &389200523552218998
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1423210572191732446}
+  m_GameObject: {fileID: 6475018081397593862}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -35,13 +35,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &1044754050721010229
+--- !u!212 &7958395147347286935
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1423210572191732446}
+  m_GameObject: {fileID: 6475018081397593862}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -84,19 +84,19 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 52.499996, y: 45.014645}
+  m_Size: {x: 52.5, y: 45}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &6207928501023627246
+--- !u!114 &3151155290550767460
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1423210572191732446}
+  m_GameObject: {fileID: 6475018081397593862}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 975b7925e8b3b7a4cbbb543089dc0997, type: 3}
@@ -112,14 +112,14 @@ MonoBehaviour:
   poolTag: 
   phase2SpeedMultiplier: 1.8
   zumbiSpawnInterval: 3
---- !u!50 &6176415306375924102
+--- !u!50 &7853847641001826746
 Rigidbody2D:
   serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1423210572191732446}
+  m_GameObject: {fileID: 6475018081397593862}
   m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
@@ -139,13 +139,13 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!58 &2370311732326239267
+--- !u!58 &1983238574984984770
 CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1423210572191732446}
+  m_GameObject: {fileID: 6475018081397593862}
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
@@ -174,4 +174,4 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 26.249998
+  m_Radius: 26.25
