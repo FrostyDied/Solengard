@@ -15,17 +15,23 @@ public class ArenaGenerator : MonoBehaviour
         width  = Mathf.Clamp(width,  1, 50);
         height = Mathf.Clamp(height, 1, 50);
 
+        if (groundTilemap == null)
+            groundTilemap = GameObject.Find("GroundTilemap")?.GetComponent<Tilemap>();
+        if (obstacleTilemap == null)
+            obstacleTilemap = GameObject.Find("ObstacleTilemap")?.GetComponent<Tilemap>();
+
+        var floorTile = MakeSolidTile(new Color(0.267f, 0.267f, 0.267f));
+        var wallTile  = MakeSolidTile(new Color(0.133f, 0.133f, 0.133f));
+        Debug.Log($"[Arena] ground={groundTilemap != null} obstacle={obstacleTilemap != null} floorTile={floorTile != null} wallTile={wallTile != null}");
+
         if (groundTilemap == null || obstacleTilemap == null)
         {
-            Debug.LogWarning("[ArenaGenerator] Tilemaps não atribuídos — arena não gerada.");
+            Debug.LogWarning("[ArenaGenerator] Tilemaps não encontrados — arena não gerada.");
             return;
         }
 
         groundTilemap.ClearAllTiles();
         obstacleTilemap.ClearAllTiles();
-
-        var floorTile = MakeSolidTile(new Color(0.267f, 0.267f, 0.267f)); // #444444
-        var wallTile  = MakeSolidTile(new Color(0.133f, 0.133f, 0.133f)); // #222222
 
         int ox = -width  / 2;
         int oy = -height / 2;

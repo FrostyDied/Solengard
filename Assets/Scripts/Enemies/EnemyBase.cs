@@ -35,6 +35,9 @@ public class EnemyBase : MonoBehaviour
         rb.freezeRotation = true;
         currentHealth = maxHealth;
 
+        if (transform.localScale == Vector3.one)
+            transform.localScale = new Vector3(2f, 2f, 1f);
+
         // Busca o player automaticamente caso não tenha sido atribuído no Inspector
         if (playerTransform == null)
         {
