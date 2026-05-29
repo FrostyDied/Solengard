@@ -143,7 +143,9 @@ public static class SolengardPrefabSetup
     {
         EffectKw("ExplosionEffect", $"{Art}/Effects/Explosions/PNG/Explosion",  new[]{"explosion"});
         EffectKw("LightningEffect", $"{Art}/Effects/Explosions/PNG/Lightning",  new[]{"lightning"});
-        EffectKw("MagicEffect",     $"{Art}/Effects/Magic/1 Magic/1",           new[]{"magic","effect"},             skipDigits: true);
+        EffectKw("MagicEffect",
+            FindSpriteByKeywords($"{Art}/Effects/Magic/1 Magic",                      new[]{"magic","effect"},             skipDigits: true)
+         ?? FindSpriteByKeywords($"{Art}/Effects/Explosions/PNG/Explosion_blue_circle", new[]{"explosion","blue","circle"}));
         EffectKw("HitEffect",       $"{Art}/Effects/TopDown/PNG/Explosion1",    new[]{"explosion","hit","impact"});
         EffectKw("FireEffect",      $"{Art}/Effects/TopDown/PNG/Fire_small",    new[]{"fire"});
         EffectKw("SmokeEffect",     $"{Art}/Effects/Explosions/PNG/Smoke",      new[]{"smoke"});
@@ -151,9 +153,9 @@ public static class SolengardPrefabSetup
         if (cancelled) return;
 
         var go = new GameObject("EnemyProjectile");
-        go.AddComponent<SpriteRenderer>().sprite = FindSpriteByKeywords(
-            $"{Art}/Effects/Magic/1 Magic/1",
-            new[]{"magic","orb","ball","projectile"}, skipDigits: true);
+        go.AddComponent<SpriteRenderer>().sprite =
+            FindSpriteByKeywords($"{Art}/Effects/Magic/1 Magic",                      new[]{"magic","orb","ball","projectile"}, skipDigits: true)
+         ?? FindSpriteByKeywords($"{Art}/Effects/Explosions/PNG/Explosion_blue_circle", new[]{"explosion","blue","circle"});
 
         var col = go.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
@@ -168,11 +170,14 @@ public static class SolengardPrefabSetup
         UnityEngine.Object.DestroyImmediate(go);
     }
 
-    private static void EffectKw(string prefabName, string folder, string[] keywords, bool skipDigits = false)
+    private static void EffectKw(string prefabName, string folder, string[] keywords, bool skipDigits = false) =>
+        EffectKw(prefabName, FindSpriteByKeywords(folder, keywords, skipDigits: skipDigits));
+
+    private static void EffectKw(string prefabName, Sprite sprite)
     {
         if (cancelled) return;
         var go = new GameObject(prefabName);
-        go.AddComponent<SpriteRenderer>().sprite = FindSpriteByKeywords(folder, keywords, skipDigits: skipDigits);
+        go.AddComponent<SpriteRenderer>().sprite = sprite;
         go.tag = "Effect";
         if (Save(go, $"{Prefabs}/Effects/{prefabName}.prefab")) effectCount++;
         UnityEngine.Object.DestroyImmediate(go);
@@ -288,11 +293,22 @@ public static class SolengardPrefabSetup
             if (s != null) { Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (filtered): {p}"); return s; }
         }
 
-        // Pass 3: absolute fallback — first result
-        string fallbackPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-        Sprite fallback = LoadSprite(fallbackPath);
-        if (fallback != null) Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (fallback): {fallbackPath}");
-        return fallback;
+        // Pass 3: absolute fallback — skip digits if requested, return null to allow caller to try another folder
+        foreach (string guid in guids)
+        {
+            string p     = AssetDatabase.GUIDToAssetPath(guid);
+            string fname = Path.GetFileNameWithoutExtension(p);
+            if (skipDigits && IsOnlyDigits(fname)) continue;
+            Sprite s = LoadSprite(p);
+            if (s != null) { Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (fallback): {p}"); return s; }
+        }
+
+        if (skipDigits) return null; // all files were digits — let caller try fallback folder
+
+        string firstPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+        Sprite first = LoadSprite(firstPath);
+        if (first != null) Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (first): {firstPath}");
+        return first;
     }
 
     private static string[] GetGuids(string folder)
