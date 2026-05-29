@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -330,6 +332,109 @@ public static class SolengardPrefabSetup
         }
 
         Debug.LogWarning($"[SolengardPrefabSetup] Layer '{layerName}' não pôde ser criada — sem slots livres.");
+    }
+
+    // ── AUDIT ─────────────────────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Audit Prefabs")]
+    public static void AuditPrefabs()
+    {
+        const string outputPath = "Assets/PrefabAudit.txt";
+
+        var sections = new (string label, string folder)[]
+        {
+            ("PERSONAGENS", $"{Prefabs}/Characters"),
+            ("INIMIGOS",    $"{Prefabs}/Enemies"),
+            ("EFEITOS",     $"{Prefabs}/Effects"),
+            ("AMBIENTE",    $"{Prefabs}/Environment"),
+        };
+
+        var sb          = new StringBuilder();
+        var missing     = new List<string>();
+        int total       = 0;
+        int withSprite  = 0;
+
+        sb.AppendLine("=== AUDIT DE PREFABS - Solengard ===");
+        sb.AppendLine($"Data: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+
+        foreach (var (label, folder) in sections)
+        {
+            sb.AppendLine();
+            sb.AppendLine($"{label} ({folder}/):");
+
+            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { folder });
+            if (guids.Length == 0)
+            {
+                sb.AppendLine("  (nenhum prefab encontrado)");
+                continue;
+            }
+
+            // Sort by path so output is deterministic
+            var paths = new List<string>(guids.Length);
+            foreach (string guid in guids)
+                paths.Add(AssetDatabase.GUIDToAssetPath(guid));
+            paths.Sort(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string path in paths)
+            {
+                string prefabName = Path.GetFileName(path);
+                var    prefab     = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                string spriteName = "[VAZIO - sem sprite!]";
+
+                if (prefab != null)
+                {
+                    var sr = prefab.GetComponent<SpriteRenderer>();
+                    if (sr != null && sr.sprite != null)
+                    {
+                        spriteName = sr.sprite.name;
+                        withSprite++;
+                    }
+                    else
+                    {
+                        missing.Add(prefabName);
+                    }
+                }
+                else
+                {
+                    missing.Add(prefabName);
+                }
+
+                // Indent Environment entries one extra level (sub-seasons)
+                string indent = folder.EndsWith("Environment") ? "  " : "";
+                sb.AppendLine($"{indent}- {prefabName} → {spriteName}");
+                total++;
+            }
+        }
+
+        int withoutSprite = total - withSprite;
+
+        sb.AppendLine();
+        sb.AppendLine("RESUMO:");
+        sb.AppendLine($"- Total prefabs: {total}");
+        sb.AppendLine($"- Com sprite: {withSprite}");
+        sb.AppendLine($"- SEM sprite: {withoutSprite}");
+
+        if (missing.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Prefabs SEM sprite:");
+            foreach (string m in missing)
+                sb.AppendLine($"  * {m}");
+        }
+
+        string report = sb.ToString();
+
+        // Write file
+        string fullPath = Path.Combine(Application.dataPath.Replace("/Assets", ""), outputPath);
+        File.WriteAllText(fullPath, report, Encoding.UTF8);
+
+        // Log to Console
+        Debug.Log($"[SolengardPrefabSetup] Audit concluído — {total} prefabs | {withSprite} com sprite | {withoutSprite} sem sprite\n\n{report}");
+
+        // Refresh and open in editor
+        AssetDatabase.Refresh();
+        var txt = AssetDatabase.LoadAssetAtPath<TextAsset>(outputPath);
+        if (txt != null) AssetDatabase.OpenAsset(txt);
     }
 
     private static void EnsureTag(string tagName)
