@@ -1,12 +1,13 @@
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using UnityEngine.EventSystems;
-using UnityEditor;
-using UnityEditor.SceneManagement;
-using System.Linq;
+using System.Collections.Generic;
 using System.Text;
 using TMPro;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
+using UnityEngine.UI;
 
 // Menu: Solengard ▸ Setup Scene / Setup Systems / Setup Pools and Upgrades / Setup All
 //                 ▸ Create MainMenu Scene
@@ -14,12 +15,28 @@ using TMPro;
 // "Create MainMenu Scene" gera Assets/Scenes/MainMenu.unity com hierarquia UI completa.
 public static class SolengardSetup
 {
-    const string GAME_CONFIG_PATH     = "Assets/Data/GameConfig.asset";
-    const string PLAYER_DATA_PATH     = "Assets/Data/PlayerData.asset";
-    const string SLIME_PREFAB_PATH    = "Assets/Prefabs/Enemies/Slime.prefab";
-    const string EXPECTED_SCENE       = "GameScene";
-    const string MAIN_MENU_SCENE_PATH = "Assets/Scenes/MainMenu.unity";
-    const string GAME_SCENE_PATH      = "Assets/Scenes/GameScene.unity";
+    const string GAME_CONFIG_PATH        = "Assets/Data/GameConfig.asset";
+    const string PLAYER_DATA_PATH        = "Assets/Data/PlayerData.asset";
+    const string SLIME_PREFAB_PATH       = "Assets/Prefabs/Enemies/Slime.prefab";
+    const string EXPECTED_SCENE          = "GameScene";
+    const string MAIN_MENU_SCENE_PATH    = "Assets/Scenes/MainMenu.unity";
+    const string GAME_SCENE_PATH         = "Assets/Scenes/GameScene.unity";
+    const string PLAYER_LEVEL1_PREFAB    = "Assets/Prefabs/Characters/Player_Level1.prefab";
+    const string TILE_FOLDER             = "Assets/Prefabs/Tiles";
+    const string GROUND_TILE_PATH        = "Assets/Prefabs/Tiles/GroundTile.asset";
+    const string WALL_TILE_PATH          = "Assets/Prefabs/Tiles/WallTile.asset";
+
+    static readonly string[] ENEMY_PREFAB_PATHS =
+    {
+        "Assets/Prefabs/Enemies/EnemySlime.prefab",
+        "Assets/Prefabs/Enemies/EnemyZumbi.prefab",
+        "Assets/Prefabs/Enemies/EnemyOrc.prefab",
+        "Assets/Prefabs/Enemies/EnemyArcher.prefab",
+        "Assets/Prefabs/Enemies/EnemyMage.prefab",
+        "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+        "Assets/Prefabs/Enemies/EnemyGolem.prefab",
+        "Assets/Prefabs/Enemies/EnemyBoss.prefab",
+    };
 
     // ── Setup Scene ──────────────────────────────────────────────────────────────
 
@@ -206,6 +223,7 @@ public static class SolengardSetup
         CreateSceneSystem<RunRewardSystem>          ("RunRewardSystem");
         CreateSceneSystem<DynamicDifficultySystem>  ("DynamicDifficultySystem");
         CreateSceneSystem<TemporaryPowerSystem>     ("TemporaryPowerSystem");
+        CreateSceneSystem<ArenaGenerator>           ("ArenaGenerator");
 
         // EventSystem — required for UI clicks; module depends on Input System setting
         {
@@ -220,36 +238,51 @@ public static class SolengardSetup
 #endif
         }
 
-        // 5. Player — Square 2D with all player components
-        var playerGO = new GameObject("Player");
-        Undo.RegisterCreatedObjectUndo(playerGO, "Rebuild GameScene");
-        SceneManager.MoveGameObjectToScene(playerGO, scene);
-        playerGO.transform.parent   = null;
-        playerGO.transform.position = Vector3.zero;
+        // 5. Player — real prefab; fallback to placeholder square if not found
+        var playerPrefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_LEVEL1_PREFAB);
+        GameObject playerGO;
+
+        if (playerPrefabAsset != null)
+        {
+            playerGO = (GameObject)PrefabUtility.InstantiatePrefab(playerPrefabAsset, scene);
+            playerGO.name = "Player";
+            playerGO.transform.position = Vector3.zero;
+            Undo.RegisterCreatedObjectUndo(playerGO, "Rebuild GameScene");
+            Debug.Log("[SolengardSetup] Player instanciado de Player_Level1.prefab.");
+        }
+        else
+        {
+            Debug.LogWarning("[SolengardSetup] Player_Level1.prefab não encontrado — usando placeholder.");
+            playerGO = new GameObject("Player");
+            Undo.RegisterCreatedObjectUndo(playerGO, "Rebuild GameScene");
+            SceneManager.MoveGameObjectToScene(playerGO, scene);
+            playerGO.transform.parent   = null;
+            playerGO.transform.position = Vector3.zero;
+
+            var sr  = playerGO.AddComponent<SpriteRenderer>();
+            var tex = new Texture2D(32, 32);
+            var px  = new Color[32 * 32];
+            for (int i = 0; i < px.Length; i++) px[i] = new Color(0.2f, 0.55f, 1f);
+            tex.SetPixels(px);
+            tex.Apply();
+            sr.sprite = Sprite.Create(tex, new Rect(0, 0, 32, 32), Vector2.one * 0.5f, 32f);
+
+            var col = playerGO.AddComponent<BoxCollider2D>();
+            col.size = Vector2.one;
+            var rb   = playerGO.AddComponent<Rigidbody2D>();
+            rb.gravityScale   = 0f;
+            rb.freezeRotation = true;
+
+            playerGO.AddComponent<PlayerController>();
+            playerGO.AddComponent<PlayerHealth>();
+            playerGO.AddComponent<PlayerAttack>();
+            playerGO.AddComponent<PlayerWeapon>();
+            playerGO.AddComponent<PassiveItemSystem>();
+            playerGO.AddComponent<WeaponEvolutionSystem>();
+        }
+
         try { playerGO.tag = "Player"; }
         catch { Debug.LogWarning("[SolengardSetup] Tag 'Player' não existe — adicione em Project Settings → Tags."); }
-
-        // Placeholder sprite: 32×32 px at 32 PPU = 1×1 unit blue square
-        var sr  = playerGO.AddComponent<SpriteRenderer>();
-        var tex = new Texture2D(32, 32);
-        var px  = new Color[32 * 32];
-        for (int i = 0; i < px.Length; i++) px[i] = new Color(0.2f, 0.55f, 1f);
-        tex.SetPixels(px);
-        tex.Apply();
-        sr.sprite = Sprite.Create(tex, new Rect(0, 0, 32, 32), Vector2.one * 0.5f, 32f);
-
-        var col = playerGO.AddComponent<BoxCollider2D>();
-        col.size = Vector2.one;
-        var rb   = playerGO.AddComponent<Rigidbody2D>();
-        rb.gravityScale   = 0f;
-        rb.freezeRotation = true;
-
-        playerGO.AddComponent<PlayerController>();
-        playerGO.AddComponent<PlayerHealth>();
-        playerGO.AddComponent<PlayerAttack>();
-        playerGO.AddComponent<PlayerWeapon>();
-        playerGO.AddComponent<PassiveItemSystem>();
-        playerGO.AddComponent<WeaponEvolutionSystem>();
 
         // Wire CameraFollow on Main Camera — target = Player
         if (mainCamGO != null)
@@ -269,6 +302,9 @@ public static class SolengardSetup
         RunSetupSystems(log, warns);
         log.AppendLine("\n── Setup Pools & Upgrades ───────────");
         RunSetupPoolsAndUpgrades(log);
+
+        // 6b. Tilemap Arena — Grid + GroundTilemap + ObstacleTilemap + ArenaGenerator wiring
+        CreateTilemapArena(scene);
 
         // 7. Collapse Undo + save scene
         Undo.CollapseUndoOperations(undoGroup);
@@ -697,10 +733,10 @@ public static class SolengardSetup
 
         var slimePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(SLIME_PREFAB_PATH);
         if (slimePrefab == null)
-            Debug.LogWarning($"[SolengardSetup] Prefab não encontrado: {SLIME_PREFAB_PATH} — pools e enemyPrefabs ignorados.");
+            Debug.LogWarning($"[SolengardSetup] {SLIME_PREFAB_PATH} não encontrado — pool ignorada.");
 
         total += TryAddSlimePool(slimePrefab, log);
-        total += TryAddEnemyPrefab(slimePrefab, log);
+        total += TryAddEnemyPrefabs(log);
         total += TryPopulateUpgrades(log);
         total += TryPopulateSeasonRewards(log);
         total += TryPopulateObstaclePositions(log);
@@ -733,10 +769,8 @@ public static class SolengardSetup
         return 1;
     }
 
-    static int TryAddEnemyPrefab(GameObject prefab, StringBuilder log)
+    static int TryAddEnemyPrefabs(StringBuilder log)
     {
-        if (prefab == null) return 0;
-
         var wm = Object.FindFirstObjectByType<WaveManager>(FindObjectsInactive.Include);
         if (wm == null) { Debug.LogWarning("[SolengardSetup] WaveManager não encontrado."); return 0; }
 
@@ -744,12 +778,25 @@ public static class SolengardSetup
         var arr = so.FindProperty("enemyPrefabs");
         if (arr == null || arr.arraySize > 0) return 0;
 
-        arr.InsertArrayElementAtIndex(0);
-        arr.GetArrayElementAtIndex(0).objectReferenceValue = prefab;
+        var loaded = new List<GameObject>();
+        foreach (string path in ENEMY_PREFAB_PATHS)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab != null) loaded.Add(prefab);
+            else Debug.LogWarning($"[SolengardSetup] Enemy prefab não encontrado: {path}");
+        }
+
+        if (loaded.Count == 0) return 0;
+
+        for (int i = 0; i < loaded.Count; i++)
+        {
+            arr.InsertArrayElementAtIndex(i);
+            arr.GetArrayElementAtIndex(i).objectReferenceValue = loaded[i];
+        }
         so.ApplyModifiedProperties();
 
-        log.AppendLine("  WaveManager.enemyPrefabs → Slime.prefab adicionado");
-        Debug.Log("[SolengardSetup] Slime.prefab adicionado ao WaveManager.enemyPrefabs.");
+        log.AppendLine($"  WaveManager.enemyPrefabs → {loaded.Count} prefabs adicionados");
+        Debug.Log($"[SolengardSetup] {loaded.Count} enemy prefabs adicionados ao WaveManager.enemyPrefabs.");
         return 1;
     }
 
@@ -1167,6 +1214,127 @@ public static class SolengardSetup
             return;
         }
         prop.objectReferenceValue = value;
+    }
+
+    // ── Tilemap Arena ─────────────────────────────────────────────────────────────
+
+    static void CreateTilemapArena(Scene scene)
+    {
+        EnsureTileAssets();
+
+        // Grid root
+        var gridGO = new GameObject("Grid");
+        Undo.RegisterCreatedObjectUndo(gridGO, "Rebuild GameScene");
+        SceneManager.MoveGameObjectToScene(gridGO, scene);
+        gridGO.AddComponent<Grid>().cellSize = new Vector3(1f, 1f, 0f);
+
+        // GroundTilemap
+        var groundGO = new GameObject("GroundTilemap");
+        Undo.RegisterCreatedObjectUndo(groundGO, "Rebuild GameScene");
+        groundGO.transform.SetParent(gridGO.transform, false);
+        groundGO.AddComponent<Tilemap>();
+        var groundRend = groundGO.AddComponent<TilemapRenderer>();
+        groundRend.sortingOrder = -1;
+        SetLayerByName(groundGO, "Ground");
+        groundGO.AddComponent<TilemapCollider2D>();
+
+        // ObstacleTilemap
+        var obstacleGO = new GameObject("ObstacleTilemap");
+        Undo.RegisterCreatedObjectUndo(obstacleGO, "Rebuild GameScene");
+        obstacleGO.transform.SetParent(gridGO.transform, false);
+        obstacleGO.AddComponent<Tilemap>();
+        obstacleGO.AddComponent<TilemapRenderer>().sortingOrder = 0;
+        obstacleGO.AddComponent<TilemapCollider2D>();
+        obstacleGO.AddComponent<CompositeCollider2D>();
+        var obsRB = obstacleGO.GetComponent<Rigidbody2D>() ?? obstacleGO.AddComponent<Rigidbody2D>();
+        obsRB.bodyType = RigidbodyType2D.Kinematic;
+        SetLayerByName(obstacleGO, "Obstacle");
+
+        // Wire ArenaGenerator
+        var arenaGen = Object.FindFirstObjectByType<ArenaGenerator>(FindObjectsInactive.Include);
+        if (arenaGen != null)
+        {
+            var groundTilemap   = groundGO.GetComponent<Tilemap>();
+            var obstacleTilemap = obstacleGO.GetComponent<Tilemap>();
+
+            var groundTile = AssetDatabase.LoadAssetAtPath<Tile>(GROUND_TILE_PATH);
+            var wallTile   = AssetDatabase.LoadAssetAtPath<Tile>(WALL_TILE_PATH);
+
+            var so = new SerializedObject(arenaGen);
+            SetProp(so, "groundTilemap",   groundTilemap);
+            SetProp(so, "obstacleTilemap", obstacleTilemap);
+            if (groundTile?.sprite != null) SetProp(so, "floorSprite", groundTile.sprite);
+            if (wallTile?.sprite   != null) SetProp(so, "wallSprite",  wallTile.sprite);
+            so.ApplyModifiedProperties();
+            Debug.Log("[SolengardSetup] ArenaGenerator wired com tilemaps e sprites.");
+        }
+    }
+
+    static void EnsureTileAssets()
+    {
+        if (!AssetDatabase.IsValidFolder(TILE_FOLDER))
+            AssetDatabase.CreateFolder("Assets/Prefabs", "Tiles");
+
+        if (AssetDatabase.LoadAssetAtPath<Tile>(GROUND_TILE_PATH) == null)
+        {
+            var sprite = FindSpriteInFolder(
+                "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG",
+                new[]{"floor","ground","tile","stone","dirt"});
+            var tile = ScriptableObject.CreateInstance<Tile>();
+            tile.sprite = sprite;
+            AssetDatabase.CreateAsset(tile, GROUND_TILE_PATH);
+            Debug.Log($"[SolengardSetup] GroundTile criado → sprite: {sprite?.name ?? "nenhum"}");
+        }
+
+        if (AssetDatabase.LoadAssetAtPath<Tile>(WALL_TILE_PATH) == null)
+        {
+            var sprite = FindSpriteInFolder(
+                "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG",
+                new[]{"wall"});
+            var tile = ScriptableObject.CreateInstance<Tile>();
+            tile.sprite = sprite;
+            AssetDatabase.CreateAsset(tile, WALL_TILE_PATH);
+            Debug.Log($"[SolengardSetup] WallTile criado → sprite: {sprite?.name ?? "nenhum"}");
+        }
+
+        AssetDatabase.SaveAssets();
+    }
+
+    static Sprite FindSpriteInFolder(string folder, string[] keywords)
+    {
+        if (!AssetDatabase.IsValidFolder(folder)) return null;
+
+        string[] guids = AssetDatabase.FindAssets("t:Sprite", new[]{folder});
+        if (guids.Length == 0)
+            guids = AssetDatabase.FindAssets("t:Texture2D", new[]{folder});
+
+        foreach (string kw in keywords)
+            foreach (string guid in guids)
+            {
+                string p = AssetDatabase.GUIDToAssetPath(guid);
+                if (p.IndexOf(kw, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    var s = AssetDatabase.LoadAssetAtPath<Sprite>(p);
+                    if (s != null) return s;
+                }
+            }
+
+        if (guids.Length > 0)
+            return AssetDatabase.LoadAssetAtPath<Sprite>(AssetDatabase.GUIDToAssetPath(guids[0]));
+
+        return null;
+    }
+
+    static void SetLayerByName(GameObject go, string layerName)
+    {
+        int layer = LayerMask.NameToLayer(layerName);
+        if (layer >= 0) go.layer = layer;
+    }
+
+    static void SetProp(SerializedObject so, string propName, Object value)
+    {
+        var prop = so.FindProperty(propName);
+        if (prop != null) prop.objectReferenceValue = value;
     }
 
     // Overwrites Build Settings with MainMenu[0] + GameScene[1], no duplicates
