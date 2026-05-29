@@ -18,6 +18,12 @@ public class ArenaGenerator : MonoBehaviour
             return;
         }
 
+        if (floorSprite == null || wallSprite == null)
+        {
+            Debug.LogWarning("[ArenaGenerator] Sprites não atribuídos — arena não gerada.");
+            return;
+        }
+
         groundTilemap.ClearAllTiles();
         obstacleTilemap.ClearAllTiles();
 
@@ -27,10 +33,11 @@ public class ArenaGenerator : MonoBehaviour
         int ox = -width  / 2;
         int oy = -height / 2;
 
-        // Ground fill
-        for (int x = ox; x < ox + width; x++)
-            for (int y = oy; y < oy + height; y++)
-                groundTilemap.SetTile(new Vector3Int(x, y, 0), floorTile);
+        // Ground fill — batch to avoid per-tile overhead on large maps
+        var groundBounds = new BoundsInt(ox, oy, 0, width, height, 1);
+        var groundTiles  = new TileBase[width * height];
+        System.Array.Fill(groundTiles, floorTile);
+        groundTilemap.SetTilesBlock(groundBounds, groundTiles);
 
         // Border walls — 2 tiles thick on each side
         for (int x = ox - 2; x < ox + width + 2; x++)

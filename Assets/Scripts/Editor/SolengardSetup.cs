@@ -238,7 +238,13 @@ public static class SolengardSetup
 #endif
         }
 
-        // 5. Player — real prefab; fallback to placeholder square if not found
+        // 5. Player — destroy any lingering Player-tagged objects before creating a fresh one
+        foreach (var go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (go.CompareTag("Player"))
+                Object.DestroyImmediate(go);
+        }
+
         var playerPrefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_LEVEL1_PREFAB);
         GameObject playerGO;
 
