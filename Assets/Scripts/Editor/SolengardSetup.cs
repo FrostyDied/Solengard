@@ -1251,10 +1251,6 @@ public static class SolengardSetup
         obstacleGO.AddComponent<Tilemap>();
         obstacleGO.AddComponent<TilemapRenderer>().sortingOrder = 0;
         obstacleGO.AddComponent<TilemapCollider2D>();
-        var composite = obstacleGO.AddComponent<CompositeCollider2D>();
-        composite.generationType = CompositeCollider2D.GenerationType.Manual;
-        var obsRB = obstacleGO.GetComponent<Rigidbody2D>() ?? obstacleGO.AddComponent<Rigidbody2D>();
-        obsRB.bodyType = RigidbodyType2D.Kinematic;
         SetLayerByName(obstacleGO, "Obstacle");
 
         // Wire ArenaGenerator
