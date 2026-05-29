@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-[DefaultExecutionOrder(100)]
+[DefaultExecutionOrder(-100)]
 public class ArenaGenerator : MonoBehaviour
 {
     [SerializeField] Tilemap     groundTilemap;
@@ -68,7 +68,7 @@ public class ArenaGenerator : MonoBehaviour
         if (cameraFollow == null)
             cameraFollow = FindFirstObjectByType<CameraFollow>();
         if (cameraFollow != null)
-            cameraFollow.SetBounds(-20f, 20f, -20f, 20f);
+            cameraFollow.SetBounds(-18f, 18f, -18f, 18f);
     }
 
     private Tile MakeSolidTile(Color color)
