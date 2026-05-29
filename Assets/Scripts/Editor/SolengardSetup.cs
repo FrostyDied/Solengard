@@ -292,8 +292,12 @@ public static class SolengardSetup
         catch { Debug.LogWarning("[SolengardSetup] Tag 'Player' não existe — adicione em Project Settings → Tags."); }
 
         // Wire CameraFollow on Main Camera — target = Player
+        // Remove any existing CameraFollow before adding to prevent duplicates on repeated Rebuild
         if (mainCamGO != null)
         {
+            var existing = mainCamGO.GetComponent<CameraFollow>();
+            if (existing != null) Object.DestroyImmediate(existing);
+
             var cf   = mainCamGO.AddComponent<CameraFollow>();
             var cfSO = new SerializedObject(cf);
             var prop = cfSO.FindProperty("target");
