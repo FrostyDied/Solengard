@@ -3,13 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-// TODO: re-enable Start() and GenerateArena() after resolving the Unity freeze.
-// Root cause suspected: SetTilesBlock / SetTiles on a Tilemap with CompositeCollider2D
-// (GenerationType = Synchronous) triggers a full physics geometry rebuild synchronously,
-// which blocks the main thread even inside a coroutine. Fix options:
-//   1. Switch CompositeCollider2D to GenerationType.Manual and call GenerateGeometry()
-//      once after all tiles are placed.
-//   2. Replace runtime tile generation with a pre-built tilemap saved in the scene.
 [DefaultExecutionOrder(100)]
 public class ArenaGenerator : MonoBehaviour
 {
@@ -18,17 +11,10 @@ public class ArenaGenerator : MonoBehaviour
     [SerializeField] Sprite floorSprite;
     [SerializeField] Sprite wallSprite;
 
-    void Start()
-    {
-        // DISABLED — causes Unity freeze due to CompositeCollider2D synchronous rebuild.
-        // StartCoroutine(GenerateArenaCoroutine(30, 30));
-    }
+    void Start() => StartCoroutine(GenerateArenaCoroutine(30, 30));
 
-    public void GenerateArena(int width, int height)
-    {
-        // DISABLED — see Start() comment above.
-        // StartCoroutine(GenerateArenaCoroutine(width, height));
-    }
+    public void GenerateArena(int width, int height) =>
+        StartCoroutine(GenerateArenaCoroutine(width, height));
 
     public IEnumerator GenerateArenaCoroutine(int width, int height)
     {
@@ -91,6 +77,14 @@ public class ArenaGenerator : MonoBehaviour
         var wallTilesArr = new TileBase[wallPos.Count];
         System.Array.Fill(wallTilesArr, wallTile);
         obstacleTilemap.SetTiles(wallPos.ToArray(), wallTilesArr);
+
+        // Trigger a single geometry rebuild now that all tiles are placed
+        var composite = obstacleTilemap.GetComponent<CompositeCollider2D>();
+        if (composite != null) composite.GenerateGeometry();
+
+        // Fit camera to show the full arena
+        if (Camera.main != null)
+            Camera.main.orthographicSize = Mathf.Max(width, height) * 0.6f;
     }
 
     private Tile MakeTile(Sprite sprite)
