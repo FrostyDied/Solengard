@@ -36,6 +36,9 @@ public static class SolengardPrefabSetup
         for (int s = 1; s <= 7; s++)
             EnsureFolder($"{Prefabs}/Environment/Season{s}");
 
+        // Ensure AssetDatabase index is up-to-date before sprite queries
+        AssetDatabase.Refresh();
+
         BuildHeroes();
         if (!cancelled) BuildEnemies();
         if (!cancelled) BuildEffects();
@@ -234,16 +237,42 @@ public static class SolengardPrefabSetup
         }
 
         string[] guids = AssetDatabase.FindAssets("t:Sprite", new[] { folder });
+
+        // Fallback: textures not yet reimported as Sprite
+        if (guids.Length == 0)
+            guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folder });
+
         if (guids.Length == 0) return null;
 
+        // Prefer file with "idle" in name
         foreach (string guid in guids)
         {
             string p = AssetDatabase.GUIDToAssetPath(guid);
             if (p.IndexOf("idle", StringComparison.OrdinalIgnoreCase) >= 0)
-                return AssetDatabase.LoadAssetAtPath<Sprite>(p);
+            {
+                Sprite s = LoadSprite(p);
+                if (s != null) { Debug.Log($"[SolengardPrefabSetup] Sprite atribuído: {p}"); return s; }
+            }
         }
 
-        return AssetDatabase.LoadAssetAtPath<Sprite>(AssetDatabase.GUIDToAssetPath(guids[0]));
+        // Fallback: first result
+        string first = AssetDatabase.GUIDToAssetPath(guids[0]);
+        Sprite fallback = LoadSprite(first);
+        if (fallback != null) Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (fallback): {first}");
+        return fallback;
+    }
+
+    private static Sprite LoadSprite(string path)
+    {
+        // Single-mode: main asset is the Sprite
+        Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        if (s != null) return s;
+
+        // Multiple-mode: Sprite is a sub-asset (spritesheet slices)
+        foreach (UnityEngine.Object obj in AssetDatabase.LoadAllAssetsAtPath(path))
+            if (obj is Sprite sprite) return sprite;
+
+        return null;
     }
 
     private static bool Save(GameObject go, string path)
@@ -261,6 +290,7 @@ public static class SolengardPrefabSetup
             return false;
         }
 
+        EditorUtility.SetDirty(go);
         PrefabUtility.SaveAsPrefabAsset(go, path);
         return true;
     }
