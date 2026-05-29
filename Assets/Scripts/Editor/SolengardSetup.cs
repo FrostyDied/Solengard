@@ -743,6 +743,7 @@ public static class SolengardSetup
             Debug.LogWarning($"[SolengardSetup] {SLIME_PREFAB_PATH} não encontrado — pool ignorada.");
 
         total += TryAddSlimePool(slimePrefab, log);
+        total += TryAddEnemyPools(log);
         total += TryAddEnemyPrefabs(log);
         total += TryPopulateUpgrades(log);
         total += TryPopulateSeasonRewards(log);
@@ -774,6 +775,47 @@ public static class SolengardSetup
         log.AppendLine("  ObjectPoolManager.pools → Pool 'Slime' adicionada (tamanho 10)");
         Debug.Log("[SolengardSetup] Pool 'Slime' criada no ObjectPoolManager.");
         return 1;
+    }
+
+    static int TryAddEnemyPools(StringBuilder log)
+    {
+        var mgr = Object.FindFirstObjectByType<ObjectPoolManager>(FindObjectsInactive.Include);
+        if (mgr == null) { Debug.LogWarning("[SolengardSetup] ObjectPoolManager não encontrado."); return 0; }
+
+        var so  = new SerializedObject(mgr);
+        var arr = so.FindProperty("pools");
+        if (arr == null) return 0;
+
+        var existingTags = new HashSet<string>();
+        for (int i = 0; i < arr.arraySize; i++)
+            existingTags.Add(arr.GetArrayElementAtIndex(i).FindPropertyRelative("tag").stringValue);
+
+        int added = 0;
+        foreach (string path in ENEMY_PREFAB_PATHS)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null) { Debug.LogWarning($"[SolengardSetup] Pool prefab não encontrado: {path}"); continue; }
+
+            string tag = System.IO.Path.GetFileNameWithoutExtension(path);
+            if (existingTags.Contains(tag)) continue;
+
+            int idx = arr.arraySize;
+            arr.InsertArrayElementAtIndex(idx);
+            var elem = arr.GetArrayElementAtIndex(idx);
+            elem.FindPropertyRelative("tag").stringValue             = tag;
+            elem.FindPropertyRelative("prefab").objectReferenceValue = prefab;
+            elem.FindPropertyRelative("tamanhoInicial").intValue     = 10;
+            existingTags.Add(tag);
+            added++;
+            log.AppendLine($"  ObjectPoolManager.pools → Pool '{tag}' adicionada (tamanho 10)");
+        }
+
+        if (added > 0)
+        {
+            so.ApplyModifiedProperties();
+            Debug.Log($"[SolengardSetup] {added} enemy pools adicionadas ao ObjectPoolManager.");
+        }
+        return added;
     }
 
     static int TryAddEnemyPrefabs(StringBuilder log)

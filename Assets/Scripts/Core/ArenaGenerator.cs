@@ -66,8 +66,14 @@ public class ArenaGenerator : MonoBehaviour
 
     private Tile MakeSolidTile(Color color)
     {
+        var tex = new Texture2D(1, 1);
+        tex.SetPixel(0, 0, Color.white);
+        tex.Apply();
+        var sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+
         var tile = ScriptableObject.CreateInstance<Tile>();
-        tile.color = color;
+        tile.sprite = sprite;
+        tile.color  = color;
         return tile;
     }
 }
