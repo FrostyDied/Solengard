@@ -5,10 +5,11 @@ using UnityEngine.Tilemaps;
 [DefaultExecutionOrder(100)]
 public class ArenaGenerator : MonoBehaviour
 {
-    [SerializeField] Tilemap groundTilemap;
-    [SerializeField] Tilemap obstacleTilemap;
+    [SerializeField] Tilemap     groundTilemap;
+    [SerializeField] Tilemap     obstacleTilemap;
+    [SerializeField] CameraFollow cameraFollow;
 
-    void Start() => GenerateArena(30, 30);
+    void Start() => GenerateArena(50, 50);
 
     public void GenerateArena(int width, int height)
     {
@@ -60,8 +61,14 @@ public class ArenaGenerator : MonoBehaviour
         System.Array.Fill(wallTiles, wallTile);
         obstacleTilemap.SetTiles(wallPos.ToArray(), wallTiles);
 
+        // Camera
         if (Camera.main != null)
-            Camera.main.orthographicSize = 8f;
+            Camera.main.orthographicSize = 10f;
+
+        if (cameraFollow == null)
+            cameraFollow = FindFirstObjectByType<CameraFollow>();
+        if (cameraFollow != null)
+            cameraFollow.SetBounds(-20f, 20f, -20f, 20f);
     }
 
     private Tile MakeSolidTile(Color color)
