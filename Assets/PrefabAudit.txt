@@ -1,0 +1,87 @@
+﻿=== AUDIT DE PREFABS - Solengard ===
+Data: 2026-05-29 09:44:54
+
+PERSONAGENS (Assets/Prefabs/Characters/):
+- Player_Level1.prefab → Swordsman_lvl1_Idle_without_shadow
+- Player_Level2.prefab → Swordsman_lvl2_Idle_without_shadow
+- Player_Level3.prefab → Swordsman_lvl3_Idle_without_shadow
+- Player_Level4.prefab → lvl4_Idle_without_shadow
+- Player_Level5.prefab → lvl5_Idle_without_shadow
+- Player_Level6.prefab → lvl6_Idle_without_shadow
+- Player_Level7.prefab → lvl7_Idle_without_shadow
+- Player_Level8.prefab → lvl8_Idle_without_shadow
+- Player_Level9.prefab → lvl9_Idle_without_shadow
+
+INIMIGOS (Assets/Prefabs/Enemies/):
+- BossCaveman.prefab → Front - Idle_000
+- BossGiantGoblin.prefab → Front - Idle_000
+- BossVikingLeader.prefab → Front - Idle_000
+- EnemyArcher.prefab → Skeleton1_Idle_without_shadow
+- EnemyArcher2.prefab → Skeleton2_Idle_without_shadow
+- EnemyArcher3.prefab → Skeleton3_Idle_without_shadow
+- EnemyAssassin.prefab → Ghost1_Idle_without_shadow
+- EnemyAssassin2.prefab → Ghost2_Idle_without_shadow
+- EnemyAssassin3.prefab → Ghost3_Idle_without_shadow
+- EnemyBoss.prefab → Lich1_Idle_without_shadow
+- EnemyBoss2.prefab → Lich2_Idle_without_shadow
+- EnemyBoss3.prefab → Lich3_Idle_without_shadow
+- EnemyDarkElf.prefab → Idle
+- EnemyDarkElf2.prefab → Idle
+- EnemyDarkElf3.prefab → Idle
+- EnemyGoblin.prefab → Idle0_without_shadow
+- EnemyGoblin2.prefab → Idle_without_shadow
+- EnemyGoblin3.prefab → Idle_without_shadow
+- EnemyGolem.prefab → Golem1_Idle_without_shadow
+- EnemyGolem2.prefab → Golem2_Idle_without_shadow
+- EnemyGolem3.prefab → Golem3_Idle_without_shadow
+- EnemyMage.prefab → Demon1_Idle_without_shadow
+- EnemyMage2.prefab → Demon2_Idle_without_shadow
+- EnemyMage3.prefab → Demon3_Idle_without_shadow
+- EnemyOrc.prefab → Gnoll1_Idle_without_shadow
+- EnemyOrc2.prefab → Gnoll2_Idle_without_shadow
+- EnemyOrc3.prefab → Gnoll3_Idle_without_shadow
+- EnemyOrcHeavy.prefab → orc1_idle_without_shadow
+- EnemyOrcHeavy2.prefab → orc2_idle_without_shadow
+- EnemyOrcHeavy3.prefab → orc3_idle_without_shadow
+- EnemySlime.prefab → Slime1_Idle_without_shadow
+- EnemySlime2.prefab → Slime2_Idle_without_shadow
+- EnemySlime3.prefab → Slime3_Idle_without_shadow
+- EnemyZumbi.prefab → Zombie1_Idle_without_shadow
+- EnemyZumbi2.prefab → Zombie2_Idle_without_shadow
+- EnemyZumbi3.prefab → Zombie3_Idle_without_shadow
+
+EFEITOS (Assets/Prefabs/Effects/):
+- EnemyProjectile.prefab → Projectile
+- ExplosionEffect.prefab → Explosion1
+- FireEffect.prefab → Fire_small1
+- HitEffect.prefab → Explosion1_1
+- LightningEffect.prefab → Lightning_beginning1
+- MagicEffect.prefab → Cycle
+- SmokeEffect.prefab → Smoke1
+
+AMBIENTE (Assets/Prefabs/Environment/):
+  - DungeonFloor.prefab → walls_floor
+  - DungeonFloorFree.prefab → decorative_cracks_floor
+  - DungeonObject.prefab → fire_trap
+  - DungeonProp.prefab → Arrow
+  - ForestBush.prefab → Autumn_bush1
+  - ForestFloor.prefab → Ground_grass
+  - ForestObject.prefab → Beige_green_mushroom1
+  - ForestTree.prefab → Autumn_tree1
+  - GrasslandFloor.prefab → ground_grasss
+  - GrasslandRock.prefab → Rock1_1
+  - GrasslandRuin.prefab → Blue-gray_ruins1
+  - SwampFloor.prefab → ground_grass
+  - SwampObject.prefab → Bones1_grass_shadow
+  - CaveCrystal.prefab → Black_crystal1
+  - CaveFloor.prefab → ground_source
+  - CaveObject.prefab → Blue-green_crystal_dark_shadow4
+  - UndeadFloor.prefab → Ground_rocks
+  - UndeadObject.prefab → bone_arm_sword_shadow1
+  - CursedFloor.prefab → Ground
+  - CursedObject.prefab → Claw_eggs_shadow1_1
+
+RESUMO:
+- Total prefabs: 72
+- Com sprite: 72
+- SEM sprite: 0
