@@ -61,7 +61,7 @@ public static class SolengardPrefabSetup
         for (int lvl = 1; lvl <= 9 && !cancelled; lvl++)
         {
             string group  = lvl <= 3 ? "Level1-3" : lvl <= 6 ? "Level4-6" : "Level7-9";
-            string folder = $"{Art}/Hero/{group}/PNG/Swordsman_lvl{lvl}/Without_shadow";
+            string folder = $"{Art}/Characters/Hero/{group}/PNG/Swordsman_lvl{lvl}/Without_shadow";
 
             var go = new GameObject($"Player_Level{lvl}");
             go.AddComponent<SpriteRenderer>().sprite = FindSprite(folder);
@@ -89,21 +89,21 @@ public static class SolengardPrefabSetup
 
     private static void BuildEnemies()
     {
-        Enemy3("EnemySlime",      $"{Art}/Enemies/Slime/PNG/Slime{{n}}/Without_shadow",                  typeof(EnemySlime));
-        Enemy3("EnemyZumbi",      $"{Art}/Enemies/Zombie/Premium/PNG/Zombie{{n}}/Without_shadow",        typeof(EnemyZumbi));
-        Enemy3("EnemyOrc",        $"{Art}/Enemies/Gnoll/PNG/Gnoll{{n}}/Without_shadow",                  typeof(EnemyOrc));
-        Enemy3("EnemyArcher",     $"{Art}/Enemies/Skeleton/Premium/PNG/Skeleton{{n}}/Without_shadow",    typeof(EnemyArcher));
-        Enemy3("EnemyAssassin",   $"{Art}/Enemies/Ghost/PNG/Ghost{{n}}/Without_shadow",                  typeof(EnemyAssassin));
-        Enemy3("EnemyMage",       $"{Art}/Enemies/Demon/PNG/Demon{{n}}/Without_shadow",                  typeof(EnemyMage));
-        Enemy3("EnemyGolem",      $"{Art}/Enemies/Golem/PNG/Golem{{n}}/Without_shadow",                  typeof(EnemyGolem));
-        Enemy3("EnemyBoss",       $"{Art}/Enemies/Lich/PNG/Lich{{n}}/Without_shadow",                    typeof(EnemyBoss));
-        Enemy3("EnemyGoblin",     $"{Art}/Enemies/Goblin/PNG/Goblin{{n}}/Without_shadow",                typeof(EnemyZumbi));
-        Enemy3("EnemyDarkElf",    $"{Art}/Enemies/DarkElf/Elf_{{n}}",                                    typeof(EnemyAssassin));
-        Enemy3("EnemyOrcHeavy",   $"{Art}/Enemies/Orc/PNG/Orc{{n}}/Without_shadow",                     typeof(EnemyOrc));
+        Enemy3("EnemySlime",      $"{Art}/Characters/Enemies/Slime/PNG/Slime{{n}}/Without_shadow",                  typeof(EnemySlime));
+        Enemy3("EnemyZumbi",      $"{Art}/Characters/Enemies/Zombie/Premium/PNG/Zombie{{n}}/Without_shadow",        typeof(EnemyZumbi));
+        Enemy3("EnemyOrc",        $"{Art}/Characters/Enemies/Gnoll/PNG/Gnoll{{n}}/Without_shadow",                  typeof(EnemyOrc));
+        Enemy3("EnemyArcher",     $"{Art}/Characters/Enemies/Skeleton/Premium/PNG/Skeleton{{n}}/Without_shadow",    typeof(EnemyArcher));
+        Enemy3("EnemyAssassin",   $"{Art}/Characters/Enemies/Ghost/PNG/Ghost{{n}}/Without_shadow",                  typeof(EnemyAssassin));
+        Enemy3("EnemyMage",       $"{Art}/Characters/Enemies/Demon/PNG/Demon{{n}}/Without_shadow",                  typeof(EnemyMage));
+        Enemy3("EnemyGolem",      $"{Art}/Characters/Enemies/Golem/PNG/Golem{{n}}/Without_shadow",                  typeof(EnemyGolem));
+        Enemy3("EnemyBoss",       $"{Art}/Characters/Enemies/Lich/PNG/Lich{{n}}/Without_shadow",                    typeof(EnemyBoss));
+        Enemy3("EnemyGoblin",     $"{Art}/Characters/Enemies/Goblin/PNG/Goblin{{n}}/Without_shadow",                typeof(EnemyZumbi));
+        Enemy3("EnemyDarkElf",    $"{Art}/Characters/Enemies/DarkElf/Elf_{{n}}",                                    typeof(EnemyAssassin));
+        Enemy3("EnemyOrcHeavy",   $"{Art}/Characters/Enemies/Orc/PNG/Orc{{n}}/Without_shadow",                     typeof(EnemyOrc));
 
-        Enemy("BossCaveman",      $"{Art}/Enemies/Boss/Caveman Boss/PNG/PNG Sequences/Front - Idle",     typeof(EnemyBoss));
-        Enemy("BossGiantGoblin",  $"{Art}/Enemies/Boss/Giant Goblin/PNG/PNG Sequences/Front - Idle",     typeof(EnemyBoss));
-        Enemy("BossVikingLeader", $"{Art}/Enemies/Boss/Viking Leader/PNG/PNG Sequences/Front - Idle",    typeof(EnemyBoss));
+        Enemy("BossCaveman",      $"{Art}/Characters/Enemies/Boss/Caveman Boss/PNG/PNG Sequences/Front - Idle",     typeof(EnemyBoss));
+        Enemy("BossGiantGoblin",  $"{Art}/Characters/Enemies/Boss/Giant Goblin/PNG/PNG Sequences/Front - Idle",     typeof(EnemyBoss));
+        Enemy("BossVikingLeader", $"{Art}/Characters/Enemies/Boss/Viking Leader/PNG/PNG Sequences/Front - Idle",    typeof(EnemyBoss));
     }
 
     private static void Enemy3(string baseName, string folderTemplate, Type component)
@@ -176,38 +176,38 @@ public static class SolengardPrefabSetup
     private static void BuildEnvironment()
     {
         // Season 1 - Dungeon
-        Env("Season1", "DungeonFloor",     $"{Art}/Season1_Dungeon/Tileset/PNG",                       "Ground",   false, false);
-        Env("Season1", "DungeonFloorFree", $"{Art}/Season1_Dungeon/Tileset_Free/PNG",                  "Ground",   false, false);
-        Env("Season1", "DungeonObject",    $"{Art}/Season1_Dungeon/Objects/DungeonObjects/PNG",         "Obstacle", true,  false);
-        Env("Season1", "DungeonProp",      $"{Art}/Season1_Dungeon/Objects/DungeonProps/PNG",           "Default",  false, false);
+        Env("Season1", "DungeonFloor",     $"{Art}/Environment/Season1_Dungeon/Tileset/PNG",                       "Ground",   false, false);
+        Env("Season1", "DungeonFloorFree", $"{Art}/Environment/Season1_Dungeon/Tileset_Free/PNG",                  "Ground",   false, false);
+        Env("Season1", "DungeonObject",    $"{Art}/Environment/Season1_Dungeon/Objects/DungeonObjects/PNG",         "Obstacle", true,  false);
+        Env("Season1", "DungeonProp",      $"{Art}/Environment/Season1_Dungeon/Objects/DungeonProps/PNG",           "Default",  false, false);
 
         // Season 2 - Forest
-        Env("Season2", "ForestFloor",      $"{Art}/Season2_Forest/Tileset/PNG",                        "Ground",   false, false);
-        Env("Season2", "ForestTree",       $"{Art}/Season2_Forest/Trees/PNG/Assets_separately/Trees",  "Obstacle", true,  false);
-        Env("Season2", "ForestBush",       $"{Art}/Season2_Forest/Bushes/PNG/Assets",                  "Obstacle", false, true);
-        Env("Season2", "ForestObject",     $"{Art}/Season2_Forest/Objects/PNG/Assets",                 "Default",  false, false);
+        Env("Season2", "ForestFloor",      $"{Art}/Environment/Season2_Forest/Tileset/PNG",                        "Ground",   false, false);
+        Env("Season2", "ForestTree",       $"{Art}/Environment/Season2_Forest/Trees/PNG/Assets_separately",        "Obstacle", true,  false);
+        Env("Season2", "ForestBush",       $"{Art}/Environment/Season2_Forest/Bushes/PNG/Assets",                  "Obstacle", false, true);
+        Env("Season2", "ForestObject",     $"{Art}/Environment/Season2_Forest/Objects/PNG/Assets",                 "Default",  false, false);
 
         // Season 3 - Grassland
-        Env("Season3", "GrasslandFloor",   $"{Art}/Season3_Grassland/Tileset/PNG",                     "Ground",   false, false);
-        Env("Season3", "GrasslandRock",    $"{Art}/Season3_Grassland/Rocks/PNG/Objects_separately",    "Obstacle", false, true);
-        Env("Season3", "GrasslandRuin",    $"{Art}/Season3_Grassland/Ruins/PNG/Assets",                "Obstacle", true,  false);
+        Env("Season3", "GrasslandFloor",   $"{Art}/Environment/Season3_Grassland/Tileset/PNG",                     "Ground",   false, false);
+        Env("Season3", "GrasslandRock",    $"{Art}/Environment/Season3_Grassland/Rocks/PNG/Objects_separately",    "Obstacle", false, true);
+        Env("Season3", "GrasslandRuin",    $"{Art}/Environment/Season3_Grassland/Ruins/PNG/Assets",                "Obstacle", true,  false);
 
         // Season 4 - Swamp
-        Env("Season4", "SwampFloor",       $"{Art}/Season4_Swamp/Tileset/PNG",                         "Ground",   false, false);
-        Env("Season4", "SwampObject",      $"{Art}/Season4_Swamp/Objects/PNG/Assets",                  "Default",  false, false);
+        Env("Season4", "SwampFloor",       $"{Art}/Environment/Season4_Swamp/Tileset/PNG",                         "Ground",   false, false);
+        Env("Season4", "SwampObject",      $"{Art}/Environment/Season4_Swamp/Objects/PNG/Assets",                  "Default",  false, false);
 
         // Season 5 - Cave
-        Env("Season5", "CaveFloor",        $"{Art}/Season5_Cave/Tileset/PNG",                          "Ground",   false, false);
-        Env("Season5", "CaveCrystal",      $"{Art}/Season5_Cave/Crystals/PNG/Assets",                  "Obstacle", false, true);
-        Env("Season5", "CaveObject",       $"{Art}/Season5_Cave/Objects/PNG/Objects_separately/64",    "Default",  false, false);
+        Env("Season5", "CaveFloor",        $"{Art}/Environment/Season5_Cave/Tileset/PNG",                          "Ground",   false, false);
+        Env("Season5", "CaveCrystal",      $"{Art}/Environment/Season5_Cave/Crystals/PNG/Assets",                  "Obstacle", false, true);
+        Env("Season5", "CaveObject",       $"{Art}/Environment/Season5_Cave/Objects/PNG/Objects_separately",        "Default",  false, false);
 
         // Season 6 - Undead
-        Env("Season6", "UndeadFloor",      $"{Art}/Season6_Undead/Tileset/PNG",                        "Ground",   false, false);
-        Env("Season6", "UndeadObject",     $"{Art}/Season6_Undead/Objects/PNG/Objects_separately",     "Default",  false, false);
+        Env("Season6", "UndeadFloor",      $"{Art}/Environment/Season6_Undead/Tileset/PNG",                        "Ground",   false, false);
+        Env("Season6", "UndeadObject",     $"{Art}/Environment/Season6_Undead/Objects/PNG/Objects_separately",     "Default",  false, false);
 
         // Season 7 - Cursed
-        Env("Season7", "CursedFloor",      $"{Art}/Season7_Cursed/Tileset/PNG",                        "Ground",   false, false);
-        Env("Season7", "CursedObject",     $"{Art}/Season7_Cursed/Objects/PNG/Objects_separately",     "Default",  false, false);
+        Env("Season7", "CursedFloor",      $"{Art}/Environment/Season7_Cursed/Tileset/PNG",                        "Ground",   false, false);
+        Env("Season7", "CursedObject",     $"{Art}/Environment/Season7_Cursed/Objects/PNG/Objects_separately",     "Default",  false, false);
     }
 
     private static void Env(string season, string prefabName, string folder, string layer, bool box, bool circle)
