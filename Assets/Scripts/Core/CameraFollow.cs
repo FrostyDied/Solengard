@@ -12,11 +12,14 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] bool  useBounds;
     [SerializeField] float minX, maxX, minY, maxY;
 
+    int _debugFrame;
+
     public void SetBounds(float minX, float maxX, float minY, float maxY)
     {
         this.minX = minX; this.maxX = maxX;
         this.minY = minY; this.maxY = maxY;
         useBounds = true;
+        Debug.Log($"[Camera] Bounds recebidos: {minX},{maxX},{minY},{maxY}");
     }
 
     void Start()
@@ -31,6 +34,9 @@ public class CameraFollow : MonoBehaviour
     void LateUpdate()
     {
         if (target == null) return;
+
+        if (++_debugFrame % 60 == 0)
+            Debug.Log($"[Camera] pos={transform.position} bounds={useBounds} minX={minX} maxX={maxX} minY={minY} maxY={maxY}");
 
         Vector3 pos = Vector3.Lerp(
             transform.position,

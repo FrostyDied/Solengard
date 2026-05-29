@@ -23,6 +23,7 @@ public class ArenaGenerator : MonoBehaviour
 
         var floorTile = MakeSolidTile(new Color(0.267f, 0.267f, 0.267f));
         var wallTile  = MakeSolidTile(new Color(0.133f, 0.133f, 0.133f));
+        Debug.Log($"[Arena] Gerando {width}x{height} tiles, PPU={floorTile.sprite?.pixelsPerUnit}");
         Debug.Log($"[Arena] ground={groundTilemap != null} obstacle={obstacleTilemap != null} floorTile={floorTile != null} wallTile={wallTile != null}");
 
         if (groundTilemap == null || obstacleTilemap == null)
@@ -68,7 +69,15 @@ public class ArenaGenerator : MonoBehaviour
         if (cameraFollow == null)
             cameraFollow = FindFirstObjectByType<CameraFollow>();
         if (cameraFollow != null)
-            cameraFollow.SetBounds(-18f, 18f, -18f, 18f);
+        {
+            float boundsX = 18f, boundsY = 18f;
+            cameraFollow.SetBounds(-boundsX, boundsX, -boundsY, boundsY);
+            Debug.Log($"[Arena] Bounds setados: ±{boundsX} ±{boundsY}");
+        }
+        else
+        {
+            Debug.LogWarning("[Arena] CameraFollow não encontrado — bounds não aplicados.");
+        }
     }
 
     private Tile MakeSolidTile(Color color)
