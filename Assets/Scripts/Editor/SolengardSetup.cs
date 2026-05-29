@@ -1242,7 +1242,7 @@ public static class SolengardSetup
         var groundRend = groundGO.AddComponent<TilemapRenderer>();
         groundRend.sortingOrder = -1;
         SetLayerByName(groundGO, "Ground");
-        groundGO.AddComponent<TilemapCollider2D>();
+        // TilemapCollider2D omitted — arena is visual-only until collision is needed
 
         // ObstacleTilemap
         var obstacleGO = new GameObject("ObstacleTilemap");
@@ -1250,7 +1250,7 @@ public static class SolengardSetup
         obstacleGO.transform.SetParent(gridGO.transform, false);
         obstacleGO.AddComponent<Tilemap>();
         obstacleGO.AddComponent<TilemapRenderer>().sortingOrder = 0;
-        obstacleGO.AddComponent<TilemapCollider2D>();
+        // TilemapCollider2D omitted — arena is visual-only until collision is needed
         SetLayerByName(obstacleGO, "Obstacle");
 
         // Wire ArenaGenerator

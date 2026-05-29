@@ -7,8 +7,6 @@ public class ArenaGenerator : MonoBehaviour
 {
     [SerializeField] Tilemap groundTilemap;
     [SerializeField] Tilemap obstacleTilemap;
-    [SerializeField] Sprite floorSprite;
-    [SerializeField] Sprite wallSprite;
 
     void Start() => GenerateArena(30, 30);
 
@@ -23,17 +21,11 @@ public class ArenaGenerator : MonoBehaviour
             return;
         }
 
-        if (floorSprite == null || wallSprite == null)
-        {
-            Debug.LogWarning("[ArenaGenerator] Sprites não atribuídos — arena não gerada.");
-            return;
-        }
-
         groundTilemap.ClearAllTiles();
         obstacleTilemap.ClearAllTiles();
 
-        var floorTile = MakeTile(floorSprite);
-        var wallTile  = MakeTile(wallSprite);
+        var floorTile = MakeSolidTile(new Color(0.267f, 0.267f, 0.267f)); // #444444
+        var wallTile  = MakeSolidTile(new Color(0.133f, 0.133f, 0.133f)); // #222222
 
         int ox = -width  / 2;
         int oy = -height / 2;
@@ -62,15 +54,14 @@ public class ArenaGenerator : MonoBehaviour
         System.Array.Fill(wallTiles, wallTile);
         obstacleTilemap.SetTiles(wallPos.ToArray(), wallTiles);
 
-        // Fit camera to arena
         if (Camera.main != null)
-            Camera.main.orthographicSize = Mathf.Max(width, height) * 0.6f;
+            Camera.main.orthographicSize = 8f;
     }
 
-    private Tile MakeTile(Sprite sprite)
+    private Tile MakeSolidTile(Color color)
     {
         var tile = ScriptableObject.CreateInstance<Tile>();
-        tile.sprite = sprite;
+        tile.color = color;
         return tile;
     }
 }
