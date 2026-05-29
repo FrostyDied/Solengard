@@ -71,7 +71,7 @@ public static class SolengardSpriteSetup
         importer.alphaIsTransparency = true;
         importer.wrapMode = TextureWrapMode.Clamp;
 
-        bool isSpritesheet = path.IndexOf("Spritesheets", System.StringComparison.OrdinalIgnoreCase) >= 0;
+        bool isSpritesheet = path.IndexOf("Spritesheets", System.StringComparison.Ordinal) >= 0;
         importer.spriteImportMode = isSpritesheet ? SpriteImportMode.Multiple : SpriteImportMode.Single;
 
         // Part 2 — pixelsPerUnit by path

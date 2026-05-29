@@ -241,7 +241,7 @@ public static class SolengardSetup
         // 5. Player — destroy any lingering Player-tagged objects before creating a fresh one
         foreach (var go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (go.CompareTag("Player"))
+            if (go.tag == "Player")
                 Object.DestroyImmediate(go);
         }
 
