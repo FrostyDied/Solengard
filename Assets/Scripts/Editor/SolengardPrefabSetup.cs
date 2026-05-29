@@ -65,11 +65,11 @@ public static class SolengardPrefabSetup
     {
         for (int lvl = 1; lvl <= 9 && !cancelled; lvl++)
         {
-            string group  = lvl <= 3 ? "Level1-3" : lvl <= 6 ? "Level4-6" : "Level7-9";
-            string folder = $"{Art}/Characters/Hero/{group}/PNG/Swordsman_lvl{lvl}/Without_shadow";
+            string group    = lvl <= 3 ? "Level1-3" : lvl <= 6 ? "Level4-6" : "Level7-9";
+            string charRoot = $"{Art}/Characters/Hero/{group}/PNG/Swordsman_lvl{lvl}";
 
             var go = new GameObject($"Player_Level{lvl}");
-            go.AddComponent<SpriteRenderer>().sprite = FindSprite(folder);
+            go.AddComponent<SpriteRenderer>().sprite = FindCharacterSprite(charRoot);
             go.AddComponent<PlayerController>();
             go.AddComponent<PlayerHealth>();
             go.AddComponent<PlayerAttack>();
@@ -94,27 +94,57 @@ public static class SolengardPrefabSetup
 
     private static void BuildEnemies()
     {
-        Enemy3("EnemySlime",      $"{Art}/Characters/Enemies/Slime/PNG/Slime{{n}}/Without_shadow",                  typeof(EnemySlime));
-        Enemy3("EnemyZumbi",      $"{Art}/Characters/Enemies/Zombie/Premium/PNG/Zombie{{n}}/Without_shadow",        typeof(EnemyZumbi));
-        Enemy3("EnemyOrc",        $"{Art}/Characters/Enemies/Gnoll/PNG/Gnoll{{n}}/Without_shadow",                  typeof(EnemyOrc));
-        Enemy3("EnemyArcher",     $"{Art}/Characters/Enemies/Skeleton/Premium/PNG/Skeleton{{n}}/Without_shadow",    typeof(EnemyArcher));
-        Enemy3("EnemyAssassin",   $"{Art}/Characters/Enemies/Ghost/PNG/Ghost{{n}}/Without_shadow",                  typeof(EnemyAssassin));
-        Enemy3("EnemyMage",       $"{Art}/Characters/Enemies/Demon/PNG/Demon{{n}}/Without_shadow",                  typeof(EnemyMage));
-        Enemy3("EnemyGolem",      $"{Art}/Characters/Enemies/Golem/PNG/Golem{{n}}/Without_shadow",                  typeof(EnemyGolem));
-        Enemy3("EnemyBoss",       $"{Art}/Characters/Enemies/Lich/PNG/Lich{{n}}/Without_shadow",                    typeof(EnemyBoss));
-        Enemy3("EnemyGoblin",     $"{Art}/Characters/Enemies/Goblin/PNG/Goblin{{n}}/Without_shadow",                typeof(EnemyZumbi));
-        Enemy3("EnemyDarkElf",    $"{Art}/Characters/Enemies/DarkElf/Elf_{{n}}",                                    typeof(EnemyAssassin));
-        Enemy3("EnemyOrcHeavy",   $"{Art}/Characters/Enemies/Orc/PNG/Orc{{n}}/Without_shadow",                     typeof(EnemyOrc));
+        CharEnemy3("EnemySlime",    $"{Art}/Characters/Enemies/Slime/PNG/Slime{{n}}",                     typeof(EnemySlime));
+        CharEnemy3("EnemyZumbi",    $"{Art}/Characters/Enemies/Zombie/Premium/PNG/Zombie{{n}}",           typeof(EnemyZumbi));
+        CharEnemy3("EnemyOrc",      $"{Art}/Characters/Enemies/Gnoll/PNG/Gnoll{{n}}",                     typeof(EnemyOrc));
+        CharEnemy3("EnemyArcher",   $"{Art}/Characters/Enemies/Skeleton/Premium/PNG/Skeleton{{n}}",       typeof(EnemyArcher));
+        CharEnemy3("EnemyAssassin", $"{Art}/Characters/Enemies/Ghost/PNG/Ghost{{n}}",                     typeof(EnemyAssassin));
+        CharEnemy3("EnemyMage",     $"{Art}/Characters/Enemies/Demon/PNG/Demon{{n}}",                     typeof(EnemyMage));
+        CharEnemy3("EnemyGolem",    $"{Art}/Characters/Enemies/Golem/PNG/Golem{{n}}",                     typeof(EnemyGolem));
+        CharEnemy3("EnemyBoss",     $"{Art}/Characters/Enemies/Lich/PNG/Lich{{n}}",                       typeof(EnemyBoss));
+        CharEnemy3("EnemyGoblin",   $"{Art}/Characters/Enemies/Goblin/PNG/Goblin{{n}}",                   typeof(EnemyZumbi));
+        CharEnemy3("EnemyDarkElf",  $"{Art}/Characters/Enemies/DarkElf/Elf_{{n}}",                        typeof(EnemyAssassin));
+        CharEnemy3("EnemyOrcHeavy", $"{Art}/Characters/Enemies/Orc/PNG/Orc{{n}}",                         typeof(EnemyOrc));
 
-        Enemy("BossCaveman",      $"{Art}/Characters/Enemies/Boss/Caveman Boss/PNG/PNG Sequences/Front - Idle",     typeof(EnemyBoss));
-        Enemy("BossGiantGoblin",  $"{Art}/Characters/Enemies/Boss/Giant Goblin/PNG/PNG Sequences/Front - Idle",     typeof(EnemyBoss));
-        Enemy("BossVikingLeader", $"{Art}/Characters/Enemies/Boss/Viking Leader/PNG/PNG Sequences/Front - Idle",    typeof(EnemyBoss));
+        Enemy("BossCaveman",      $"{Art}/Characters/Enemies/Boss/Caveman Boss/PNG/PNG Sequences/Front - Idle",  typeof(EnemyBoss));
+        Enemy("BossGiantGoblin",  $"{Art}/Characters/Enemies/Boss/Giant Goblin/PNG/PNG Sequences/Front - Idle",  typeof(EnemyBoss));
+        Enemy("BossVikingLeader", $"{Art}/Characters/Enemies/Boss/Viking Leader/PNG/PNG Sequences/Front - Idle", typeof(EnemyBoss));
     }
 
     private static void Enemy3(string baseName, string folderTemplate, Type component)
     {
         for (int i = 1; i <= 3 && !cancelled; i++)
             Enemy(i == 1 ? baseName : $"{baseName}{i}", folderTemplate.Replace("{n}", i.ToString()), component);
+    }
+
+    private static void CharEnemy3(string baseName, string charRootTemplate, Type component)
+    {
+        for (int i = 1; i <= 3 && !cancelled; i++)
+        {
+            string name     = i == 1 ? baseName : $"{baseName}{i}";
+            string charRoot = charRootTemplate.Replace("{n}", i.ToString());
+            CharEnemy(name, charRoot, component);
+        }
+    }
+
+    private static void CharEnemy(string prefabName, string charRoot, Type component)
+    {
+        if (cancelled) return;
+
+        var go = new GameObject(prefabName);
+        go.AddComponent<SpriteRenderer>().sprite = FindCharacterSprite(charRoot);
+        go.AddComponent(component);
+
+        var rb = go.AddComponent<Rigidbody2D>();
+        rb.gravityScale           = 0;
+        rb.constraints            = RigidbodyConstraints2D.FreezeRotation;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+
+        go.AddComponent<CircleCollider2D>();
+        SetLayer(go, "Enemy");
+
+        if (Save(go, $"{Prefabs}/Enemies/{prefabName}.prefab")) enemyCount++;
+        UnityEngine.Object.DestroyImmediate(go);
     }
 
     private static void Enemy(string prefabName, string folder, Type component)
@@ -308,6 +338,73 @@ public static class SolengardPrefabSetup
         string firstPath = AssetDatabase.GUIDToAssetPath(guids[0]);
         Sprite first = LoadSprite(firstPath);
         if (first != null) Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (first): {firstPath}");
+        return first;
+    }
+
+    private static Sprite FindCharacterSprite(string charRoot)
+    {
+        string partsFolder  = $"{charRoot}/Parts";
+        string shadowFolder = $"{charRoot}/Without_shadow";
+
+        if (AssetDatabase.IsValidFolder(partsFolder))
+        {
+            Sprite s = FindIdleBodySprite(partsFolder);
+            if (s != null) return s;
+        }
+
+        if (AssetDatabase.IsValidFolder(shadowFolder))
+        {
+            Sprite s = FindIdleBodySprite(shadowFolder);
+            if (s != null) return s;
+        }
+
+        // Last resort: anything found recursively under charRoot
+        string[] fallback = AssetDatabase.FindAssets("t:Texture2D", new[] { charRoot });
+        if (fallback.Length == 0) fallback = AssetDatabase.FindAssets("t:Sprite", new[] { charRoot });
+        if (fallback.Length > 0)
+        {
+            Sprite s = LoadSprite(AssetDatabase.GUIDToAssetPath(fallback[0]));
+            if (s != null) return s;
+        }
+
+        Debug.LogWarning($"[SolengardPrefabSetup] Nenhum sprite encontrado: {charRoot}");
+        return null;
+    }
+
+    private static Sprite FindIdleBodySprite(string folder)
+    {
+        string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folder });
+        if (guids.Length == 0) guids = AssetDatabase.FindAssets("t:Sprite", new[] { folder });
+        if (guids.Length == 0) return null;
+
+        // Pass 1: file with "idle" + "body"
+        foreach (string guid in guids)
+        {
+            string p  = AssetDatabase.GUIDToAssetPath(guid);
+            string fn = Path.GetFileNameWithoutExtension(p);
+            if (fn.IndexOf("idle", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                fn.IndexOf("body", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                Sprite s = LoadSprite(p);
+                if (s != null) { Debug.Log($"[SolengardPrefabSetup] Sprite: {p}"); return s; }
+            }
+        }
+
+        // Pass 2: any "idle" file
+        foreach (string guid in guids)
+        {
+            string p  = AssetDatabase.GUIDToAssetPath(guid);
+            string fn = Path.GetFileNameWithoutExtension(p);
+            if (fn.IndexOf("idle", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                Sprite s = LoadSprite(p);
+                if (s != null) { Debug.Log($"[SolengardPrefabSetup] Sprite: {p}"); return s; }
+            }
+        }
+
+        // Pass 3: first available
+        Sprite first = LoadSprite(AssetDatabase.GUIDToAssetPath(guids[0]));
+        if (first != null) Debug.Log($"[SolengardPrefabSetup] Sprite (fallback): {AssetDatabase.GUIDToAssetPath(guids[0])}");
         return first;
     }
 

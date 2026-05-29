@@ -74,11 +74,12 @@ public static class SolengardSpriteSetup
         importer.wrapMode = TextureWrapMode.Clamp;
 
         // "Spritesheets" = boss packed sheets; "With_shadow"/"Without_shadow" = per-animation
-        // character sheets (e.g. 768×256 = 8 frames). Both need Multiple. Everything else
-        // (single environment props, effect PNGs) stays Single.
+        // composite sheets; "/Parts/" = individual body-part animation sheets.
+        // All three are multi-frame and need Multiple. Everything else stays Single.
         bool isSpritesheet = path.IndexOf("Spritesheets",   System.StringComparison.Ordinal) >= 0
                           || path.IndexOf("With_shadow",    System.StringComparison.Ordinal) >= 0
-                          || path.IndexOf("Without_shadow", System.StringComparison.Ordinal) >= 0;
+                          || path.IndexOf("Without_shadow", System.StringComparison.Ordinal) >= 0
+                          || path.IndexOf("/Parts/",        System.StringComparison.Ordinal) >= 0;
         importer.spriteImportMode = isSpritesheet ? SpriteImportMode.Multiple : SpriteImportMode.Single;
 
         // Part 2 — pixelsPerUnit by path
