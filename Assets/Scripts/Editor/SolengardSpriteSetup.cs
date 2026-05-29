@@ -75,7 +75,7 @@ public static class SolengardSpriteSetup
         importer.spriteImportMode = isSpritesheet ? SpriteImportMode.Multiple : SpriteImportMode.Single;
 
         // Part 2 — pixelsPerUnit by path
-        string (string category, int ppu) = ResolveRule(path);
+        (string category, int ppu) = ResolveRule(path);
 
         importer.spritePixelsPerUnit = ppu;
 
