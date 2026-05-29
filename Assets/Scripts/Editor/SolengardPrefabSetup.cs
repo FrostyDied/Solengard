@@ -141,17 +141,19 @@ public static class SolengardPrefabSetup
 
     private static void BuildEffects()
     {
-        Effect("ExplosionEffect", $"{Art}/Effects/Explosions/PNG/Explosion");
-        Effect("LightningEffect", $"{Art}/Effects/Explosions/PNG/Lightning");
-        Effect("MagicEffect",     $"{Art}/Effects/Magic/1 Magic/1");
-        Effect("HitEffect",       $"{Art}/Effects/TopDown/PNG/Explosion1");
-        Effect("FireEffect",      $"{Art}/Effects/TopDown/PNG/Fire_small");
-        Effect("SmokeEffect",     $"{Art}/Effects/Explosions/PNG/Smoke");
+        EffectKw("ExplosionEffect", $"{Art}/Effects/Explosions/PNG/Explosion",  new[]{"explosion"});
+        EffectKw("LightningEffect", $"{Art}/Effects/Explosions/PNG/Lightning",  new[]{"lightning"});
+        EffectKw("MagicEffect",     $"{Art}/Effects/Magic/1 Magic/1",           new[]{"magic","effect"},             skipDigits: true);
+        EffectKw("HitEffect",       $"{Art}/Effects/TopDown/PNG/Explosion1",    new[]{"explosion","hit","impact"});
+        EffectKw("FireEffect",      $"{Art}/Effects/TopDown/PNG/Fire_small",    new[]{"fire"});
+        EffectKw("SmokeEffect",     $"{Art}/Effects/Explosions/PNG/Smoke",      new[]{"smoke"});
 
         if (cancelled) return;
 
         var go = new GameObject("EnemyProjectile");
-        go.AddComponent<SpriteRenderer>().sprite = FindSprite($"{Art}/Effects/Magic/1 Magic/1");
+        go.AddComponent<SpriteRenderer>().sprite = FindSpriteByKeywords(
+            $"{Art}/Effects/Magic/1 Magic/1",
+            new[]{"magic","orb","ball","projectile"}, skipDigits: true);
 
         var col = go.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
@@ -166,11 +168,11 @@ public static class SolengardPrefabSetup
         UnityEngine.Object.DestroyImmediate(go);
     }
 
-    private static void Effect(string prefabName, string folder)
+    private static void EffectKw(string prefabName, string folder, string[] keywords, bool skipDigits = false)
     {
         if (cancelled) return;
         var go = new GameObject(prefabName);
-        go.AddComponent<SpriteRenderer>().sprite = FindSprite(folder);
+        go.AddComponent<SpriteRenderer>().sprite = FindSpriteByKeywords(folder, keywords, skipDigits: skipDigits);
         go.tag = "Effect";
         if (Save(go, $"{Prefabs}/Effects/{prefabName}.prefab")) effectCount++;
         UnityEngine.Object.DestroyImmediate(go);
@@ -219,7 +221,8 @@ public static class SolengardPrefabSetup
     {
         if (cancelled) return;
         var go = new GameObject(prefabName);
-        go.AddComponent<SpriteRenderer>().sprite = FindSprite(folder);
+        bool isFloor = prefabName.IndexOf("Floor", StringComparison.OrdinalIgnoreCase) >= 0;
+        go.AddComponent<SpriteRenderer>().sprite = isFloor ? FilteredSprite(folder) : FindSprite(folder);
         if (box)    go.AddComponent<BoxCollider2D>();
         if (circle) go.AddComponent<CircleCollider2D>();
         SetLayer(go, layer);
@@ -229,24 +232,17 @@ public static class SolengardPrefabSetup
 
     // ── UTILITIES ────────────────────────────────────────────────────────────
 
+    private static readonly string[] FloorPreferred = {"floor","ground","tile","stone","dirt","grass","path","base"};
+    private static readonly string[] FloorExcluded  = {"animation","animated","crack","arch","column","bridge","bubble","source","detail","object","prop","trap","decor"};
+
+    private static Sprite FilteredSprite(string folder) =>
+        FindSpriteByKeywords(folder, FloorPreferred, FloorExcluded);
+
     private static Sprite FindSprite(string folder)
     {
-        if (!AssetDatabase.IsValidFolder(folder))
-        {
-            Debug.LogWarning($"[SolengardPrefabSetup] Pasta não encontrada: {folder}");
-            missingFolderCount++;
-            return null;
-        }
+        string[] guids = GetGuids(folder);
+        if (guids == null) return null;
 
-        string[] guids = AssetDatabase.FindAssets("t:Sprite", new[] { folder });
-
-        // Fallback: textures not yet reimported as Sprite
-        if (guids.Length == 0)
-            guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folder });
-
-        if (guids.Length == 0) return null;
-
-        // Prefer file with "idle" in name
         foreach (string guid in guids)
         {
             string p = AssetDatabase.GUIDToAssetPath(guid);
@@ -257,24 +253,88 @@ public static class SolengardPrefabSetup
             }
         }
 
-        // Fallback: first result
         string first = AssetDatabase.GUIDToAssetPath(guids[0]);
         Sprite fallback = LoadSprite(first);
         if (fallback != null) Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (fallback): {first}");
         return fallback;
     }
 
+    private static Sprite FindSpriteByKeywords(string folder, string[] preferred, string[] excluded = null, bool skipDigits = false)
+    {
+        string[] guids = GetGuids(folder);
+        if (guids == null) return null;
+
+        // Pass 1: preferred keywords in order
+        foreach (string kw in preferred)
+        {
+            foreach (string guid in guids)
+            {
+                string p     = AssetDatabase.GUIDToAssetPath(guid);
+                string fname = Path.GetFileNameWithoutExtension(p);
+                if (fname.IndexOf(kw, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                Sprite s = LoadSprite(p);
+                if (s != null) { Debug.Log($"[SolengardPrefabSetup] Sprite atribuído [{kw}]: {p}"); return s; }
+            }
+        }
+
+        // Pass 2: first that passes exclusion + digit filter
+        foreach (string guid in guids)
+        {
+            string p     = AssetDatabase.GUIDToAssetPath(guid);
+            string fname = Path.GetFileNameWithoutExtension(p);
+            if (skipDigits && IsOnlyDigits(fname)) continue;
+            if (excluded != null && ContainsAnyKeyword(fname, excluded)) continue;
+            Sprite s = LoadSprite(p);
+            if (s != null) { Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (filtered): {p}"); return s; }
+        }
+
+        // Pass 3: absolute fallback — first result
+        string fallbackPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+        Sprite fallback = LoadSprite(fallbackPath);
+        if (fallback != null) Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (fallback): {fallbackPath}");
+        return fallback;
+    }
+
+    private static string[] GetGuids(string folder)
+    {
+        if (!AssetDatabase.IsValidFolder(folder))
+        {
+            Debug.LogWarning($"[SolengardPrefabSetup] Pasta não encontrada: {folder}");
+            missingFolderCount++;
+            return null;
+        }
+
+        string[] guids = AssetDatabase.FindAssets("t:Sprite", new[] { folder });
+        if (guids.Length == 0)
+            guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folder });
+
+        return guids.Length > 0 ? guids : null;
+    }
+
     private static Sprite LoadSprite(string path)
     {
-        // Single-mode: main asset is the Sprite
         Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(path);
         if (s != null) return s;
 
-        // Multiple-mode: Sprite is a sub-asset (spritesheet slices)
         foreach (UnityEngine.Object obj in AssetDatabase.LoadAllAssetsAtPath(path))
             if (obj is Sprite sprite) return sprite;
 
         return null;
+    }
+
+    private static bool IsOnlyDigits(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return true;
+        foreach (char c in name)
+            if (!char.IsDigit(c)) return false;
+        return true;
+    }
+
+    private static bool ContainsAnyKeyword(string name, string[] keywords)
+    {
+        foreach (string kw in keywords)
+            if (name.IndexOf(kw, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+        return false;
     }
 
     private static bool Save(GameObject go, string path)
