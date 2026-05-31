@@ -44,6 +44,8 @@ public static class SolengardSetup
         var log   = new StringBuilder();
         int total = RunSetupScene(gameConfig, playerData, log);
 
+        ConfigurePhysicsMatrix();
+
         if (total > 0) EditorSceneManager.MarkSceneDirty(scene);
 
         var sb = new StringBuilder();
@@ -634,6 +636,7 @@ public static class SolengardSetup
         total += EnsureSystemObject<UpgradeSystem>        ("UpgradeSystem",         log);
         total += EnsureSystemObject<ProceduralArenaSystem>("ProceduralArenaSystem", log);
         total += EnsureSystemObject<SimpleArena>          ("SimpleArena",           log);
+        total += EnsureSystemObject<RunSessionManager>    ("RunSessionManager",     log);
         total += EnsureSystemObject<GameSceneBootstrap>   ("GameSceneBootstrap",    log);
 
         // ── Difficulty & wave sub-systems ─────────────────────────────────────────
@@ -725,6 +728,32 @@ public static class SolengardSetup
         go.transform.parent = null;
         go.AddComponent<T>();
         return go;
+    }
+
+    static void ConfigurePhysicsMatrix()
+    {
+        int player   = LayerMask.NameToLayer("Player");
+        int enemy    = LayerMask.NameToLayer("Enemy");
+        int obstacle = LayerMask.NameToLayer("Obstacle");
+        int ground   = LayerMask.NameToLayer("Ground");
+        int effect   = LayerMask.NameToLayer("Effect");
+
+        if (player < 0 || enemy < 0 || obstacle < 0) return;
+
+        if (ground >= 0)
+        {
+            Physics2D.IgnoreLayerCollision(ground, ground,   true);
+            Physics2D.IgnoreLayerCollision(ground, player,   true);
+            Physics2D.IgnoreLayerCollision(ground, enemy,    true);
+            Physics2D.IgnoreLayerCollision(ground, obstacle, true);
+        }
+        if (effect >= 0)
+        {
+            Physics2D.IgnoreLayerCollision(effect, effect, true);
+            if (ground >= 0) Physics2D.IgnoreLayerCollision(effect, ground, true);
+        }
+
+        Debug.Log("[SolengardSetup] Matriz de colisão configurada.");
     }
 
     static int RunSetupPoolsAndUpgrades(StringBuilder log)

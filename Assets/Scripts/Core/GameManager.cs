@@ -118,6 +118,13 @@ public class GameManager : MonoBehaviour
     {
         if (currentState != GameState.MainMenu && currentState != GameState.GameOver) return;
 
+        Application.targetFrameRate      = 60;
+        QualitySettings.vSyncCount       = 0;
+        Screen.sleepTimeout              = SleepTimeout.NeverSleep;
+        Physics2D.velocityIterations     = 4;
+        Physics2D.positionIterations     = 2;
+        Time.fixedDeltaTime              = 0.02f;
+
         // Sessão ativa → restaurar em vez de começar do zero
         if (RunSessionManager.Instance != null && RunSessionManager.Instance.HasActiveSession())
         {
@@ -217,6 +224,7 @@ public class GameManager : MonoBehaviour
     public void RestartRun()
     {
         SetState(GameState.MainMenu); // reseta estado antes de recarregar para GameSceneBootstrap encontrar MainMenu
+        RunSessionManager.Instance?.ClearSession();
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
