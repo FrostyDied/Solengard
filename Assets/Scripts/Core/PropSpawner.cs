@@ -68,6 +68,13 @@ public class PropSpawner : MonoBehaviour
 
         var instance = Instantiate(prefab, pos, Quaternion.identity);
         instance.transform.SetParent(transform);
+
+        // Props must be on the Obstacle layer so the physics matrix applies correctly:
+        // player collides with them, enemies pass through.
+        int obstacleLayer = LayerMask.NameToLayer("Obstacle");
+        if (obstacleLayer >= 0)
+            SetLayerRecursive(instance, obstacleLayer);
+
         _activeProps.Add(instance);
     }
 
@@ -82,6 +89,13 @@ public class PropSpawner : MonoBehaviour
                 _activeProps.RemoveAt(i);
             }
         }
+    }
+
+    static void SetLayerRecursive(GameObject go, int layer)
+    {
+        go.layer = layer;
+        foreach (Transform child in go.transform)
+            SetLayerRecursive(child.gameObject, layer);
     }
 
     void LoadDefaultObstacles()

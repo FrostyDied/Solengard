@@ -10,12 +10,12 @@ public class SimpleArena : MonoBehaviour
     [SerializeField] float tileAreaSize  = 60f;
 
     [Header("Snap do tile (calculado automaticamente a partir do sprite)")]
-    [SerializeField] float tileWorldSize = 2f;
+    [SerializeField] float tileWorldSize = 4f;
 
-    [Header("Sprite do tileset (auto se vazio)")]
+    [Header("Sprite do tileset (deixe vazio para grama procedural)")]
     [SerializeField] Sprite floorSprite;
 
-    [Header("Cor de fallback")]
+    [Header("Cor de fallback (último recurso)")]
     [SerializeField] Color fallbackColor = new Color(0.15f, 0.13f, 0.17f);
 
     Transform      _player;
@@ -39,8 +39,10 @@ public class SimpleArena : MonoBehaviour
 
     void BuildFloor()
     {
-        if (floorSprite == null) floorSprite = LoadFloorSprite();
-        if (floorSprite == null) floorSprite = GenerateProceduralFloor();
+        // Para usar um tile real do atlas em vez da grama, descomente:
+        // if (floorSprite == null) floorSprite = LoadFloorSprite();
+
+        if (floorSprite == null) floorSprite = GenerateGrassFloor();
 
         // Derive the snap grid size from the chosen tile so the grid aligns exactly.
         if (floorSprite != null)
@@ -82,103 +84,28 @@ public class SimpleArena : MonoBehaviour
         _floor.position = new Vector3(snappedX, snappedY, 0f);
     }
 
-    Sprite LoadFloorSprite()
+    // Grama verde procedural e tileável — 64×64px a 16 PPU = tile de 4 unidades de mundo.
+    Sprite GenerateGrassFloor()
     {
-#if UNITY_EDITOR
-        // Strategy 1: extract a floor cell directly from walls_floor.png by pixel region.
-        // walls_floor is 224x352 with 16px cells. The central stone floor tile sits at
-        // approximately (x=96, y=16) — adjust via "Solengard/Debug/Preview Floor Tile".
-        const string WF_PATH = "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG/walls_floor.png";
-
-        var tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>(WF_PATH);
-        if (tex != null)
-        {
-            // Ensure the texture is CPU-readable so Sprite.Create can reference a sub-rect.
-            var importer = UnityEditor.AssetImporter.GetAtPath(WF_PATH) as UnityEditor.TextureImporter;
-            if (importer != null && !importer.isReadable)
-            {
-                importer.isReadable = true;
-                importer.SaveAndReimport();
-                tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>(WF_PATH);
-            }
-
-            // Cell (96, 16) size 16x16 — central column, first floor row from bottom.
-            // Unity's Rect origin is bottom-left, matching texture pixel coordinates.
-            int cellX = 96, cellY = 16, cell = 16;
-            var spr = Sprite.Create(tex,
-                new Rect(cellX, cellY, cell, cell),
-                new Vector2(0.5f, 0.5f),
-                pixelsPerUnit: 16f,
-                extrude: 0,
-                meshType: SpriteMeshType.FullRect);
-            spr.name = "FloorTile_Extracted";
-            Debug.Log($"[SimpleArena] Tile extraído de walls_floor em ({cellX},{cellY}) {cell}x{cell}px");
-            return spr;
-        }
-
-        // Strategy 2: search for individual sub-sprites in the tileset folder.
-        string[] folders = { "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG" };
-        string[] exclude = { "wall", "corner", "edge", "top", "bottom", "side",
-                             "ornament", "claw", "torch", "decor", "transition",
-                             "arch", "pillar", "door", "window", "border" };
-        string[] prefer  = { "floor", "ground", "center", "tile", "stone", "dirt" };
-
-        var allSprites = new System.Collections.Generic.List<Sprite>();
-        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:Texture2D", folders))
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            foreach (var a in UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path))
-                if (a is Sprite s) allSprites.Add(s);
-        }
-
-        foreach (string pref in prefer)
-        {
-            foreach (Sprite s in allSprites)
-            {
-                string n = s.name.ToLower();
-                if (exclude.Any(e => n.Contains(e))) continue;
-                if (!n.Contains(pref)) continue;
-                if (Mathf.Abs(s.rect.width - s.rect.height) < 2f)
-                {
-                    Debug.Log($"[SimpleArena] Sub-sprite de chão: {s.name} ({s.rect.width}x{s.rect.height}px)");
-                    return s;
-                }
-            }
-        }
-
-        foreach (Sprite s in allSprites)
-        {
-            string n = s.name.ToLower();
-            if (exclude.Any(e => n.Contains(e))) continue;
-            if (Mathf.Abs(s.rect.width - s.rect.height) < 2f && s.rect.width <= 48f)
-            {
-                Debug.Log($"[SimpleArena] Tile fallback de sub-sprite: {s.name} ({s.rect.width}x{s.rect.height}px)");
-                return s;
-            }
-        }
-
-        Debug.LogWarning("[SimpleArena] Nenhum tile encontrado — usando procedural. Rode 'Solengard/Debug/Preview Floor Tile'.");
-#endif
-        return null;
-    }
-
-    // Generates a seamlessly-tileable stone-floor texture at runtime (no assets required).
-    Sprite GenerateProceduralFloor()
-    {
-        const int size = 32;
+        const int size = 64;
         var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
         tex.filterMode = FilterMode.Point;
         tex.wrapMode   = TextureWrapMode.Repeat;
 
-        var baseCol = new Color(0.16f, 0.14f, 0.18f);
+        var baseGreen  = new Color(0.30f, 0.55f, 0.25f);
+        var darkGreen  = new Color(0.24f, 0.46f, 0.20f);
+        var lightGreen = new Color(0.36f, 0.62f, 0.30f);
+
         for (int x = 0; x < size; x++)
         {
             for (int y = 0; y < size; y++)
             {
-                float noise = Mathf.PerlinNoise(x * 0.3f + 7f, y * 0.3f + 13f) * 0.06f;
-                Color c     = baseCol + new Color(noise, noise, noise);
-                // Mortar lines between 16px blocks
-                if (x % 16 == 0 || y % 16 == 0) c *= 0.7f;
+                float n  = Mathf.PerlinNoise(x * 0.15f,        y * 0.15f);
+                float n2 = Mathf.PerlinNoise(x * 0.5f + 100f,  y * 0.5f + 100f);
+                Color c  = Color.Lerp(darkGreen, lightGreen, n);
+                // Pontilhado de tufos de grama
+                if (n2 > 0.75f) c = Color.Lerp(c, lightGreen, 0.6f);
+                if (n2 < 0.15f) c = Color.Lerp(c, darkGreen,  0.5f);
                 tex.SetPixel(x, y, c);
             }
         }
@@ -190,10 +117,38 @@ public class SimpleArena : MonoBehaviour
             pixelsPerUnit: 16f,
             extrude: 0,
             meshType: SpriteMeshType.FullRect);
-        spr.name = "ProceduralFloor";
-        Debug.Log("[SimpleArena] Chão procedural gerado (32x32 pedra escura).");
+        spr.name = "GrassFloor";
+        Debug.Log("[SimpleArena] Chão de grama procedural gerado (64x64px, PPU=16, tileWorld=4).");
         return spr;
     }
+
+    // Mantido comentado — extrai uma célula 16×16 de walls_floor.png quando desejado.
+    /*
+    Sprite LoadFloorSprite()
+    {
+#if UNITY_EDITOR
+        const string WF_PATH = "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG/walls_floor.png";
+        var tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>(WF_PATH);
+        if (tex != null)
+        {
+            var importer = UnityEditor.AssetImporter.GetAtPath(WF_PATH) as UnityEditor.TextureImporter;
+            if (importer != null && !importer.isReadable)
+            {
+                importer.isReadable = true;
+                importer.SaveAndReimport();
+                tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>(WF_PATH);
+            }
+            int cellX = 96, cellY = 16, cell = 16;
+            var spr = Sprite.Create(tex,
+                new Rect(cellX, cellY, cell, cell),
+                new Vector2(0.5f, 0.5f), 16f, 0, SpriteMeshType.FullRect);
+            spr.name = "FloorTile_Extracted";
+            return spr;
+        }
+#endif
+        return null;
+    }
+    */
 
     static Sprite MakePixel(Color c)
     {
@@ -257,15 +212,13 @@ public static class SimpleArenaTilesetDebug
         sb.AppendLine($"Dimensões: {tex.width}x{tex.height}px");
         sb.AppendLine($"Células de 16px: {tex.width / 16} colunas × {tex.height / 16} linhas");
         sb.AppendLine();
-        sb.AppendLine("Tile de chão atual extraído em:");
-        sb.AppendLine("  x=96, y=16, tamanho=16x16");
-        sb.AppendLine();
-        sb.AppendLine("Para ajustar, edite cellX/cellY em SimpleArena.LoadFloorSprite().");
+        sb.AppendLine("Tile configurado para extração: x=96, y=16, 16x16");
+        sb.AppendLine("Para usar o tile real, descomente LoadFloorSprite() em BuildFloor().");
 
         var importer = UnityEditor.AssetImporter.GetAtPath(WF_PATH) as UnityEditor.TextureImporter;
         sb.AppendLine($"\nIsReadable: {(importer != null ? importer.isReadable.ToString() : "n/a")}");
 
-        UnityEngine.Debug.Log($"[SimpleArena] Preview Floor Tile:\n{sb}");
+        UnityEngine.Debug.Log($"[SimpleArena] Preview:\n{sb}");
         UnityEditor.EditorUtility.DisplayDialog("Preview Floor Tile", sb.ToString(), "OK");
     }
 }

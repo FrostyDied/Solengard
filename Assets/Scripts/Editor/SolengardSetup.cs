@@ -783,18 +783,30 @@ public static class SolengardSetup
         int ground   = LayerMask.NameToLayer("Ground");
         int effect   = LayerMask.NameToLayer("Effect");
 
-        if (player < 0 || enemy < 0 || obstacle < 0) return;
+        if (player < 0 || enemy < 0) return;
 
-        // Enemies physically collide with player; contact damage handled via OnCollisionStay2D.
+        // Enemies physically collide with player; contact damage via OnCollisionStay2D.
         // Player mass=1000f prevents being pushed; enemy colliders must NOT be triggers.
         Physics2D.IgnoreLayerCollision(player, enemy, false);
+
+        // Obstacles: player collides (uses cover), enemies pass through freely.
+        // NOTE: create layer "Obstacle" in Project Settings → Tags and Layers if absent.
+        if (obstacle >= 0)
+        {
+            Physics2D.IgnoreLayerCollision(obstacle, player, false); // herói COLIDE
+            Physics2D.IgnoreLayerCollision(obstacle, enemy,  true);  // inimigo ATRAVESSA
+        }
+        else
+        {
+            Debug.LogWarning("[SolengardSetup] Layer 'Obstacle' não existe — crie em Project Settings → Tags and Layers.");
+        }
 
         if (ground >= 0)
         {
             Physics2D.IgnoreLayerCollision(ground, ground,   true);
             Physics2D.IgnoreLayerCollision(ground, player,   true);
             Physics2D.IgnoreLayerCollision(ground, enemy,    true);
-            Physics2D.IgnoreLayerCollision(ground, obstacle, true);
+            if (obstacle >= 0) Physics2D.IgnoreLayerCollision(ground, obstacle, true);
         }
         if (effect >= 0)
         {

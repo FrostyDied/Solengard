@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
     // Input do joystick mobile (pode ser setado pelo MobileJoystick)
     public Vector2 JoystickInput { get; set; }
 
-    // Bloqueio de flip durante ataque (preenchido pelo PlayerAttack)
+    // Tempo do último ataque — lido pelo PlayerAttack; não bloqueia mais o flip
     public float LastAttackTime { get; set; } = -999f;
 
     Rigidbody2D       _rb;
@@ -80,14 +80,18 @@ public class PlayerController : MonoBehaviour
 
         MoveDir = joystick.magnitude > 0.1f ? joystick.normalized : keyboardDir;
 
-        // FacingDirection atualiza só com movimento horizontal significativo
-        if (Mathf.Abs(MoveDir.x) > 0.01f)
-            FacingDirection = MoveDir.x > 0f ? Vector2.right : Vector2.left;
-
-        // Flip do sprite — ataque tem prioridade nos últimos 0.3s
-        bool recentlyAttacked = Time.time - LastAttackTime < 0.3f;
-        if (_sr != null && Mathf.Abs(MoveDir.x) > 0.01f && !recentlyAttacked)
+        // Flip do sprite SEMPRE segue o movimento imediatamente (virar rápido = sobrevivência)
+        if (_sr != null && Mathf.Abs(MoveDir.x) > 0.01f)
             _sr.flipX = MoveDir.x < 0f;
+
+        // FacingDirection suporta 4 direções — eixo dominante define a frente do ataque
+        if (MoveDir.magnitude > 0.1f)
+        {
+            if (Mathf.Abs(MoveDir.x) >= Mathf.Abs(MoveDir.y))
+                FacingDirection = MoveDir.x > 0f ? Vector2.right : Vector2.left;
+            else
+                FacingDirection = MoveDir.y > 0f ? Vector2.up : Vector2.down;
+        }
 
         if (_anim != null)
             _anim.SetState(MoveDir.magnitude > 0.1f
