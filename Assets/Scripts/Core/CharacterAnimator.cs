@@ -21,7 +21,14 @@ public class CharacterAnimator : MonoBehaviour
     float _timer;
     bool  _locked;
 
-    void Awake() => _sr = GetComponent<SpriteRenderer>();
+    void Awake()
+    {
+        _sr     = GetComponent<SpriteRenderer>();
+        _state  = State.Idle;
+        _frame  = 0;
+        _timer  = 0f;
+        _locked = false;
+    }
 
     void Update()
     {

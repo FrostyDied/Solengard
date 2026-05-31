@@ -27,6 +27,7 @@ public class EnemyBase : MonoBehaviour
     protected float currentHealth;
     protected Rigidbody2D rb;
 
+    bool  isDead;
     float contactDamageTimer;
 
     protected virtual void Awake()
@@ -51,6 +52,12 @@ public class EnemyBase : MonoBehaviour
     {
         currentHealth      = maxHealth;
         contactDamageTimer = 0f;
+        isDead             = false;
+
+        // Reset animator so pool-reused enemies don't start in Death state
+        var anim = GetComponent<CharacterAnimator>();
+        if (anim != null) anim.ForceState(CharacterAnimator.State.Idle);
+
         // Re-find player in case the scene was reloaded and the reference became stale
         if (playerTransform == null)
         {
@@ -137,6 +144,9 @@ public class EnemyBase : MonoBehaviour
 
     void Die()
     {
+        if (isDead) return;
+        isDead = true;
+
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.SetState(CharacterAnimator.State.Death);
 
