@@ -76,8 +76,11 @@ public static class SolengardSpriteSetup
         // Tileset sprites need Repeat wrap + FullRect mesh for SpriteDrawMode.Tiled
         if (Contains(path, "Tileset"))
         {
-            importer.wrapMode       = TextureWrapMode.Repeat;
-            importer.spriteMeshType = SpriteMeshType.FullRect;
+            importer.wrapMode = TextureWrapMode.Repeat;
+            var ts = new TextureImporterSettings();
+            importer.ReadTextureSettings(ts);
+            ts.spriteMeshType = SpriteMeshType.FullRect;
+            importer.SetTextureSettings(ts);
         }
 
         // "Spritesheets" = boss packed sheets; "With_shadow"/"Without_shadow" = per-animation
