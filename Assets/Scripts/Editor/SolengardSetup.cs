@@ -583,7 +583,7 @@ public static class SolengardSetup
         total += TryAssign<DiamondSystem>("playerData",   playerData,  log);
         total += TryAssign<ScoreSystem>("playerData",     playerData,  log);
         total += TryAssign<SeasonPassSystem>("playerData", playerData, log);
-        total += TryAssignPrefabByPath<PlayerAttack>("attackEffectPrefab", HIT_EFFECT_PATH, log);
+        total += TryAssignPrefabByPath<PlayerAttack>("slashEffectPrefab", HIT_EFFECT_PATH, log);
         total += TryAssignPrefabByPath<PlayerHealth>("hitEffectPrefab",    HIT_EFFECT_PATH, log);
         return total;
     }

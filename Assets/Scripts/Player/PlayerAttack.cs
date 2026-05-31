@@ -1,30 +1,32 @@
+using System.Collections;
 using UnityEngine;
 
-// Gerencia o auto-ataque do player: a cada cooldown, detecta o inimigo mais
-// próximo dentro do range e aplica dano diretamente via EnemyBase.TakeDamage.
 public class PlayerAttack : MonoBehaviour
 {
-    [Header("Atributos de Ataque")]
+    [Header("Stats")]
     public float attackDamage   = 25f;
     public float attackRange    = 5f;
-    public float attackCooldown = 0.4f;
+    public float attackCooldown = 0.5f;
+
+    [Header("Cone de ataque (graus) — amplitude do golpe na direção encarada")]
+    [SerializeField] float attackConeAngle = 120f;
+
+    [Header("Efeito visual da espada")]
+    [SerializeField] GameObject slashEffectPrefab;
+    [SerializeField] float slashDuration = 0.18f;
 
     [Header("Detecção")]
     public LayerMask enemyLayerMask;
 
-    [Header("Efeito Visual")]
-    [SerializeField] GameObject attackEffectPrefab;
-
     PlayerWeapon weapon;
-    float        _cooldownTimer;
-
-    // ── Unity ───────────────────────────────────────────────────────────────────
+    float _cooldownTimer;
 
     void Awake()
     {
         weapon = GetComponent<PlayerWeapon>();
         SyncFromWeapon();
         if (enemyLayerMask == 0) enemyLayerMask = LayerMask.GetMask("Enemy");
+        if (slashEffectPrefab == null) TryLoadSlashPrefab();
     }
 
     void OnEnable()  => PlayerWeapon.OnWeaponUpgraded += AoUpgradeArma;
@@ -35,51 +37,104 @@ public class PlayerAttack : MonoBehaviour
         _cooldownTimer -= Time.deltaTime;
         if (_cooldownTimer <= 0f)
         {
-            TryAttack();
+            Attack();
             _cooldownTimer = attackCooldown;
         }
     }
 
-    // ── Lógica de ataque ────────────────────────────────────────────────────────
-
-    void TryAttack()
+    void Attack()
     {
-        if (enemyLayerMask == 0) enemyLayerMask = LayerMask.GetMask("Enemy");
+        // Direção que o herói encara — nunca zero, mantém a última mesmo parado
+        Vector2 facing = PlayerController.Instance != null
+            ? PlayerController.Instance.FacingDirection
+            : Vector2.right;
+        if (facing == Vector2.zero) facing = Vector2.right;
 
-        var hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
-        if (hits.Length == 0) return;
-
-        Collider2D nearest = null;
-        float      minDist = float.MaxValue;
-        foreach (var h in hits)
-        {
-            float d = Vector2.Distance(transform.position, h.transform.position);
-            if (d < minDist) { minDist = d; nearest = h; }
-        }
-        if (nearest == null) return;
-
-        var enemy = nearest.GetComponent<EnemyBase>();
-        if (enemy != null) enemy.TakeDamage(attackDamage);
-
-        Vector2 dir = ((Vector2)nearest.transform.position - (Vector2)transform.position).normalized;
+        // Efeito de espada SEMPRE aparece, mesmo sem inimigos na frente
+        SpawnSlash(facing);
 
         if (PlayerController.Instance != null)
             PlayerController.Instance.LastAttackTime = Time.time;
 
-        var sr = GetComponent<SpriteRenderer>();
-        if (sr != null && Mathf.Abs(dir.x) > 0.1f) sr.flipX = dir.x < 0f;
+        var hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
+        if (hits.Length == 0) return;
 
-        SpawnAttackEffect(dir);
+        float halfCone = attackConeAngle * 0.5f;
+
+        foreach (var h in hits)
+        {
+            if (h == null) continue;
+
+            Vector2 toEnemy = ((Vector2)h.transform.position - (Vector2)transform.position).normalized;
+            float angle = Vector2.Angle(facing, toEnemy);
+            if (angle > halfCone) continue; // fora do cone — não é atingido
+
+            var enemy = h.GetComponent<EnemyBase>();
+            if (enemy != null) enemy.TakeDamage(attackDamage);
+        }
     }
 
-    void SpawnAttackEffect(Vector2 dir)
+    void SpawnSlash(Vector2 dir)
     {
-        if (attackEffectPrefab == null) return;
-        var effectPos = transform.position + (Vector3)(dir * attackRange * 0.6f);
-        var effect    = Instantiate(attackEffectPrefab, effectPos, Quaternion.identity);
-        float angle   = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        effect.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-        Destroy(effect, 0.2f);
+        Vector3 spawnPos = transform.position + (Vector3)(dir * attackRange * 0.5f);
+
+        if (slashEffectPrefab != null)
+        {
+            var fx  = Instantiate(slashEffectPrefab, spawnPos, Quaternion.identity);
+            float ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            fx.transform.rotation = Quaternion.Euler(0, 0, ang);
+            if (dir.x < 0)
+                fx.transform.localScale = new Vector3(-fx.transform.localScale.x,
+                                                       fx.transform.localScale.y,
+                                                       fx.transform.localScale.z);
+            Destroy(fx, slashDuration);
+        }
+        else
+        {
+            StartCoroutine(ProceduralSlash(spawnPos, dir));
+        }
+    }
+
+    IEnumerator ProceduralSlash(Vector3 pos, Vector2 dir)
+    {
+        var fx = new GameObject("SlashFX");
+        fx.transform.position = pos;
+        float ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        fx.transform.rotation = Quaternion.Euler(0, 0, ang);
+
+        var sr = fx.AddComponent<SpriteRenderer>();
+        sr.sprite       = GetComponent<SpriteRenderer>()?.sprite;
+        sr.color        = new Color(1f, 1f, 1f, 0.85f);
+        sr.sortingOrder = 40;
+        fx.transform.localScale = Vector3.one * 0.6f;
+
+        float t = 0f;
+        while (t < slashDuration)
+        {
+            t += Time.deltaTime;
+            float ratio = t / slashDuration;
+            sr.color              = new Color(1f, 1f, 1f, Mathf.Lerp(0.85f, 0f, ratio));
+            fx.transform.localScale = Vector3.one * Mathf.Lerp(0.6f, 1.1f, ratio);
+            yield return null;
+        }
+        Destroy(fx);
+    }
+
+    void TryLoadSlashPrefab()
+    {
+#if UNITY_EDITOR
+        string[] paths = {
+            "Assets/Prefabs/Effects/SwordSlash.prefab",
+            "Assets/Prefabs/Effects/Slash.prefab",
+            "Assets/Prefabs/Effects/AttackEffect.prefab",
+            "Assets/Prefabs/Effects/HitEffect.prefab",
+        };
+        foreach (var p in paths)
+        {
+            var go = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(p);
+            if (go != null) { slashEffectPrefab = go; return; }
+        }
+#endif
     }
 
     // ── Weapon sync ─────────────────────────────────────────────────────────────
@@ -98,7 +153,20 @@ public class PlayerAttack : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
+        Vector2 facing = PlayerController.Instance != null
+            ? PlayerController.Instance.FacingDirection
+            : Vector2.right;
+
+        // Range circle
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, attackRange);
+
+        // Attack cone edges
+        float half     = attackConeAngle * 0.5f;
+        Vector3 leftE  = Quaternion.Euler(0, 0,  half) * (Vector3)(facing * attackRange);
+        Vector3 rightE = Quaternion.Euler(0, 0, -half) * (Vector3)(facing * attackRange);
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawLine(transform.position, transform.position + leftE);
+        Gizmos.DrawLine(transform.position, transform.position + rightE);
     }
 }
