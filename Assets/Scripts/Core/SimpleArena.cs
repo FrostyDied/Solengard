@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 [DefaultExecutionOrder(-100)]
@@ -8,8 +9,8 @@ public class SimpleArena : MonoBehaviour
     [Header("Tamanho do chão (cobre a câmera com folga)")]
     [SerializeField] float tileAreaSize  = 60f;
 
-    [Header("Snap do tile (deve coincidir com o tamanho do tile no mundo)")]
-    [SerializeField] float tileWorldSize = 4f;
+    [Header("Snap do tile (calculado automaticamente a partir do sprite)")]
+    [SerializeField] float tileWorldSize = 2f;
 
     [Header("Sprite do tileset (auto se vazio)")]
     [SerializeField] Sprite floorSprite;
@@ -40,6 +41,10 @@ public class SimpleArena : MonoBehaviour
     {
         if (floorSprite == null) floorSprite = LoadFloorSprite();
 
+        // Derive snap size from the chosen tile so the grid aligns exactly to tile boundaries.
+        if (floorSprite != null)
+            tileWorldSize = floorSprite.rect.width / floorSprite.pixelsPerUnit;
+
         var go = new GameObject("InfiniteFloor");
         go.transform.SetParent(transform);
         _floor         = go.transform;
@@ -52,7 +57,7 @@ public class SimpleArena : MonoBehaviour
             _floorRenderer.drawMode = SpriteDrawMode.Tiled;
             _floorRenderer.size     = new Vector2(tileAreaSize, tileAreaSize);
             _floorRenderer.tileMode = SpriteTileMode.Continuous;
-            Debug.Log($"[SimpleArena] Chão com tileset: {floorSprite.name}");
+            Debug.Log($"[SimpleArena] Chão: {floorSprite.name} ({floorSprite.rect.width}x{floorSprite.rect.height}px) tileWorldSize={tileWorldSize:F2}");
         }
         else
         {
@@ -79,22 +84,56 @@ public class SimpleArena : MonoBehaviour
     Sprite LoadFloorSprite()
     {
 #if UNITY_EDITOR
-        string[] folders  = { "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG" };
-        string[] keywords = { "floor", "ground", "tile", "stone", "dirt" };
-        foreach (var kw in keywords)
+        string[] folders = { "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG" };
+
+        // Collect every individual sub-sprite from every texture in the folder.
+        var allSprites = new System.Collections.Generic.List<Sprite>();
+        var guids = UnityEditor.AssetDatabase.FindAssets("t:Texture2D", folders);
+        foreach (var guid in guids)
         {
-            var guids = UnityEditor.AssetDatabase.FindAssets($"t:Sprite {kw}", folders);
-            if (guids.Length > 0)
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            var assets  = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path);
+            foreach (var a in assets)
+                if (a is Sprite s) allSprites.Add(s);
+        }
+
+        // Words that identify non-floor tiles — walls, corners, ornaments, etc.
+        string[] exclude = { "wall", "corner", "edge", "top", "bottom", "side",
+                             "ornament", "claw", "torch", "decor", "transition",
+                             "arch", "pillar", "door", "window", "border" };
+
+        // Preference order: names that suggest a plain repeatable floor tile.
+        string[] prefer  = { "floor", "ground", "center", "tile", "stone", "dirt" };
+
+        // Pass 1: preferred name, square, no excluded word.
+        foreach (string pref in prefer)
+        {
+            foreach (Sprite s in allSprites)
             {
-                var spr = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
-                    UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]));
-                if (spr != null) return spr;
+                string n = s.name.ToLower();
+                if (exclude.Any(e => n.Contains(e))) continue;
+                if (!n.Contains(pref)) continue;
+                if (Mathf.Abs(s.rect.width - s.rect.height) < 2f)
+                {
+                    Debug.Log($"[SimpleArena] Tile de chão escolhido: {s.name} ({s.rect.width}x{s.rect.height}px, PPU={s.pixelsPerUnit})");
+                    return s;
+                }
             }
         }
-        var any = UnityEditor.AssetDatabase.FindAssets("t:Sprite", folders);
-        if (any.Length > 0)
-            return UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
-                UnityEditor.AssetDatabase.GUIDToAssetPath(any[0]));
+
+        // Pass 2: any small square tile without excluded words.
+        foreach (Sprite s in allSprites)
+        {
+            string n = s.name.ToLower();
+            if (exclude.Any(e => n.Contains(e))) continue;
+            if (Mathf.Abs(s.rect.width - s.rect.height) < 2f && s.rect.width <= 48f)
+            {
+                Debug.Log($"[SimpleArena] Tile fallback: {s.name} ({s.rect.width}x{s.rect.height}px, PPU={s.pixelsPerUnit})");
+                return s;
+            }
+        }
+
+        Debug.LogWarning("[SimpleArena] Nenhum tile de chão adequado encontrado — use 'Solengard/Debug/List Tileset Sprites' para inspecionar.");
 #endif
         return null;
     }
@@ -111,3 +150,38 @@ public class SimpleArena : MonoBehaviour
         _player != null ? _player.position : Vector3.zero,
         new Vector3(tileAreaSize, tileAreaSize, 0f));
 }
+
+#if UNITY_EDITOR
+public static class SimpleArenaTilesetDebug
+{
+    [UnityEditor.MenuItem("Solengard/Debug/List Tileset Sprites")]
+    static void ListTilesetSprites()
+    {
+        string[] folders = { "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG" };
+        var guids = UnityEditor.AssetDatabase.FindAssets("t:Texture2D", folders);
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"=== Tileset sprites em {folders[0]} ===\n");
+
+        int total = 0;
+        foreach (var guid in guids)
+        {
+            string path   = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            var    assets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path);
+
+            var sprites = assets.OfType<Sprite>().ToList();
+            if (sprites.Count == 0) continue;
+
+            sb.AppendLine($"── {System.IO.Path.GetFileName(path)} ({sprites.Count} sprites) ──");
+            foreach (var s in sprites)
+                sb.AppendLine($"  {s.name,-40} {s.rect.width,4}x{s.rect.height,-4} PPU={s.pixelsPerUnit}");
+
+            total += sprites.Count;
+        }
+
+        sb.AppendLine($"\nTotal: {total} sub-sprites encontrados.");
+        Debug.Log(sb.ToString());
+        UnityEditor.EditorUtility.DisplayDialog("Tileset Sprites", $"{total} sub-sprites logados no Console.", "OK");
+    }
+}
+#endif
