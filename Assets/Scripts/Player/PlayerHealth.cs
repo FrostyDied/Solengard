@@ -16,11 +16,11 @@ public class PlayerHealth : MonoBehaviour
     // ── Atributos configuráveis ─────────────────────────────────────────────────
 
     [Header("Vida")]
-    public float maxHealth = 100f;
+    public float maxHealth = 150f;
 
     [Header("Invencibilidade (iframes)")]
     // Duração em segundos de invencibilidade após receber dano
-    public float iframeDuration = 1f;
+    public float iframeDuration = 0.5f;
 
     // ── Estado interno ──────────────────────────────────────────────────────────
 
@@ -61,6 +61,7 @@ public class PlayerHealth : MonoBehaviour
 
         currentHealth = Mathf.Max(currentHealth - amount, 0f);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        StartCoroutine(FlashWhite());
 
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null)
@@ -76,6 +77,15 @@ public class PlayerHealth : MonoBehaviour
             if (iFrameCoroutine != null) StopCoroutine(iFrameCoroutine);
             iFrameCoroutine = StartCoroutine(IFrameRoutine());
         }
+    }
+
+    IEnumerator FlashWhite()
+    {
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr == null) yield break;
+        sr.color = Color.white * 2f;
+        yield return new WaitForSeconds(0.08f);
+        sr.color = Color.white;
     }
 
     // Restaura vida sem ultrapassar o máximo

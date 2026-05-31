@@ -22,7 +22,7 @@ public class WaveManager : MonoBehaviour
     public List<Transform> spawnPoints = new();
 
     [Header("Spawn contínuo")]
-    [SerializeField] float spawnInterval       = 0.5f;
+    [SerializeField] float spawnInterval       = 1.5f;
     [SerializeField] float minimumWaveDuration = 60f;
 
     [Header("Spawn dinâmico")]
@@ -38,8 +38,8 @@ public class WaveManager : MonoBehaviour
 
     int   TotalWavesConfig    => gameConfig != null ? gameConfig.totalWaves               : totalWaves;
     float RawTimeBetweenWaves => gameConfig != null ? gameConfig.intervaloEntreWaves       : 8f;
-    int   BaseEnemyCount      => gameConfig != null ? gameConfig.inimigosBaseWave1         : 50;
-    int   EnemyCountIncrement => gameConfig != null ? gameConfig.incrementoInimigosPorWave : 10;
+    int   BaseEnemyCount      => gameConfig != null ? gameConfig.inimigosBaseWave1         : 8;
+    int   EnemyCountIncrement => gameConfig != null ? gameConfig.incrementoInimigosPorWave : 5;
 
     public float TimeBetweenWaves => RawTimeBetweenWaves;
 

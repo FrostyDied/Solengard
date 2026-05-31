@@ -25,6 +25,9 @@ public class HUDComplete : MonoBehaviour
     public TextMeshProUGUI     textoMissao;
     public TextMeshProUGUI     textoProgressoMissao;
 
+    [Header("Timer")]
+    public TextMeshProUGUI     textoTimer;
+
     [Header("Botão Pause")]
     public Button              botaoPause;
 
@@ -38,18 +41,20 @@ public class HUDComplete : MonoBehaviour
 
     void OnEnable()
     {
-        PlayerHealth.OnHealthChanged     += AtualizarVida;
-        DiamondSystem.OnDiamondsChanged  += AtualizarDiamantes;
-        GameManager.OnGameStateChanged   += AoMudarEstado;
+        PlayerHealth.OnHealthChanged          += AtualizarVida;
+        DiamondSystem.OnDiamondsChanged       += AtualizarDiamantes;
+        GameManager.OnGameStateChanged        += AoMudarEstado;
         DailyMissionSystem.OnMissionCompleted += AoCompletarMissao;
+        WaveTimerSystem.OnTimerTick           += AtualizarTimer;
     }
 
     void OnDisable()
     {
-        PlayerHealth.OnHealthChanged     -= AtualizarVida;
-        DiamondSystem.OnDiamondsChanged  -= AtualizarDiamantes;
-        GameManager.OnGameStateChanged   -= AoMudarEstado;
+        PlayerHealth.OnHealthChanged          -= AtualizarVida;
+        DiamondSystem.OnDiamondsChanged       -= AtualizarDiamantes;
+        GameManager.OnGameStateChanged        -= AoMudarEstado;
         DailyMissionSystem.OnMissionCompleted -= AoCompletarMissao;
+        WaveTimerSystem.OnTimerTick           -= AtualizarTimer;
     }
 
     void Start()
@@ -82,6 +87,13 @@ public class HUDComplete : MonoBehaviour
     void AtualizarDiamantes(int saldo)
     {
         if (textoDiamantes != null) textoDiamantes.text = saldo.ToString("N0");
+    }
+
+    void AtualizarTimer(float t)
+    {
+        if (textoTimer == null) return;
+        textoTimer.text  = string.Format("{0}:{1:00}", (int)t / 60, (int)t % 60);
+        textoTimer.color = t <= 10f ? Color.red : Color.white;
     }
 
     void AoMudarEstado(GameState estado)

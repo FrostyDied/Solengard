@@ -20,7 +20,7 @@ public class DynamicDifficultySystem : MonoBehaviour
 
     static readonly Tier[] Tiers =
     {
-        new Tier { timeThreshold=0,   healthMultiplier=1.0f, damageMultiplier=1.0f,  spawnRateMultiplier=1.0f, maxEnemiesOnScreen=20, availableEnemyTypes=new[]{"EnemyZumbi"} },
+        new Tier { timeThreshold=0,   healthMultiplier=1.0f, damageMultiplier=1.0f,  spawnRateMultiplier=1.0f, maxEnemiesOnScreen=8, availableEnemyTypes=new[]{"EnemyZumbi"} },
         new Tier { timeThreshold=60,  healthMultiplier=1.2f, damageMultiplier=1.1f,  spawnRateMultiplier=1.1f, maxEnemiesOnScreen=25, availableEnemyTypes=new[]{"EnemyZumbi","EnemyOrc"} },
         new Tier { timeThreshold=120, healthMultiplier=1.4f, damageMultiplier=1.25f, spawnRateMultiplier=1.2f, maxEnemiesOnScreen=30, availableEnemyTypes=new[]{"EnemyZumbi","EnemyOrc","EnemyArcher"} },
         new Tier { timeThreshold=180, healthMultiplier=1.6f, damageMultiplier=1.4f,  spawnRateMultiplier=1.3f, maxEnemiesOnScreen=35, availableEnemyTypes=new[]{"EnemyZumbi","EnemyOrc","EnemyArcher","EnemyMage","EnemyAssassin"} },

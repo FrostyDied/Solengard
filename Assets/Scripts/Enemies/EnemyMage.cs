@@ -12,8 +12,8 @@ public class EnemyMage : EnemyBase
 
     protected override void Awake()
     {
-        maxHealth = 60f;
-        moveSpeed = 1.2f;
+        maxHealth = 40f;
+        moveSpeed = 0.8f;
         damage    = 8f;
         base.Awake();
     }

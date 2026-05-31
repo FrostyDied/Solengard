@@ -6,9 +6,11 @@ using UnityEngine;
 public class PlayerAttack : MonoBehaviour
 {
     [Header("Atributos de Ataque")]
-    public float attackDamage   = 35f;
-    public float attackRange    = 3f;
-    public float attackCooldown = 0.6f;
+    public float attackDamage   = 25f;
+    public float attackRange    = 4.5f;
+    public float attackCooldown = 0.5f;
+
+    public static float LastAttackTime { get; private set; }
 
     [Header("Detecção")]
     // Layer "Enemy" deve estar configurada no projeto para que a detecção funcione
@@ -53,6 +55,15 @@ public class PlayerAttack : MonoBehaviour
 
         if (alvo == null) return;
 
+        LastAttackTime = Time.time;
+
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            float dir = alvo.transform.position.x - transform.position.x;
+            if (Mathf.Abs(dir) > 0.01f) sr.flipX = dir < 0f;
+        }
+
         Debug.Log($"[PlayerAttack] Atacando {alvo.name} — damage={attackDamage}");
         alvo.TakeDamage(attackDamage);
     }
@@ -95,13 +106,9 @@ public class PlayerAttack : MonoBehaviour
 
     // ── Gizmos ──────────────────────────────────────────────────────────────────
 
-    // Exibe o range de ataque apenas quando o objeto está selecionado no editor
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.3f);
-        Gizmos.DrawSphere(transform.position, attackRange);
-
-        Gizmos.color = new Color(1f, 0.2f, 0.2f, 1f);
+        Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }

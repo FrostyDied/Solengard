@@ -41,6 +41,13 @@ public class CameraFollow : MonoBehaviour
 
         smoothed.z = offset.z;
         transform.position = smoothed;
+
+        if (Camera.main != null)
+        {
+            int   enemyCount = FindObjectsByType<EnemyBase>(FindObjectsSortMode.None).Length;
+            float targetSize = Mathf.Lerp(8f, 12f, enemyCount / 30f);
+            Camera.main.orthographicSize = Mathf.Lerp(Camera.main.orthographicSize, targetSize, Time.deltaTime * 2f);
+        }
     }
 
     public void SetTarget(Transform t) => _target = t;

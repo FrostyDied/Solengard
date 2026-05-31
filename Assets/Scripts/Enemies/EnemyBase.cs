@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 // Classe base para todos os inimigos do Solengard.
@@ -6,13 +7,13 @@ public class EnemyBase : MonoBehaviour
 {
     [Header("Atributos")]
     public float maxHealth = 30f;
-    public float moveSpeed = 2f;
+    public float moveSpeed = 1.2f;
     public float damage = 10f;
 
     [Header("Movimento")]
-    public float stoppingDistance   = 0.3f;
-    public float separationRadius   = 1.5f;
-    public float separationStrength = 0.6f;
+    public float stoppingDistance   = 0.8f;
+    public float separationRadius   = 2.0f;
+    public float separationStrength = 1.5f;
 
     [Header("Referências")]
     // Deixe vazio para usar busca automática em Awake
@@ -82,7 +83,10 @@ public class EnemyBase : MonoBehaviour
 
         Vector2 toPlayer   = ((Vector2)playerTransform.position - rb.position).normalized;
         Vector2 separation = ComputeSeparation();
-        rb.linearVelocity  = (toPlayer + separation * separationStrength).normalized * moveSpeed;
+        float   speed      = dist < stoppingDistance * 3f
+                             ? moveSpeed * (dist / (stoppingDistance * 3f))
+                             : moveSpeed;
+        rb.linearVelocity  = (toPlayer + separation * separationStrength).normalized * speed;
 
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.SetState(CharacterAnimator.State.Walk);
@@ -135,9 +139,19 @@ public class EnemyBase : MonoBehaviour
     {
         if (!CanTakeDamage()) return;
         currentHealth -= amount;
+        StartCoroutine(FlashRed());
 
         if (currentHealth <= 0f)
             Die();
+    }
+
+    IEnumerator FlashRed()
+    {
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr == null) yield break;
+        sr.color = Color.red;
+        yield return new WaitForSeconds(0.1f);
+        sr.color = Color.white;
     }
 
     protected virtual bool CanTakeDamage() => true;

@@ -8,8 +8,8 @@ public class EnemyGolem : EnemyBase
 
     protected override void Awake()
     {
-        maxHealth = 300f;
-        moveSpeed = 0.7f;
+        maxHealth = 200f;
+        moveSpeed = 0.6f;
         damage    = 35f;
         base.Awake();
     }

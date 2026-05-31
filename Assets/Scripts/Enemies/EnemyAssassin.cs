@@ -12,8 +12,8 @@ public class EnemyAssassin : EnemyBase
 
     protected override void Awake()
     {
-        maxHealth = 30f;
-        moveSpeed = 4.0f;
+        maxHealth = 20f;
+        moveSpeed = 2.0f;
         damage    = 25f;
         base.Awake();
     }

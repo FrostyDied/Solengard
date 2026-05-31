@@ -43,7 +43,8 @@ public class PlayerController : MonoBehaviour
                 : CharacterAnimator.State.Idle);
 
         var sr = GetComponent<SpriteRenderer>();
-        if (sr != null && Mathf.Abs(moveInput.x) > 0.01f)
+        if (sr != null && Mathf.Abs(moveInput.x) > 0.01f
+            && Time.time - PlayerAttack.LastAttackTime > 0.3f)
             sr.flipX = moveInput.x < 0f;
     }
 

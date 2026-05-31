@@ -18,8 +18,8 @@ public class EnemyBoss : EnemyBase
 
     protected override void Awake()
     {
-        maxHealth = 1000f;
-        moveSpeed = 0.6f;
+        maxHealth = 500f;
+        moveSpeed = 0.7f;
         damage    = 50f;
         base.Awake();
     }

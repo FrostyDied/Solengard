@@ -12,8 +12,8 @@ public class EnemyArcher : EnemyBase
 
     protected override void Awake()
     {
-        maxHealth = 40f;
-        moveSpeed = 1.5f;
+        maxHealth = 30f;
+        moveSpeed = 1.0f;
         damage    = 10f;
         base.Awake();
         EnsureProjectilePool();
