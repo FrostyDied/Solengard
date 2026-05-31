@@ -10,8 +10,6 @@ public class PlayerAttack : MonoBehaviour
     public float attackRange    = 4.5f;
     public float attackCooldown = 0.5f;
 
-    public static float LastAttackTime { get; private set; }
-
     [Header("Detecção")]
     public LayerMask enemyLayerMask;
 
@@ -20,7 +18,6 @@ public class PlayerAttack : MonoBehaviour
 
     PlayerWeapon weapon;
     float cooldownTimer;
-    Vector2 facingDirection = Vector2.right;
 
     // ── Unity ───────────────────────────────────────────────────────────────────
 
@@ -41,9 +38,6 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
-        var sr = GetComponent<SpriteRenderer>();
-        if (sr != null) facingDirection = sr.flipX ? Vector2.left : Vector2.right;
-
         cooldownTimer -= Time.deltaTime;
         if (cooldownTimer <= 0f)
         {
@@ -59,8 +53,10 @@ public class PlayerAttack : MonoBehaviour
         EnemyBase alvo = EncontrarInimigoMaisProximo();
         if (alvo == null) return;
 
-        LastAttackTime = Time.time;
+        if (PlayerController.Instance != null)
+            PlayerController.Instance.LastAttackTime = Time.time;
 
+        // Flip sprite toward enemy; PlayerController respects LastAttackTime for 0.3s
         var sr = GetComponent<SpriteRenderer>();
         if (sr != null)
         {
@@ -72,9 +68,10 @@ public class PlayerAttack : MonoBehaviour
 
         if (attackEffectPrefab != null)
         {
-            var effectPos = transform.position + (Vector3)(facingDirection * attackRange * 0.6f);
+            Vector2 attackDir = ((Vector2)(alvo.transform.position - transform.position)).normalized;
+            var effectPos = transform.position + (Vector3)(attackDir * attackRange * 0.6f);
             var effect    = Instantiate(attackEffectPrefab, effectPos, Quaternion.identity);
-            float angle   = Mathf.Atan2(facingDirection.y, facingDirection.x) * Mathf.Rad2Deg;
+            float angle   = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
             effect.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
             Destroy(effect, 0.2f);
         }
@@ -104,8 +101,10 @@ public class PlayerAttack : MonoBehaviour
             if (inimigo == null) continue;
 
             // Only hit enemies in the facing semicircle
-            var toEnemy = ((Vector2)(inimigo.transform.position - transform.position)).normalized;
-            if (Vector2.Dot(facingDirection, toEnemy) < 0f) continue;
+            var toEnemy   = ((Vector2)(inimigo.transform.position - transform.position)).normalized;
+            var facing    = PlayerController.Instance != null
+                            ? PlayerController.Instance.FacingDirection : Vector2.right;
+            if (Vector2.Dot(facing, toEnemy) < 0f) continue;
 
             float distancia = Vector2.Distance(transform.position, col.transform.position);
             if (distancia < menorDistancia)

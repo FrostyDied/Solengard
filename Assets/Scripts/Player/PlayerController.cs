@@ -3,53 +3,94 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 #endif
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
 {
-    [Header("Movement")]
+    public static PlayerController Instance { get; private set; }
+
+    [Header("Movimento")]
     public float moveSpeed = 5f;
 
-    Rigidbody2D rb;
-    Vector2     moveInput;
+    // Direção atual do movimento (fonte da verdade para flip e ataque)
+    public Vector2 MoveDir { get; private set; }
+
+    // Direção para onde o player está virado (para ataque direcional)
+    public Vector2 FacingDirection { get; private set; } = Vector2.right;
+
+    // Input do joystick mobile (pode ser setado pelo MobileJoystick)
+    public Vector2 JoystickInput { get; set; }
+
+    // Bloqueio de flip durante ataque (preenchido pelo PlayerAttack)
+    public float LastAttackTime { get; set; } = -999f;
+
+    Rigidbody2D       _rb;
+    SpriteRenderer    _sr;
+    CharacterAnimator _anim;
 
     void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
-        rb.freezeRotation = true;
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+
+        _rb   = GetComponent<Rigidbody2D>();
+        _sr   = GetComponent<SpriteRenderer>();
+        _anim = GetComponent<CharacterAnimator>();
+
+        _rb.gravityScale             = 0f;
+        _rb.freezeRotation           = true;
+        _rb.collisionDetectionMode   = CollisionDetectionMode2D.Continuous;
+        _rb.interpolation            = RigidbodyInterpolation2D.Interpolate;
+
+#if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
+        Debug.LogError("[PlayerController] Legacy Input desabilitado! Mude Active Input Handling para 'Both' em Project Settings > Player.");
+#endif
     }
 
-    void Update()
+    void Update()    => InputManagement();
+    void FixedUpdate() => Move();
+
+    void InputManagement()
     {
-#if ENABLE_INPUT_SYSTEM
-        moveInput.x = Keyboard.current != null ?
-            (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed ? 1 :
-             Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed  ? -1 : 0) : 0;
-        moveInput.y = Keyboard.current != null ?
-            (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed   ? 1 :
-             Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed ? -1 : 0) : 0;
+        Vector2 keyboardDir = Vector2.zero;
+
+#if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
+        if (Keyboard.current != null)
+        {
+            float x = Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed ?  1f :
+                      Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed  ? -1f : 0f;
+            float y = Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed   ?  1f :
+                      Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed  ? -1f : 0f;
+            keyboardDir = new Vector2(x, y).normalized;
+        }
 #else
-        moveInput.x = Input.GetAxisRaw("Horizontal");
-        moveInput.y = Input.GetAxisRaw("Vertical");
+        keyboardDir = new Vector2(Input.GetAxisRaw("Horizontal"),
+                                  Input.GetAxisRaw("Vertical")).normalized;
 #endif
 
+        // MobileJoystick sobrescreve teclado quando ativo
+        Vector2 joystick = JoystickInput;
         if (MobileJoystick.Instance != null && MobileJoystick.Instance.IsActive)
-            moveInput = MobileJoystick.Instance.InputDirection;
+            joystick = MobileJoystick.Instance.InputDirection;
 
-        moveInput = moveInput.normalized;
+        MoveDir = joystick.magnitude > 0.1f ? joystick.normalized : keyboardDir;
 
-        var anim = GetComponent<CharacterAnimator>();
-        if (anim != null)
-            anim.SetState(moveInput.magnitude > 0.1f
+        // FacingDirection atualiza só com movimento horizontal significativo
+        if (Mathf.Abs(MoveDir.x) > 0.01f)
+            FacingDirection = MoveDir.x > 0f ? Vector2.right : Vector2.left;
+
+        // Flip do sprite — ataque tem prioridade nos últimos 0.3s
+        bool recentlyAttacked = Time.time - LastAttackTime < 0.3f;
+        if (_sr != null && Mathf.Abs(MoveDir.x) > 0.01f && !recentlyAttacked)
+            _sr.flipX = MoveDir.x < 0f;
+
+        if (_anim != null)
+            _anim.SetState(MoveDir.magnitude > 0.1f
                 ? CharacterAnimator.State.Walk
                 : CharacterAnimator.State.Idle);
-
-        var sr = GetComponent<SpriteRenderer>();
-        if (sr != null && Mathf.Abs(moveInput.x) > 0.01f
-            && Time.time - PlayerAttack.LastAttackTime > 0.3f)
-            sr.flipX = moveInput.x < 0f;
     }
 
-    void FixedUpdate()
+    void Move()
     {
-        rb.linearVelocity = moveInput * moveSpeed;
+        _rb.linearVelocity = MoveDir * moveSpeed;
     }
 }

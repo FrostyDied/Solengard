@@ -5,11 +5,10 @@ public class CameraFollow : MonoBehaviour
     public static CameraFollow Instance { get; private set; }
 
     [SerializeField] float smoothSpeed = 8f;
-    [SerializeField] Vector3 offset = new Vector3(0f, 0f, -10f);
+    [SerializeField] Vector3 offset    = new Vector3(0f, 0f, -10f);
+    [SerializeField] float orthoSize   = 7f;
 
     Transform _target;
-    bool  _useBounds;
-    float _minX, _maxX, _minY, _maxY;
 
     void Awake()
     {
@@ -17,7 +16,12 @@ public class CameraFollow : MonoBehaviour
         Instance = this;
     }
 
-    void Start() => FindPlayer();
+    void Start()
+    {
+        FindPlayer();
+        if (Camera.main != null)
+            Camera.main.orthographicSize = orthoSize;
+    }
 
     void FindPlayer()
     {
@@ -29,36 +33,15 @@ public class CameraFollow : MonoBehaviour
     {
         if (_target == null) { FindPlayer(); return; }
 
-        var desired  = _target.position + offset;
-        var smoothed = Vector3.Lerp(transform.position, desired,
-                           smoothSpeed * Time.deltaTime);
-
-        if (_useBounds)
-        {
-            smoothed.x = Mathf.Clamp(smoothed.x, _minX, _maxX);
-            smoothed.y = Mathf.Clamp(smoothed.y, _minY, _maxY);
-        }
-
-        smoothed.z = offset.z;
+        Vector3 desired  = _target.position + offset;
+        Vector3 smoothed = Vector3.Lerp(transform.position, desired, smoothSpeed * Time.deltaTime);
+        smoothed.z       = offset.z;
         transform.position = smoothed;
-
-        if (Camera.main != null)
-        {
-            int   enemyCount = FindObjectsByType<EnemyBase>(FindObjectsSortMode.None).Length;
-            float targetSize = Mathf.Lerp(12f, 15f, enemyCount / 30f);
-            Camera.main.orthographicSize = Mathf.Lerp(Camera.main.orthographicSize, targetSize, Time.deltaTime);
-        }
     }
 
     public void SetTarget(Transform t) => _target = t;
 
-    public void SetBounds(float minX, float maxX, float minY, float maxY)
-    {
-        _minX = minX; _maxX = maxX;
-        _minY = minY; _maxY = maxY;
-        _useBounds = true;
-        Debug.Log($"[CameraFollow] Bounds ativos: X[{minX},{maxX}] Y[{minY},{maxY}]");
-    }
-
-    public void ClearBounds() => _useBounds = false;
+    // Kept for SimpleArena compatibility — no-ops since bounds were removed
+    public void SetBounds(float minX, float maxX, float minY, float maxY) { }
+    public void ClearBounds() { }
 }

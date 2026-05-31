@@ -46,6 +46,7 @@ public static class SolengardSetup
         int total = RunSetupScene(gameConfig, playerData, log);
 
         ConfigurePhysicsMatrix();
+        Physics2D.gravity = Vector2.zero;
 
         if (total > 0) EditorSceneManager.MarkSceneDirty(scene);
 
@@ -162,6 +163,8 @@ public static class SolengardSetup
             "A Main Camera será preservada. Continuar?",
             "Reconstruir", "Cancelar"))
             return;
+
+        Physics2D.gravity = Vector2.zero;
 
         Undo.SetCurrentGroupName("Rebuild GameScene");
         int undoGroup = Undo.GetCurrentGroup();
@@ -293,10 +296,14 @@ public static class SolengardSetup
         var oldCF = playerGO.GetComponent<CameraFollow>();
         if (oldCF != null) Object.DestroyImmediate(oldCF);
 
-        // Ensure Main Camera has CameraFollow; it finds the player via tag automatically
+        // Ensure Main Camera has CameraFollow
         var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
         if (mainCam != null && mainCam.GetComponent<CameraFollow>() == null)
             mainCam.AddComponent<CameraFollow>();
+
+        // Wire camera target to player
+        var cf = mainCam != null ? mainCam.GetComponent<CameraFollow>() : null;
+        if (cf != null && playerGO != null) cf.SetTarget(playerGO.transform);
 
         // 6. Wire references — Setup Scene + Systems + Pools
         var log   = new StringBuilder();
