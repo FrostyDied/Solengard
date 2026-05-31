@@ -234,6 +234,7 @@ public class WaveManager : MonoBehaviour
         Debug.Log($"[WaveManager] Wave {currentWave} concluída ({killCount} kills). Inimigos restantes na tela NÃO são destruídos.");
         GameManager.Instance?.IncrementWave(currentWave);
         waveTimerSystem?.StopTimer();
+        Debug.Log($"[Wave] Wave {currentWave} completa, disparando boost");
         OnWaveCompleted?.Invoke(currentWave);
 
         if (currentWave >= TotalWavesConfig)

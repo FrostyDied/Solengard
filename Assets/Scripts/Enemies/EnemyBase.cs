@@ -15,6 +15,9 @@ public class EnemyBase : MonoBehaviour
     public float separationRadius   = 2.0f;
     public float separationStrength = 1.5f;
 
+    [Header("Dano de Contato")]
+    [SerializeField] float contactDamageInterval = 0.5f;
+
     [Header("Referências")]
     // Deixe vazio para usar busca automática em Awake
     public Transform playerTransform;
@@ -29,8 +32,7 @@ public class EnemyBase : MonoBehaviour
     protected Rigidbody2D rb;
 
     bool  isDead;
-    float lastDamageTime;
-    const float contactDamageInterval = 1f;
+    float _contactTimer;
 
     protected virtual void Awake()
     {
@@ -53,7 +55,7 @@ public class EnemyBase : MonoBehaviour
     protected virtual void OnEnable()
     {
         currentHealth  = maxHealth;
-        lastDamageTime = -contactDamageInterval;
+        _contactTimer  = contactDamageInterval; // ready to deal damage immediately on first contact
         isDead         = false;
 
         // Reset animator and sprite color so pool-reused enemies start clean
@@ -117,13 +119,14 @@ public class EnemyBase : MonoBehaviour
         return sep;
     }
 
-    void OnTriggerStay2D(Collider2D col)
+    void OnCollisionStay2D(Collision2D col)
     {
-        if (!col.CompareTag("Player")) return;
-        if (Time.time - lastDamageTime < contactDamageInterval) return;
-        lastDamageTime = Time.time;
+        if (!col.gameObject.CompareTag("Player")) return;
+        _contactTimer += Time.fixedDeltaTime;
+        if (_contactTimer < contactDamageInterval) return;
+        _contactTimer = 0f;
         NotifyDeathCause();
-        var ph = col.GetComponent<PlayerHealth>();
+        var ph = col.gameObject.GetComponent<PlayerHealth>();
         ph?.TakeDamage(damage);
     }
 

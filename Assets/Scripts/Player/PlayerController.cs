@@ -40,6 +40,7 @@ public class PlayerController : MonoBehaviour
         _rb.freezeRotation         = true;
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         _rb.interpolation          = RigidbodyInterpolation2D.Interpolate;
+        _rb.mass                   = 1000f; // prevents enemies from pushing the player on physical contact
 
         // Zero-friction material so the player slides along obstacle edges cleanly
         var slideMat = new PhysicsMaterial2D("Slide") { friction = 0f, bounciness = 0f };

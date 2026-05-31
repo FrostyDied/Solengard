@@ -6,7 +6,10 @@ public class SimpleArena : MonoBehaviour
     public static SimpleArena Instance { get; private set; }
 
     [Header("Tamanho do chão (cobre a câmera com folga)")]
-    [SerializeField] float tileAreaSize = 60f;
+    [SerializeField] float tileAreaSize  = 60f;
+
+    [Header("Snap do tile (deve coincidir com o tamanho do tile no mundo)")]
+    [SerializeField] float tileWorldSize = 4f;
 
     [Header("Sprite do tileset (auto se vazio)")]
     [SerializeField] Sprite floorSprite;
@@ -65,12 +68,12 @@ public class SimpleArena : MonoBehaviour
         if (_player == null) { FindPlayer(); return; }
         if (_floor == null) return;
 
-        // Snap ao grid do tile para a textura não deslizar com o player
-        Vector3 pos = _player.position;
-        pos.x = Mathf.Round(pos.x);
-        pos.y = Mathf.Round(pos.y);
-        pos.z = 0f;
-        _floor.position = pos;
+        // Snap ao grid do tile: Floor em vez de Round para o chão "pular" em fronteiras fixas,
+        // evitando o efeito de textura "grudada" que acompanha o player continuamente.
+        Vector3 p = _player.position;
+        float snappedX = Mathf.Floor(p.x / tileWorldSize) * tileWorldSize;
+        float snappedY = Mathf.Floor(p.y / tileWorldSize) * tileWorldSize;
+        _floor.position = new Vector3(snappedX, snappedY, 0f);
     }
 
     Sprite LoadFloorSprite()

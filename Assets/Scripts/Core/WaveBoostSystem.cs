@@ -35,6 +35,7 @@ public class WaveBoostSystem : MonoBehaviour
 
     void AoCompletarWave(int wave)
     {
+        Debug.Log("[Boost] Recebeu evento de wave completa");
         Debug.Log($"[WaveBoostSystem] Wave {wave} concluída — boost disponível. Vídeo: {PodeAssistirVideo(wave)}");
         // UI de boost será implementada em fase posterior
     }

@@ -295,13 +295,14 @@ public static class SolengardSetup
         try { playerGO.tag = "Player"; }
         catch { Debug.LogWarning("[SolengardSetup] Tag 'Player' não existe — adicione em Project Settings → Tags."); }
 
-        // Remove CameraFollow from player prefab if accidentally included there
-        var oldCF = playerGO.GetComponent<CameraFollow>();
-        if (oldCF != null) Object.DestroyImmediate(oldCF);
+        // Destroy ALL CameraFollow instances in the scene before adding a single clean one.
+        // Duplicate instances cause jitter as they fight over the singleton field.
+        foreach (var cf in Object.FindObjectsByType<CameraFollow>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            Object.DestroyImmediate(cf);
 
-        // Ensure Main Camera has CameraFollow
+        // Add exactly one CameraFollow to Main Camera
         var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
-        if (mainCam != null && mainCam.GetComponent<CameraFollow>() == null)
+        if (mainCam != null)
             mainCam.AddComponent<CameraFollow>();
 
         // Wire camera target to player
@@ -784,8 +785,9 @@ public static class SolengardSetup
 
         if (player < 0 || enemy < 0 || obstacle < 0) return;
 
-        // Player passes through enemies physically; contact damage handled via OnTriggerStay2D
-        Physics2D.IgnoreLayerCollision(player, enemy, true);
+        // Enemies physically collide with player; contact damage handled via OnCollisionStay2D.
+        // Player mass=1000f prevents being pushed; enemy colliders must NOT be triggers.
+        Physics2D.IgnoreLayerCollision(player, enemy, false);
 
         if (ground >= 0)
         {
@@ -807,7 +809,7 @@ public static class SolengardSetup
     {
         int total = 0;
 
-        total += TrySetEnemyCollidersToTrigger(log);
+        total += TrySetEnemyCollidersToSolid(log);
 
         var slimePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(SLIME_PREFAB_PATH);
         if (slimePrefab == null)
@@ -1201,9 +1203,9 @@ public static class SolengardSetup
         return TryAssign<T>(propertyName, prefab, log);
     }
 
-    // Sets isTrigger = true on the Collider2D of each enemy prefab so
-    // OnTriggerStay2D fires for contact damage while the player passes through physically.
-    static int TrySetEnemyCollidersToTrigger(StringBuilder log)
+    // Ensures enemy prefab colliders are solid (isTrigger=false) so OnCollisionStay2D
+    // fires for contact damage. Player mass=1000f prevents being pushed.
+    static int TrySetEnemyCollidersToSolid(StringBuilder log)
     {
         int changed = 0;
         foreach (string path in ENEMY_PREFAB_PATHS)
@@ -1213,12 +1215,12 @@ public static class SolengardSetup
 
             var go  = PrefabUtility.LoadPrefabContents(path);
             var col = go.GetComponent<Collider2D>();
-            if (col != null && !col.isTrigger)
+            if (col != null && col.isTrigger)
             {
-                col.isTrigger = true;
+                col.isTrigger = false;
                 PrefabUtility.SaveAsPrefabAsset(go, path);
                 changed++;
-                log.AppendLine($"  {System.IO.Path.GetFileNameWithoutExtension(path)}: Collider2D → isTrigger=true");
+                log.AppendLine($"  {System.IO.Path.GetFileNameWithoutExtension(path)}: Collider2D → isTrigger=false");
             }
             PrefabUtility.UnloadPrefabContents(go);
         }

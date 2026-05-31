@@ -66,15 +66,12 @@ public class PlayerHealth : MonoBehaviour
     {
         if (Time.timeScale == 0f || isInvincible || isDead) return;
 
+        Debug.Log($"[PlayerHealth] TakeDamage({amount}) — HP: {currentHealth:F0}/{maxHealth:F0}");
+
         currentHealth = Mathf.Max(currentHealth - amount, 0f);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
-        StartCoroutine(FlashWhite());
-
-        if (hitEffectPrefab != null)
-        {
-            var fx = Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
-            Destroy(fx, 0.3f);
-        }
+        StartCoroutine(FlashRed());
+        SpawnHitEffect();
 
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null)
@@ -84,7 +81,9 @@ public class PlayerHealth : MonoBehaviour
         }
 
         if (currentHealth <= 0f)
+        {
             Die();
+        }
         else
         {
             if (iFrameCoroutine != null) StopCoroutine(iFrameCoroutine);
@@ -92,12 +91,19 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    IEnumerator FlashWhite()
+    void SpawnHitEffect()
+    {
+        if (hitEffectPrefab == null) return;
+        var fx = Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
+        Destroy(fx, 0.3f);
+    }
+
+    IEnumerator FlashRed()
     {
         var sr = GetComponent<SpriteRenderer>();
         if (sr == null) yield break;
-        sr.color = Color.white * 2f;
-        yield return new WaitForSeconds(0.08f);
+        sr.color = new Color(1f, 0.4f, 0.4f, 1f);
+        yield return new WaitForSeconds(0.12f);
         sr.color = Color.white;
     }
 

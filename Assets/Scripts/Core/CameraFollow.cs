@@ -1,12 +1,13 @@
 using UnityEngine;
 
+[DefaultExecutionOrder(100)]
 public class CameraFollow : MonoBehaviour
 {
     public static CameraFollow Instance { get; private set; }
 
     [SerializeField] float smoothSpeed = 8f;
     [SerializeField] Vector3 offset    = new Vector3(0f, 0f, -10f);
-    [SerializeField] float orthoSize   = 11f;
+    [SerializeField] float orthoSize   = 14f;
 
     Transform _target;
 
@@ -40,8 +41,4 @@ public class CameraFollow : MonoBehaviour
     }
 
     public void SetTarget(Transform t) => _target = t;
-
-    // Kept for SimpleArena compatibility — no-ops since bounds were removed
-    public void SetBounds(float minX, float maxX, float minY, float maxY) { }
-    public void ClearBounds() { }
 }
