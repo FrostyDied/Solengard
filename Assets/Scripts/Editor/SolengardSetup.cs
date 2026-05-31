@@ -611,6 +611,35 @@ public static class SolengardSetup
         if (Object.FindFirstObjectByType<GameOverScreen>(FindObjectsInactive.Include) == null)
             warns.AppendLine("  GameOverScreen não encontrado na cena. Execute 'Layout GameScene' para criá-lo automaticamente.");
 
+        // CameraFollow — garantir que só existe uma instância e que está na Main Camera
+        {
+            var cameras = Object.FindObjectsByType<CameraFollow>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            if (cameras.Length > 1)
+            {
+                foreach (var cf in cameras)
+                {
+                    if (cf.gameObject.CompareTag("MainCamera")) continue;
+                    Object.DestroyImmediate(cf);
+                    log.AppendLine("  CameraFollow duplicado removido.");
+                    total++;
+                }
+            }
+            else if (cameras.Length == 0)
+            {
+                var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
+                if (mainCam != null)
+                {
+                    mainCam.AddComponent<CameraFollow>();
+                    log.AppendLine("  CameraFollow adicionado à Main Camera.");
+                    total++;
+                }
+                else
+                {
+                    warns.AppendLine("  CameraFollow ausente e Main Camera não encontrada.");
+                }
+            }
+        }
+
         return total;
     }
 
