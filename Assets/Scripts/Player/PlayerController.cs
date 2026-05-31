@@ -35,6 +35,16 @@ public class PlayerController : MonoBehaviour
             moveInput = MobileJoystick.Instance.InputDirection;
 
         moveInput = moveInput.normalized;
+
+        var anim = GetComponent<CharacterAnimator>();
+        if (anim != null)
+            anim.SetState(moveInput.magnitude > 0.1f
+                ? CharacterAnimator.State.Walk
+                : CharacterAnimator.State.Idle);
+
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr != null && Mathf.Abs(moveInput.x) > 0.01f)
+            sr.flipX = moveInput.x < 0f;
     }
 
     void FixedUpdate()

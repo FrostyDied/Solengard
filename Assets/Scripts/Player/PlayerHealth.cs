@@ -32,6 +32,7 @@ public class PlayerHealth : MonoBehaviour
     // ── Propriedades de leitura ─────────────────────────────────────────────────
 
     public float CurrentHealth => currentHealth;
+    public float MaxHealth     => maxHealth;
 
     // Retorna valor entre 0 e 1; use direto no slider da barra de vida
     public float HealthPercentage => currentHealth / maxHealth;
@@ -60,6 +61,13 @@ public class PlayerHealth : MonoBehaviour
 
         currentHealth = Mathf.Max(currentHealth - amount, 0f);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        var anim = GetComponent<CharacterAnimator>();
+        if (anim != null)
+        {
+            anim.SetState(CharacterAnimator.State.Hurt);
+            Invoke(nameof(ResetAnim), 0.3f);
+        }
 
         if (currentHealth <= 0f)
             Die();
@@ -124,5 +132,11 @@ public class PlayerHealth : MonoBehaviour
         isInvincible = true;
         yield return new WaitForSeconds(iframeDuration);
         isInvincible = false;
+    }
+
+    void ResetAnim()
+    {
+        var anim = GetComponent<CharacterAnimator>();
+        if (anim != null) anim.ForceState(CharacterAnimator.State.Idle);
     }
 }

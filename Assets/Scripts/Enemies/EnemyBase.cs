@@ -76,6 +76,16 @@ public class EnemyBase : MonoBehaviour
         Vector2 toPlayer   = ((Vector2)playerTransform.position - rb.position).normalized;
         Vector2 separation = ComputeSeparation();
         rb.linearVelocity  = (toPlayer + separation * separationStrength).normalized * moveSpeed;
+
+        var anim = GetComponent<CharacterAnimator>();
+        if (anim != null) anim.SetState(CharacterAnimator.State.Walk);
+
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr != null && playerTransform != null)
+        {
+            float dir = playerTransform.position.x - transform.position.x;
+            if (Mathf.Abs(dir) > 0.01f) sr.flipX = dir < 0f;
+        }
     }
 
     Vector2 ComputeSeparation()
@@ -127,6 +137,9 @@ public class EnemyBase : MonoBehaviour
 
     void Die()
     {
+        var anim = GetComponent<CharacterAnimator>();
+        if (anim != null) anim.SetState(CharacterAnimator.State.Death);
+
         Debug.Log($"[EnemyBase] Die() — {gameObject.name}. GM={GameManager.Instance != null}");
         GameManager.Instance?.IncrementKill();
         OnDie();
