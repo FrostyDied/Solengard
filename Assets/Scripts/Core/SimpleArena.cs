@@ -39,10 +39,14 @@ public class SimpleArena : MonoBehaviour
 
     void BuildFloor()
     {
-        // Para usar um tile real do atlas em vez da grama, descomente:
-        // if (floorSprite == null) floorSprite = LoadFloorSprite();
-
-        if (floorSprite == null) floorSprite = GenerateGrassFloor();
+        if (floorSprite == null)
+        {
+#if UNITY_EDITOR
+            floorSprite = LoadGrassTile();
+#else
+            floorSprite = GenerateGrassFloor();
+#endif
+        }
 
         // Derive the snap grid size from the chosen tile so the grid aligns exactly.
         if (floorSprite != null)
@@ -121,6 +125,44 @@ public class SimpleArena : MonoBehaviour
         Debug.Log("[SimpleArena] Chão de grama procedural gerado (64x64px, PPU=16, tileWorld=4).");
         return spr;
     }
+
+#if UNITY_EDITOR
+    Sprite LoadGrassTile()
+    {
+        const string path = "Assets/Art/Environment/Season3_Grassland/Tileset/PNG/ground_grasss.png";
+
+        var importer = UnityEditor.AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
+        if (importer != null)
+        {
+            bool changed = false;
+            if (!importer.isReadable)                         { importer.isReadable = true;                   changed = true; }
+            if (importer.wrapMode != TextureWrapMode.Repeat)  { importer.wrapMode   = TextureWrapMode.Repeat; changed = true; }
+            if (changed) importer.SaveAndReimport();
+        }
+
+        var tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if (tex == null)
+        {
+            Debug.LogWarning("[SimpleArena] ground_grasss.png não encontrado — usando grama procedural.");
+            return GenerateGrassFloor();
+        }
+
+        // ground_grasss.png é 336×256 = grade 21×16 tiles de 16px.
+        // y=128 em Unity coords (y cresce para cima) = row 8 do fundo = row 7 do topo visual.
+        // Região 32×32 (2×2 tiles) dá mais variação natural ao tile repetido.
+        const int cellX = 160, cellY = 128, region = 32;
+
+        var spr = Sprite.Create(tex,
+            new Rect(cellX, cellY, region, region),
+            new Vector2(0.5f, 0.5f),
+            pixelsPerUnit: 16f,
+            extrude: 0,
+            meshType: SpriteMeshType.FullRect);
+        spr.name = "GrassTile_Season3";
+        Debug.Log($"[SimpleArena] Tile de grama real extraído de ground_grasss.png em ({cellX},{cellY}) {region}×{region}px");
+        return spr;
+    }
+#endif
 
     // Mantido comentado — extrai uma célula 16×16 de walls_floor.png quando desejado.
     /*
@@ -220,6 +262,59 @@ public static class SimpleArenaTilesetDebug
 
         UnityEngine.Debug.Log($"[SimpleArena] Preview:\n{sb}");
         UnityEditor.EditorUtility.DisplayDialog("Preview Floor Tile", sb.ToString(), "OK");
+    }
+
+    [UnityEditor.MenuItem("Solengard/Debug/Preview Grass Tile")]
+    static void PreviewGrassTile()
+    {
+        const string path = "Assets/Art/Environment/Season3_Grassland/Tileset/PNG/ground_grasss.png";
+        const int cellX = 160, cellY = 128, region = 32;
+
+        var importer = UnityEditor.AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
+        if (importer != null && (!importer.isReadable || importer.wrapMode != TextureWrapMode.Repeat))
+        {
+            importer.isReadable = true;
+            importer.wrapMode   = TextureWrapMode.Repeat;
+            importer.SaveAndReimport();
+        }
+
+        var tex = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Texture2D>(path);
+        if (tex == null)
+        {
+            UnityEditor.EditorUtility.DisplayDialog("Preview Grass Tile",
+                $"Arquivo não encontrado:\n{path}", "OK");
+            return;
+        }
+
+        UnityEngine.Debug.Log(
+            $"[SimpleArena] Preview Grass Tile\n" +
+            $"Arquivo: {System.IO.Path.GetFileName(path)}  {tex.width}×{tex.height}px\n" +
+            $"Grade: {tex.width / 16}×{tex.height / 16} tiles de 16px\n" +
+            $"Região extraída: ({cellX},{cellY}) {region}×{region}px\n" +
+            $"Linha visual (de cima): {(tex.height - cellY - region) / 16}   Coluna: {cellX / 16}");
+
+        var spr = UnityEngine.Sprite.Create(tex,
+            new UnityEngine.Rect(cellX, cellY, region, region),
+            new UnityEngine.Vector2(0.5f, 0.5f),
+            16f, 0, SpriteMeshType.FullRect);
+        spr.name = "GrassTile_Preview";
+
+        var previewGO = new UnityEngine.GameObject("__GrassTilePreview__");
+        var sr = previewGO.AddComponent<UnityEngine.SpriteRenderer>();
+        sr.sprite       = spr;
+        sr.drawMode     = SpriteDrawMode.Tiled;
+        sr.size         = new UnityEngine.Vector2(10f, 10f);
+        sr.tileMode     = SpriteTileMode.Continuous;
+        sr.sortingOrder = -100;
+        previewGO.transform.position = UnityEngine.Vector3.zero;
+
+        UnityEditor.Selection.activeGameObject = previewGO;
+        UnityEditor.EditorUtility.DisplayDialog("Preview Grass Tile",
+            $"GameObject '__GrassTilePreview__' criado na cena.\n\n" +
+            $"Região: ({cellX},{cellY}) {region}×{region}px\n" +
+            $"Linha visual ≈ {(tex.height - cellY - region) / 16} do topo, coluna {cellX / 16}\n\n" +
+            $"Se não parecer grama pura, ajuste cellX/cellY em LoadGrassTile().\n" +
+            $"Delete o objeto de preview quando terminar.", "OK");
     }
 }
 #endif
