@@ -1,61 +1,57 @@
 using UnityEngine;
 
-// Faz a câmera seguir o player suavemente via Lerp.
-// Attach na Main Camera. target é atribuído automaticamente pelo Rebuild GameScene.
 public class CameraFollow : MonoBehaviour
 {
-    [SerializeField] Transform target;
-    [SerializeField] float     smoothSpeed = 5f;
-    [SerializeField] Vector3   offset      = new Vector3(0f, 0f, -10f);
+    public static CameraFollow Instance { get; private set; }
 
-    [Header("Bounds")]
-    [SerializeField] bool  useBounds;
-    [SerializeField] float minX, maxX, minY, maxY;
+    [SerializeField] float smoothSpeed = 8f;
+    [SerializeField] Vector3 offset = new Vector3(0f, 0f, -10f);
 
-    static CameraFollow _instance;
+    Transform _target;
+    bool  _useBounds;
+    float _minX, _maxX, _minY, _maxY;
 
     void Awake()
     {
-        if (_instance != null && _instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        _instance = this;
+        if (Instance != null && Instance != this) { Destroy(this); return; }
+        Instance = this;
     }
 
-    public void SetBounds(float minX, float maxX, float minY, float maxY)
-    {
-        this.minX = minX; this.maxX = maxX;
-        this.minY = minY; this.maxY = maxY;
-        useBounds = true;
-        Debug.Log($"[Camera] Bounds recebidos: {minX},{maxX},{minY},{maxY}");
-    }
+    void Start() => FindPlayer();
 
-    void Start()
+    void FindPlayer()
     {
-        if (target == null)
-        {
-            var player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null) target = player.transform;
-        }
+        var p = GameObject.FindGameObjectWithTag("Player");
+        if (p != null) _target = p.transform;
     }
 
     void LateUpdate()
     {
-        if (target == null) return;
+        if (_target == null) { FindPlayer(); return; }
 
-        Vector3 pos = Vector3.Lerp(
-            transform.position,
-            target.position + offset,
-            smoothSpeed * Time.deltaTime);
+        var desired  = _target.position + offset;
+        var smoothed = Vector3.Lerp(transform.position, desired,
+                           smoothSpeed * Time.deltaTime);
 
-        if (useBounds)
+        if (_useBounds)
         {
-            pos.x = Mathf.Clamp(pos.x, minX, maxX);
-            pos.y = Mathf.Clamp(pos.y, minY, maxY);
+            smoothed.x = Mathf.Clamp(smoothed.x, _minX, _maxX);
+            smoothed.y = Mathf.Clamp(smoothed.y, _minY, _maxY);
         }
 
-        transform.position = pos;
+        smoothed.z = offset.z;
+        transform.position = smoothed;
     }
+
+    public void SetTarget(Transform t) => _target = t;
+
+    public void SetBounds(float minX, float maxX, float minY, float maxY)
+    {
+        _minX = minX; _maxX = maxX;
+        _minY = minY; _maxY = maxY;
+        _useBounds = true;
+        Debug.Log($"[CameraFollow] Bounds ativos: X[{minX},{maxX}] Y[{minY},{maxY}]");
+    }
+
+    public void ClearBounds() => _useBounds = false;
 }

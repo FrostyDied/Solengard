@@ -6,7 +6,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
-using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 
 // Menu: Solengard ▸ Setup Scene / Setup Systems / Setup Pools and Upgrades / Setup All
@@ -22,10 +21,6 @@ public static class SolengardSetup
     const string MAIN_MENU_SCENE_PATH    = "Assets/Scenes/MainMenu.unity";
     const string GAME_SCENE_PATH         = "Assets/Scenes/GameScene.unity";
     const string PLAYER_LEVEL1_PREFAB    = "Assets/Prefabs/Characters/Player_Level1.prefab";
-    const string TILE_FOLDER             = "Assets/Prefabs/Tiles";
-    const string GROUND_TILE_PATH        = "Assets/Prefabs/Tiles/GroundTile.asset";
-    const string WALL_TILE_PATH          = "Assets/Prefabs/Tiles/WallTile.asset";
-
     static readonly string[] ENEMY_PREFAB_PATHS =
     {
         "Assets/Prefabs/Enemies/EnemySlime.prefab",
@@ -223,7 +218,7 @@ public static class SolengardSetup
         CreateSceneSystem<RunRewardSystem>          ("RunRewardSystem");
         CreateSceneSystem<DynamicDifficultySystem>  ("DynamicDifficultySystem");
         CreateSceneSystem<TemporaryPowerSystem>     ("TemporaryPowerSystem");
-        CreateSceneSystem<ArenaGenerator>           ("ArenaGenerator");
+        CreateSceneSystem<SimpleArena>              ("SimpleArena");
 
         // EventSystem — required for UI clicks; module depends on Input System setting
         {
@@ -291,18 +286,14 @@ public static class SolengardSetup
         try { playerGO.tag = "Player"; }
         catch { Debug.LogWarning("[SolengardSetup] Tag 'Player' não existe — adicione em Project Settings → Tags."); }
 
-        // Wire CameraFollow on Main Camera — target = Player
-        // Remove any existing CameraFollow before adding to prevent duplicates on repeated Rebuild
-        if (mainCamGO != null)
-        {
-            var existing = mainCamGO.GetComponent<CameraFollow>();
-            if (existing != null) Object.DestroyImmediate(existing);
+        // Remove CameraFollow from player prefab if accidentally included there
+        var oldCF = playerGO.GetComponent<CameraFollow>();
+        if (oldCF != null) Object.DestroyImmediate(oldCF);
 
-            var cf   = mainCamGO.AddComponent<CameraFollow>();
-            var cfSO = new SerializedObject(cf);
-            var prop = cfSO.FindProperty("target");
-            if (prop != null) { prop.objectReferenceValue = playerGO.transform; cfSO.ApplyModifiedProperties(); }
-        }
+        // Ensure Main Camera has CameraFollow; it finds the player via tag automatically
+        var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
+        if (mainCam != null && mainCam.GetComponent<CameraFollow>() == null)
+            mainCam.AddComponent<CameraFollow>();
 
         // 6. Wire references — Setup Scene + Systems + Pools
         var log   = new StringBuilder();
@@ -313,9 +304,6 @@ public static class SolengardSetup
         RunSetupSystems(log, warns);
         log.AppendLine("\n── Setup Pools & Upgrades ───────────");
         RunSetupPoolsAndUpgrades(log);
-
-        // 6b. Tilemap Arena — Grid + GroundTilemap + ObstacleTilemap + ArenaGenerator wiring
-        CreateTilemapArena(scene);
 
         // 7. Collapse Undo + save scene
         Undo.CollapseUndoOperations(undoGroup);
@@ -645,6 +633,7 @@ public static class SolengardSetup
         total += EnsureSystemObject<ObjectPoolManager>    ("ObjectPoolManager",     log);
         total += EnsureSystemObject<UpgradeSystem>        ("UpgradeSystem",         log);
         total += EnsureSystemObject<ProceduralArenaSystem>("ProceduralArenaSystem", log);
+        total += EnsureSystemObject<SimpleArena>          ("SimpleArena",           log);
         total += EnsureSystemObject<GameSceneBootstrap>   ("GameSceneBootstrap",    log);
 
         // ── Difficulty & wave sub-systems ─────────────────────────────────────────
@@ -1267,124 +1256,6 @@ public static class SolengardSetup
             return;
         }
         prop.objectReferenceValue = value;
-    }
-
-    // ── Tilemap Arena ─────────────────────────────────────────────────────────────
-
-    static void CreateTilemapArena(Scene scene)
-    {
-        EnsureTileAssets();
-
-        // Grid root
-        var gridGO = new GameObject("Grid");
-        Undo.RegisterCreatedObjectUndo(gridGO, "Rebuild GameScene");
-        SceneManager.MoveGameObjectToScene(gridGO, scene);
-        gridGO.AddComponent<Grid>().cellSize = new Vector3(1f, 1f, 0f);
-
-        // GroundTilemap
-        var groundGO = new GameObject("GroundTilemap");
-        Undo.RegisterCreatedObjectUndo(groundGO, "Rebuild GameScene");
-        groundGO.transform.SetParent(gridGO.transform, false);
-        groundGO.AddComponent<Tilemap>();
-        var groundRend = groundGO.AddComponent<TilemapRenderer>();
-        groundRend.sortingOrder = -1;
-        SetLayerByName(groundGO, "Ground");
-        // TilemapCollider2D omitted — arena is visual-only until collision is needed
-
-        // ObstacleTilemap
-        var obstacleGO = new GameObject("ObstacleTilemap");
-        Undo.RegisterCreatedObjectUndo(obstacleGO, "Rebuild GameScene");
-        obstacleGO.transform.SetParent(gridGO.transform, false);
-        obstacleGO.AddComponent<Tilemap>();
-        obstacleGO.AddComponent<TilemapRenderer>().sortingOrder = 0;
-        // TilemapCollider2D omitted — arena is visual-only until collision is needed
-        SetLayerByName(obstacleGO, "Obstacle");
-
-        // Wire ArenaGenerator
-        var arenaGen = Object.FindFirstObjectByType<ArenaGenerator>(FindObjectsInactive.Include);
-        if (arenaGen != null)
-        {
-            var groundTilemap   = groundGO.GetComponent<Tilemap>();
-            var obstacleTilemap = obstacleGO.GetComponent<Tilemap>();
-
-            var groundTile = AssetDatabase.LoadAssetAtPath<Tile>(GROUND_TILE_PATH);
-            var wallTile   = AssetDatabase.LoadAssetAtPath<Tile>(WALL_TILE_PATH);
-
-            var so = new SerializedObject(arenaGen);
-            SetProp(so, "groundTilemap",   groundTilemap);
-            SetProp(so, "obstacleTilemap", obstacleTilemap);
-            if (groundTile?.sprite != null) SetProp(so, "floorSprite", groundTile.sprite);
-            if (wallTile?.sprite   != null) SetProp(so, "wallSprite",  wallTile.sprite);
-            so.ApplyModifiedProperties();
-            Debug.Log("[SolengardSetup] ArenaGenerator wired com tilemaps e sprites.");
-        }
-    }
-
-    static void EnsureTileAssets()
-    {
-        if (!AssetDatabase.IsValidFolder(TILE_FOLDER))
-            AssetDatabase.CreateFolder("Assets/Prefabs", "Tiles");
-
-        if (AssetDatabase.LoadAssetAtPath<Tile>(GROUND_TILE_PATH) == null)
-        {
-            var sprite = FindSpriteInFolder(
-                "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG",
-                new[]{"floor","ground","tile","stone","dirt"});
-            var tile = ScriptableObject.CreateInstance<Tile>();
-            tile.sprite = sprite;
-            AssetDatabase.CreateAsset(tile, GROUND_TILE_PATH);
-            Debug.Log($"[SolengardSetup] GroundTile criado → sprite: {sprite?.name ?? "nenhum"}");
-        }
-
-        if (AssetDatabase.LoadAssetAtPath<Tile>(WALL_TILE_PATH) == null)
-        {
-            var sprite = FindSpriteInFolder(
-                "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG",
-                new[]{"wall"});
-            var tile = ScriptableObject.CreateInstance<Tile>();
-            tile.sprite = sprite;
-            AssetDatabase.CreateAsset(tile, WALL_TILE_PATH);
-            Debug.Log($"[SolengardSetup] WallTile criado → sprite: {sprite?.name ?? "nenhum"}");
-        }
-
-        AssetDatabase.SaveAssets();
-    }
-
-    static Sprite FindSpriteInFolder(string folder, string[] keywords)
-    {
-        if (!AssetDatabase.IsValidFolder(folder)) return null;
-
-        string[] guids = AssetDatabase.FindAssets("t:Sprite", new[]{folder});
-        if (guids.Length == 0)
-            guids = AssetDatabase.FindAssets("t:Texture2D", new[]{folder});
-
-        foreach (string kw in keywords)
-            foreach (string guid in guids)
-            {
-                string p = AssetDatabase.GUIDToAssetPath(guid);
-                if (p.IndexOf(kw, System.StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    var s = AssetDatabase.LoadAssetAtPath<Sprite>(p);
-                    if (s != null) return s;
-                }
-            }
-
-        if (guids.Length > 0)
-            return AssetDatabase.LoadAssetAtPath<Sprite>(AssetDatabase.GUIDToAssetPath(guids[0]));
-
-        return null;
-    }
-
-    static void SetLayerByName(GameObject go, string layerName)
-    {
-        int layer = LayerMask.NameToLayer(layerName);
-        if (layer >= 0) go.layer = layer;
-    }
-
-    static void SetProp(SerializedObject so, string propName, Object value)
-    {
-        var prop = so.FindProperty(propName);
-        if (prop != null) prop.objectReferenceValue = value;
     }
 
     // Overwrites Build Settings with MainMenu[0] + GameScene[1], no duplicates
