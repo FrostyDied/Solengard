@@ -297,8 +297,8 @@ public static class SolengardSetup
 
         // Destroy ALL CameraFollow instances in the scene before adding a single clean one.
         // Duplicate instances cause jitter as they fight over the singleton field.
-        foreach (var cf in Object.FindObjectsByType<CameraFollow>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            Object.DestroyImmediate(cf);
+        foreach (var existingCf in Object.FindObjectsByType<CameraFollow>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            Object.DestroyImmediate(existingCf);
 
         // Add exactly one CameraFollow to Main Camera
         var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
