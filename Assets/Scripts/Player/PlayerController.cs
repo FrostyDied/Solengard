@@ -36,10 +36,15 @@ public class PlayerController : MonoBehaviour
         _sr   = GetComponent<SpriteRenderer>();
         _anim = GetComponent<CharacterAnimator>();
 
-        _rb.gravityScale             = 0f;
-        _rb.freezeRotation           = true;
-        _rb.collisionDetectionMode   = CollisionDetectionMode2D.Continuous;
-        _rb.interpolation            = RigidbodyInterpolation2D.Interpolate;
+        _rb.gravityScale           = 0f;
+        _rb.freezeRotation         = true;
+        _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        _rb.interpolation          = RigidbodyInterpolation2D.Interpolate;
+
+        // Zero-friction material so the player slides along obstacle edges cleanly
+        var slideMat = new PhysicsMaterial2D("Slide") { friction = 0f, bounciness = 0f };
+        var col = GetComponent<Collider2D>();
+        if (col != null) col.sharedMaterial = slideMat;
 
 #if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
         Debug.LogError("[PlayerController] Legacy Input desabilitado! Mude Active Input Handling para 'Both' em Project Settings > Player.");

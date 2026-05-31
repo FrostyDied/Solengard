@@ -46,7 +46,8 @@ public static class SolengardSetup
         int total = RunSetupScene(gameConfig, playerData, log);
 
         ConfigurePhysicsMatrix();
-        Physics2D.gravity = Vector2.zero;
+        Physics2D.gravity         = Vector2.zero;
+        QualitySettings.antiAliasing = 0;
 
         if (total > 0) EditorSceneManager.MarkSceneDirty(scene);
 
@@ -225,6 +226,8 @@ public static class SolengardSetup
         CreateSceneSystem<DynamicDifficultySystem>  ("DynamicDifficultySystem");
         CreateSceneSystem<TemporaryPowerSystem>     ("TemporaryPowerSystem");
         CreateSceneSystem<SimpleArena>              ("SimpleArena");
+        CreateSceneSystem<PropSpawner>              ("PropSpawner");
+        CreateSceneSystem<WaveBoostSystem>          ("WaveBoostSystem");
 
         // EventSystem — required for UI clicks; module depends on Input System setting
         {
@@ -684,6 +687,8 @@ public static class SolengardSetup
         total += EnsureSystemObject<RunRewardSystem>         ("RunRewardSystem",           log);
         total += EnsureSystemObject<DynamicDifficultySystem> ("DynamicDifficultySystem",  log);
         total += EnsureSystemObject<TemporaryPowerSystem>    ("TemporaryPowerSystem",      log);
+        total += EnsureSystemObject<PropSpawner>             ("PropSpawner",               log);
+        total += EnsureSystemObject<WaveBoostSystem>         ("WaveBoostSystem",           log);
 
         return total;
     }

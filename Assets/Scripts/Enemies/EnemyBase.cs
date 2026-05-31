@@ -56,9 +56,11 @@ public class EnemyBase : MonoBehaviour
         lastDamageTime = -contactDamageInterval;
         isDead         = false;
 
-        // Reset animator so pool-reused enemies don't start in Death state
+        // Reset animator and sprite color so pool-reused enemies start clean
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.ForceState(CharacterAnimator.State.Idle);
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr != null) sr.color = Color.white;
 
         // Re-find player in case the scene was reloaded and the reference became stale
         if (playerTransform == null)
@@ -130,12 +132,10 @@ public class EnemyBase : MonoBehaviour
     // Recebe dano e dispara Die() quando a vida chega a zero
     public void TakeDamage(float amount)
     {
-        if (!CanTakeDamage()) return;
+        if (isDead || !CanTakeDamage()) return;
         currentHealth -= amount;
         StartCoroutine(FlashRed());
-
-        if (currentHealth > 0.01f) return;
-        Die();
+        if (currentHealth <= 0.01f) Die();
     }
 
     IEnumerator FlashRed()
@@ -157,12 +157,17 @@ public class EnemyBase : MonoBehaviour
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.SetState(CharacterAnimator.State.Death);
 
-        Debug.Log($"[EnemyBase] Die() — {gameObject.name}. GM={GameManager.Instance != null}");
         GameManager.Instance?.IncrementKill();
         OnDie();
         OnDeathCallback?.Invoke();
         OnEnemyDied?.Invoke();
 
+        StartCoroutine(DieAfterAnimation());
+    }
+
+    IEnumerator DieAfterAnimation()
+    {
+        yield return new WaitForSeconds(0.5f);
         if (ObjectPoolManager.Instance != null && !string.IsNullOrEmpty(poolTag))
             ObjectPoolManager.Instance.ReturnToPool(poolTag, gameObject);
         else

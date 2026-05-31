@@ -10,7 +10,7 @@ public class EnemyGolem : EnemyBase
     {
         maxHealth = 200f;
         moveSpeed = 0.6f;
-        damage    = 35f;
+        damage    = 25f;
         base.Awake();
     }
 

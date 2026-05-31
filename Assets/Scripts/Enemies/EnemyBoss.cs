@@ -20,7 +20,7 @@ public class EnemyBoss : EnemyBase
     {
         maxHealth = 500f;
         moveSpeed = 0.7f;
-        damage    = 50f;
+        damage    = 30f;
         base.Awake();
     }
 

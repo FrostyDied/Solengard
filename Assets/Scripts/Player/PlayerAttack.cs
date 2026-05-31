@@ -2,13 +2,12 @@ using UnityEngine;
 
 // Gerencia o auto-ataque do player: a cada cooldown, detecta o inimigo mais
 // próximo dentro do range e aplica dano diretamente via EnemyBase.TakeDamage.
-// Attach este componente no mesmo GameObject que PlayerController.
 public class PlayerAttack : MonoBehaviour
 {
     [Header("Atributos de Ataque")]
     public float attackDamage   = 25f;
-    public float attackRange    = 4.5f;
-    public float attackCooldown = 0.5f;
+    public float attackRange    = 5f;
+    public float attackCooldown = 0.4f;
 
     [Header("Detecção")]
     public LayerMask enemyLayerMask;
@@ -17,7 +16,7 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] GameObject attackEffectPrefab;
 
     PlayerWeapon weapon;
-    float cooldownTimer;
+    float        _cooldownTimer;
 
     // ── Unity ───────────────────────────────────────────────────────────────────
 
@@ -25,12 +24,7 @@ public class PlayerAttack : MonoBehaviour
     {
         weapon = GetComponent<PlayerWeapon>();
         SyncFromWeapon();
-
-        // Fallbacks para quando o campo não foi configurado no Inspector
         if (enemyLayerMask == 0) enemyLayerMask = LayerMask.GetMask("Enemy");
-        if (attackRange    <= 0f) attackRange   = 3f;
-
-        Debug.Log($"[PlayerAttack] Awake — damage={attackDamage} range={attackRange} cooldown={attackCooldown} layerMask={enemyLayerMask.value}");
     }
 
     void OnEnable()  => PlayerWeapon.OnWeaponUpgraded += AoUpgradeArma;
@@ -38,11 +32,11 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
-        cooldownTimer -= Time.deltaTime;
-        if (cooldownTimer <= 0f)
+        _cooldownTimer -= Time.deltaTime;
+        if (_cooldownTimer <= 0f)
         {
             TryAttack();
-            cooldownTimer = attackCooldown;
+            _cooldownTimer = attackCooldown;
         }
     }
 
@@ -50,32 +44,45 @@ public class PlayerAttack : MonoBehaviour
 
     void TryAttack()
     {
-        EnemyBase alvo = EncontrarInimigoMaisProximo();
-        if (alvo == null) return;
+        if (enemyLayerMask == 0) enemyLayerMask = LayerMask.GetMask("Enemy");
+
+        var hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
+        if (hits.Length == 0) return;
+
+        Collider2D nearest = null;
+        float      minDist = float.MaxValue;
+        foreach (var h in hits)
+        {
+            float d = Vector2.Distance(transform.position, h.transform.position);
+            if (d < minDist) { minDist = d; nearest = h; }
+        }
+        if (nearest == null) return;
+
+        var enemy = nearest.GetComponent<EnemyBase>();
+        if (enemy != null) enemy.TakeDamage(attackDamage);
+
+        Vector2 dir = ((Vector2)nearest.transform.position - (Vector2)transform.position).normalized;
 
         if (PlayerController.Instance != null)
             PlayerController.Instance.LastAttackTime = Time.time;
 
-        // Flip sprite toward enemy; PlayerController respects LastAttackTime for 0.3s
         var sr = GetComponent<SpriteRenderer>();
-        if (sr != null)
-        {
-            float dir = alvo.transform.position.x - transform.position.x;
-            if (Mathf.Abs(dir) > 0.01f) sr.flipX = dir < 0f;
-        }
+        if (sr != null && Mathf.Abs(dir.x) > 0.1f) sr.flipX = dir.x < 0f;
 
-        alvo.TakeDamage(attackDamage);
-
-        if (attackEffectPrefab != null)
-        {
-            Vector2 attackDir = ((Vector2)(alvo.transform.position - transform.position)).normalized;
-            var effectPos = transform.position + (Vector3)(attackDir * attackRange * 0.6f);
-            var effect    = Instantiate(attackEffectPrefab, effectPos, Quaternion.identity);
-            float angle   = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
-            effect.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-            Destroy(effect, 0.2f);
-        }
+        SpawnAttackEffect(dir);
     }
+
+    void SpawnAttackEffect(Vector2 dir)
+    {
+        if (attackEffectPrefab == null) return;
+        var effectPos = transform.position + (Vector3)(dir * attackRange * 0.6f);
+        var effect    = Instantiate(attackEffectPrefab, effectPos, Quaternion.identity);
+        float angle   = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        effect.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        Destroy(effect, 0.2f);
+    }
+
+    // ── Weapon sync ─────────────────────────────────────────────────────────────
 
     public void SyncFromWeapon()
     {
@@ -86,36 +93,6 @@ public class PlayerAttack : MonoBehaviour
     }
 
     void AoUpgradeArma(PlayerWeapon pw) => SyncFromWeapon();
-
-    // Retorna o EnemyBase mais próximo no semicírculo frontal dentro do attackRange
-    EnemyBase EncontrarInimigoMaisProximo()
-    {
-        Collider2D[] colisores = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
-
-        EnemyBase maisProximo = null;
-        float menorDistancia  = float.MaxValue;
-
-        foreach (Collider2D col in colisores)
-        {
-            EnemyBase inimigo = col.GetComponent<EnemyBase>();
-            if (inimigo == null) continue;
-
-            // Only hit enemies in the facing semicircle
-            var toEnemy   = ((Vector2)(inimigo.transform.position - transform.position)).normalized;
-            var facing    = PlayerController.Instance != null
-                            ? PlayerController.Instance.FacingDirection : Vector2.right;
-            if (Vector2.Dot(facing, toEnemy) < 0f) continue;
-
-            float distancia = Vector2.Distance(transform.position, col.transform.position);
-            if (distancia < menorDistancia)
-            {
-                menorDistancia = distancia;
-                maisProximo    = inimigo;
-            }
-        }
-
-        return maisProximo;
-    }
 
     // ── Gizmos ──────────────────────────────────────────────────────────────────
 

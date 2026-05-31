@@ -6,9 +6,9 @@ public class EnemySlime : EnemyBase
 {
     protected override void Awake()
     {
-        maxHealth = 25f;
+        maxHealth = 20f;
         moveSpeed = 1.0f;
-        damage    = 10f;
+        damage    = 5f;
         base.Awake(); // sets currentHealth = maxHealth with correct values
     }
 

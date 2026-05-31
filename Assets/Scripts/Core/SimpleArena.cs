@@ -5,104 +5,95 @@ public class SimpleArena : MonoBehaviour
 {
     public static SimpleArena Instance { get; private set; }
 
-    [Header("Dimensões")]
-    [SerializeField] float width  = 40f;
-    [SerializeField] float height = 40f;
+    [Header("Tamanho do chão (cobre a câmera com folga)")]
+    [SerializeField] float tileAreaSize = 60f;
 
-    [Header("Cor do chão (protótipo)")]
-    [SerializeField] Color floorColor = new Color(0.2f, 0.18f, 0.22f);
-
-    [Header("Sprite real do tileset (opcional)")]
+    [Header("Sprite do tileset (auto se vazio)")]
     [SerializeField] Sprite floorSprite;
 
-    public float Width    => width;
-    public float Height   => height;
-    public Bounds PlayArea => new Bounds(Vector3.zero,
-        new Vector3(width - 4f, height - 4f, 0));
+    [Header("Cor de fallback")]
+    [SerializeField] Color fallbackColor = new Color(0.15f, 0.13f, 0.17f);
+
+    Transform      _player;
+    Transform      _floor;
+    SpriteRenderer _floorRenderer;
 
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        Build();
+        BuildFloor();
     }
 
-    void Build()
+    void Start() => FindPlayer();
+
+    void FindPlayer()
     {
-        BuildFloor();
-        BuildWalls();
-        ConfigureCamera();
-        Debug.Log($"[SimpleArena] Arena {width}x{height} criada.");
+        var p = GameObject.FindGameObjectWithTag("Player");
+        if (p != null) _player = p.transform;
     }
 
     void BuildFloor()
     {
-        var go = new GameObject("ArenaFloor");
-        go.transform.SetParent(transform);
-        go.transform.localPosition = Vector3.zero;
+        if (floorSprite == null) floorSprite = LoadFloorSprite();
 
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.sortingOrder = -10;
+        var go = new GameObject("InfiniteFloor");
+        go.transform.SetParent(transform);
+        _floor         = go.transform;
+        _floorRenderer = go.AddComponent<SpriteRenderer>();
+        _floorRenderer.sortingOrder = -100;
 
         if (floorSprite != null)
         {
-            sr.sprite   = floorSprite;
-            sr.drawMode = SpriteDrawMode.Tiled;
-            sr.size     = new Vector2(width, height);
-            sr.tileMode = SpriteTileMode.Continuous;
+            _floorRenderer.sprite   = floorSprite;
+            _floorRenderer.drawMode = SpriteDrawMode.Tiled;
+            _floorRenderer.size     = new Vector2(tileAreaSize, tileAreaSize);
+            _floorRenderer.tileMode = SpriteTileMode.Continuous;
+            Debug.Log($"[SimpleArena] Chão com tileset: {floorSprite.name}");
         }
         else
         {
-            sr.sprite = MakePixel(Color.white);
-            sr.color  = floorColor;
-            go.transform.localScale = new Vector3(width, height, 1f);
+            _floorRenderer.sprite   = MakePixel(Color.white);
+            _floorRenderer.color    = fallbackColor;
+            go.transform.localScale = new Vector3(tileAreaSize, tileAreaSize, 1f);
+            Debug.LogWarning("[SimpleArena] Sem tileset — cor sólida.");
         }
     }
 
-    void BuildWalls()
+    void LateUpdate()
     {
-        var root = new GameObject("ArenaWalls");
-        root.transform.SetParent(transform);
-        root.transform.localPosition = Vector3.zero;
+        if (_player == null) { FindPlayer(); return; }
+        if (_floor == null) return;
 
-        float hw = width  / 2f;
-        float hh = height / 2f;
-        float t  = 2f;
-
-        CreateWall(root, "WallN", new Vector2(0,  hh + t / 2f), new Vector2(width + t * 2, t));
-        CreateWall(root, "WallS", new Vector2(0, -hh - t / 2f), new Vector2(width + t * 2, t));
-        CreateWall(root, "WallE", new Vector2( hw + t / 2f, 0), new Vector2(t, height));
-        CreateWall(root, "WallW", new Vector2(-hw - t / 2f, 0), new Vector2(t, height));
+        // Snap ao grid do tile para a textura não deslizar com o player
+        Vector3 pos = _player.position;
+        pos.x = Mathf.Round(pos.x);
+        pos.y = Mathf.Round(pos.y);
+        pos.z = 0f;
+        _floor.position = pos;
     }
 
-    void CreateWall(GameObject parent, string wallName, Vector2 pos, Vector2 size)
+    Sprite LoadFloorSprite()
     {
-        var go = new GameObject(wallName);
-        go.transform.SetParent(parent.transform);
-        go.transform.localPosition = pos;
-
-        int obstacleLayer = LayerMask.NameToLayer("Obstacle");
-        if (obstacleLayer >= 0) go.layer = obstacleLayer;
-
-        var rb = go.AddComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Static;
-
-        var col = go.AddComponent<BoxCollider2D>();
-        col.size = size;
-    }
-
-    void ConfigureCamera()
-    {
-        if (Camera.main == null) return;
-        Camera.main.orthographicSize = height / 2f * 0.85f;
-
-        var cf = Camera.main.GetComponent<CameraFollow>();
-        if (cf == null) return;
-
-        float bx = width  / 2f - 6f;
-        float by = height / 2f - 6f;
-        cf.SetBounds(-bx, bx, -by, by);
-        Debug.Log($"[SimpleArena] CameraFollow bounds: ±{bx:F1} ±{by:F1}");
+#if UNITY_EDITOR
+        string[] folders  = { "Assets/Art/Environment/Season1_Dungeon/Tileset/PNG" };
+        string[] keywords = { "floor", "ground", "tile", "stone", "dirt" };
+        foreach (var kw in keywords)
+        {
+            var guids = UnityEditor.AssetDatabase.FindAssets($"t:Sprite {kw}", folders);
+            if (guids.Length > 0)
+            {
+                var spr = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                    UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]));
+                if (spr != null) return spr;
+            }
+        }
+        var any = UnityEditor.AssetDatabase.FindAssets("t:Sprite", folders);
+        if (any.Length > 0)
+            return UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                UnityEditor.AssetDatabase.GUIDToAssetPath(any[0]));
+#endif
+        return null;
     }
 
     static Sprite MakePixel(Color c)
@@ -112,4 +103,8 @@ public class SimpleArena : MonoBehaviour
         tex.Apply();
         return Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
     }
+
+    public Bounds PlayArea => new Bounds(
+        _player != null ? _player.position : Vector3.zero,
+        new Vector3(tileAreaSize, tileAreaSize, 0f));
 }

@@ -5,9 +5,9 @@ public class EnemyZumbi : EnemyBase
 {
     protected override void Awake()
     {
-        maxHealth = 35f;
+        maxHealth = 20f;
         moveSpeed = 1.2f;
-        damage    = 5f;
+        damage    = 8f;
         base.Awake();
     }
 }

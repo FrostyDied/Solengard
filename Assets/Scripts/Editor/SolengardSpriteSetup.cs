@@ -71,7 +71,14 @@ public static class SolengardSpriteSetup
         bool isCharacter = ContainsAny(path, "Characters", "Enemies", "Hero", "Boss");
         importer.maxTextureSize = isCharacter ? 2048 : 512;
         importer.alphaIsTransparency = true;
-        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.wrapMode            = TextureWrapMode.Clamp;
+
+        // Tileset sprites need Repeat wrap + FullRect mesh for SpriteDrawMode.Tiled
+        if (Contains(path, "Tileset"))
+        {
+            importer.wrapMode       = TextureWrapMode.Repeat;
+            importer.spriteMeshType = SpriteMeshType.FullRect;
+        }
 
         // "Spritesheets" = boss packed sheets; "With_shadow"/"Without_shadow" = per-animation
         // composite sheets; "/Parts/" = individual body-part animation sheets.

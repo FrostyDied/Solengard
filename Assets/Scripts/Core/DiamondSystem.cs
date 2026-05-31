@@ -24,6 +24,8 @@ public class DiamondSystem : MonoBehaviour
     }
 
     public int GetBalance() => saldoAtual;
+    public int Saldo        => saldoAtual;
+    public void GastarDiamantes(int quantidade) => SpendDiamonds(quantidade);
 
     public void AddDiamonds(int quantidade)
     {

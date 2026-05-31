@@ -16,10 +16,10 @@ public class PlayerHealth : MonoBehaviour
     // ── Atributos configuráveis ─────────────────────────────────────────────────
 
     [Header("Vida")]
-    public float maxHealth = 150f;
+    public float maxHealth = 100f;
 
     [Header("Invencibilidade (iframes)")]
-    public float iframeDuration = 0.5f;
+    public float iframeDuration = 0.6f;
 
     [Header("Efeito Visual")]
     [SerializeField] GameObject hitEffectPrefab;
@@ -46,6 +46,11 @@ public class PlayerHealth : MonoBehaviour
     void Awake()
     {
         currentHealth = maxHealth;
+#if UNITY_EDITOR
+        if (hitEffectPrefab == null)
+            hitEffectPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/Prefabs/Effects/HitEffect.prefab");
+#endif
     }
 
     void Start()
@@ -94,6 +99,14 @@ public class PlayerHealth : MonoBehaviour
         sr.color = Color.white * 2f;
         yield return new WaitForSeconds(0.08f);
         sr.color = Color.white;
+    }
+
+    // Aumenta vida máxima e restaura a diferença ao HP atual
+    public void AumentarVidaMax(float quantidade)
+    {
+        maxHealth     += quantidade;
+        currentHealth  = Mathf.Min(currentHealth + quantidade, maxHealth);
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
     // Restaura vida sem ultrapassar o máximo

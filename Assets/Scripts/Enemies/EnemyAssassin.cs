@@ -14,7 +14,7 @@ public class EnemyAssassin : EnemyBase
     {
         maxHealth = 20f;
         moveSpeed = 2.0f;
-        damage    = 25f;
+        damage    = 12f;
         base.Awake();
     }
 
