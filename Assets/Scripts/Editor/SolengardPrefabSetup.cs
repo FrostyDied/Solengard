@@ -77,9 +77,20 @@ public static class SolengardPrefabSetup
             go.AddComponent<PassiveItemSystem>();
             go.AddComponent<WeaponEvolutionSystem>();
 
-            var rb = go.AddComponent<Rigidbody2D>();
-            rb.gravityScale  = 0;
-            rb.constraints   = RigidbodyConstraints2D.FreezeRotation;
+            // PlayerController has [RequireComponent(Rigidbody2D)] — Unity adds one automatically.
+            // AddComponent would return null for a duplicate, so always get-or-add.
+            var rb = go.GetComponent<Rigidbody2D>() ?? go.AddComponent<Rigidbody2D>();
+            if (rb == null)
+            {
+                Debug.LogError($"[SolengardPrefabSetup] Rigidbody2D null on Player_Level{lvl} — skipping rb config");
+            }
+            else
+            {
+                rb.gravityScale           = 0f;
+                rb.freezeRotation         = true;
+                rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+                rb.interpolation          = RigidbodyInterpolation2D.Interpolate;
+            }
 
             go.AddComponent<BoxCollider2D>();
             go.tag = "Player";
