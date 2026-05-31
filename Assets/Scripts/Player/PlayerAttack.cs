@@ -4,12 +4,9 @@ using UnityEngine;
 public class PlayerAttack : MonoBehaviour
 {
     [Header("Stats")]
-    public float attackDamage   = 25f;
-    public float attackRange    = 5f;
-    public float attackCooldown = 0.5f;
-
-    [Header("Cone de ataque (graus) — amplitude do golpe na direção encarada")]
-    [SerializeField] float attackConeAngle = 120f;
+    public float attackDamage   = 30f;
+    public float attackRange    = 6.5f;
+    public float attackCooldown = 0.3f;
 
     [Header("Efeito visual da espada")]
     [SerializeField] GameObject slashEffectPrefab;
@@ -44,80 +41,84 @@ public class PlayerAttack : MonoBehaviour
 
     void Attack()
     {
-        // Direção que o herói encara — nunca zero, mantém a última mesmo parado
-        Vector2 facing = PlayerController.Instance != null
-            ? PlayerController.Instance.FacingDirection
-            : Vector2.right;
-        if (facing == Vector2.zero) facing = Vector2.right;
-
-        // Efeito de espada SEMPRE aparece, mesmo sem inimigos na frente
-        SpawnSlash(facing);
+        SpawnSpinSlash();
 
         if (PlayerController.Instance != null)
             PlayerController.Instance.LastAttackTime = Time.time;
 
         var hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
-        if (hits.Length == 0) return;
-
-        float halfCone = attackConeAngle * 0.5f;
-
         foreach (var h in hits)
         {
             if (h == null) continue;
-
-            Vector2 toEnemy = ((Vector2)h.transform.position - (Vector2)transform.position).normalized;
-            float angle = Vector2.Angle(facing, toEnemy);
-            if (angle > halfCone) continue; // fora do cone — não é atingido
-
             var enemy = h.GetComponent<EnemyBase>();
             if (enemy != null) enemy.TakeDamage(attackDamage);
         }
     }
 
-    void SpawnSlash(Vector2 dir)
+    void SpawnSpinSlash()
     {
-        Vector3 spawnPos = transform.position + (Vector3)(dir * attackRange * 0.5f);
-
         if (slashEffectPrefab != null)
         {
-            var fx  = Instantiate(slashEffectPrefab, spawnPos, Quaternion.identity);
-            float ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            fx.transform.rotation = Quaternion.Euler(0, 0, ang);
-            if (dir.x < 0)
-                fx.transform.localScale = new Vector3(-fx.transform.localScale.x,
-                                                       fx.transform.localScale.y,
-                                                       fx.transform.localScale.z);
-            Destroy(fx, slashDuration);
+            for (int i = 0; i < 4; i++)
+            {
+                float   angle = i * 90f;
+                float   rad   = angle * Mathf.Deg2Rad;
+                Vector3 pos   = transform.position + new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f) * attackRange * 0.45f;
+                var fx = Instantiate(slashEffectPrefab, pos, Quaternion.Euler(0, 0, angle));
+                Destroy(fx, slashDuration);
+            }
         }
         else
         {
-            StartCoroutine(ProceduralSlash(spawnPos, dir));
+            StartCoroutine(ProceduralSpinSlash());
         }
     }
 
-    IEnumerator ProceduralSlash(Vector3 pos, Vector2 dir)
+    IEnumerator ProceduralSpinSlash()
     {
-        var fx = new GameObject("SlashFX");
-        fx.transform.position = pos;
-        float ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        fx.transform.rotation = Quaternion.Euler(0, 0, ang);
+        const int count = 4;
+        var fxObjs = new GameObject[count];
+        var fxSrs  = new SpriteRenderer[count];
+        var fxDirs = new Vector3[count];
+        var playerSr = GetComponent<SpriteRenderer>();
 
-        var sr = fx.AddComponent<SpriteRenderer>();
-        sr.sprite       = GetComponent<SpriteRenderer>()?.sprite;
-        sr.color        = new Color(1f, 1f, 1f, 0.85f);
-        sr.sortingOrder = 40;
-        fx.transform.localScale = Vector3.one * 0.6f;
+        for (int i = 0; i < count; i++)
+        {
+            float angle = i * 90f;
+            float rad   = angle * Mathf.Deg2Rad;
+            fxDirs[i]   = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f);
+
+            var fx = new GameObject("SpinFX");
+            fx.transform.position = transform.position;
+            fx.transform.rotation = Quaternion.Euler(0, 0, angle);
+
+            var sr = fx.AddComponent<SpriteRenderer>();
+            sr.sprite       = playerSr?.sprite;
+            sr.color        = new Color(1f, 0.9f, 0.3f, 0.85f);
+            sr.sortingOrder = 40;
+            fx.transform.localScale = Vector3.one * 0.5f;
+
+            fxObjs[i] = fx;
+            fxSrs[i]  = sr;
+        }
 
         float t = 0f;
         while (t < slashDuration)
         {
             t += Time.deltaTime;
             float ratio = t / slashDuration;
-            sr.color              = new Color(1f, 1f, 1f, Mathf.Lerp(0.85f, 0f, ratio));
-            fx.transform.localScale = Vector3.one * Mathf.Lerp(0.6f, 1.1f, ratio);
+            for (int i = 0; i < count; i++)
+            {
+                if (fxObjs[i] == null) continue;
+                fxObjs[i].transform.position  = transform.position + fxDirs[i] * Mathf.Lerp(0f, attackRange * 0.6f, ratio);
+                fxObjs[i].transform.localScale = Vector3.one * Mathf.Lerp(0.5f, 1.1f, ratio);
+                fxSrs[i].color = new Color(1f, 0.9f, 0.3f, Mathf.Lerp(0.85f, 0f, ratio));
+            }
             yield return null;
         }
-        Destroy(fx);
+
+        for (int i = 0; i < count; i++)
+            if (fxObjs[i] != null) Destroy(fxObjs[i]);
     }
 
     void TryLoadSlashPrefab()
@@ -153,20 +154,7 @@ public class PlayerAttack : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        Vector2 facing = PlayerController.Instance != null
-            ? PlayerController.Instance.FacingDirection
-            : Vector2.right;
-
-        // Range circle
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, attackRange);
-
-        // Attack cone edges
-        float half     = attackConeAngle * 0.5f;
-        Vector3 leftE  = Quaternion.Euler(0, 0,  half) * (Vector3)(facing * attackRange);
-        Vector3 rightE = Quaternion.Euler(0, 0, -half) * (Vector3)(facing * attackRange);
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawLine(transform.position, transform.position + leftE);
-        Gizmos.DrawLine(transform.position, transform.position + rightE);
     }
 }

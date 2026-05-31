@@ -152,17 +152,37 @@ public class WaveManager : MonoBehaviour
     // Filtra enemyPrefabs pelos tipos disponíveis no tier atual do DynamicDifficultySystem
     List<GameObject> GetFilteredPrefabs()
     {
-        if (dynamicDifficulty == null) return enemyPrefabs;
+        List<GameObject> result;
 
-        string[] available = dynamicDifficulty.GetAvailableEnemyTypes();
-        if (available == null || available.Length == 0) return enemyPrefabs;
+        if (dynamicDifficulty == null)
+        {
+            result = enemyPrefabs;
+        }
+        else
+        {
+            string[] available = dynamicDifficulty.GetAvailableEnemyTypes();
+            if (available == null || available.Length == 0)
+            {
+                result = enemyPrefabs;
+            }
+            else
+            {
+                var filtered = new List<GameObject>();
+                foreach (var prefab in enemyPrefabs)
+                    if (System.Array.IndexOf(available, prefab.name) >= 0)
+                        filtered.Add(prefab);
+                result = filtered.Count > 0 ? filtered : enemyPrefabs;
+            }
+        }
 
-        var filtered = new List<GameObject>();
-        foreach (var prefab in enemyPrefabs)
-            if (System.Array.IndexOf(available, prefab.name) >= 0)
-                filtered.Add(prefab);
+        // Wave 1: apenas inimigos fracos para garantir onboarding suave
+        if (currentWave == 1)
+        {
+            var weak = result.FindAll(p => p.name.Contains("Slime") || p.name.Contains("Zumbi"));
+            if (weak.Count > 0) return weak;
+        }
 
-        return filtered.Count > 0 ? filtered : enemyPrefabs;
+        return result;
     }
 
     void ApplyAdaptiveHealthModifier(EnemyBase enemy)

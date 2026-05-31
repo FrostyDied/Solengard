@@ -80,8 +80,9 @@ public class PlayerController : MonoBehaviour
 
         MoveDir = joystick.magnitude > 0.1f ? joystick.normalized : keyboardDir;
 
-        // Flip do sprite SEMPRE segue o movimento imediatamente (virar rápido = sobrevivência)
-        if (_sr != null && Mathf.Abs(MoveDir.x) > 0.01f)
+        // Deadzone evita flip oscilante em movimentos quase-verticais
+        const float FLIP_DEADZONE = 0.3f;
+        if (_sr != null && Mathf.Abs(MoveDir.x) > FLIP_DEADZONE)
             _sr.flipX = MoveDir.x < 0f;
 
         // FacingDirection suporta 4 direções — eixo dominante define a frente do ataque

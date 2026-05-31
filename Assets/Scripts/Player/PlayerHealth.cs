@@ -16,10 +16,10 @@ public class PlayerHealth : MonoBehaviour
     // ── Atributos configuráveis ─────────────────────────────────────────────────
 
     [Header("Vida")]
-    public float maxHealth = 100f;
+    public float maxHealth = 120f;
 
     [Header("Invencibilidade (iframes)")]
-    public float iframeDuration = 0.6f;
+    public float iframeDuration = 0.8f;
 
     [Header("Efeito Visual")]
     [SerializeField] GameObject hitEffectPrefab;

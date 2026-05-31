@@ -35,9 +35,17 @@ public class WaveBoostSystem : MonoBehaviour
 
     void AoCompletarWave(int wave)
     {
-        Debug.Log("[Boost] Recebeu evento de wave completa");
-        Debug.Log($"[WaveBoostSystem] Wave {wave} concluída — boost disponível. Vídeo: {PodeAssistirVideo(wave)}");
-        // UI de boost será implementada em fase posterior
+        Debug.Log($"[WaveBoostSystem] Wave {wave} concluída — aplicando buff automático");
+
+        var pc = PlayerController.Instance;
+        var pa = pc != null ? pc.GetComponent<PlayerAttack>()  : null;
+        var ph = pc != null ? pc.GetComponent<PlayerHealth>() : null;
+
+        if (pa != null) { pa.attackDamage *= 1.12f; pa.attackRange += 0.3f; pa.attackCooldown *= 0.95f; }
+        if (pc != null) pc.moveSpeed *= 1.04f;
+        if (ph != null) ph.AumentarVidaMax(15f);
+
+        Debug.Log($"[WaveBoost] Buff aplicado — dano={pa?.attackDamage:F1} range={pa?.attackRange:F2} vel={pc?.moveSpeed:F2}. Vídeo disponível: {PodeAssistirVideo(wave)}");
     }
 
     void CriarBoostsPadrao()

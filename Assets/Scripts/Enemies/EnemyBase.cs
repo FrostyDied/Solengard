@@ -100,7 +100,8 @@ public class EnemyBase : MonoBehaviour
         if (sr != null && playerTransform != null)
         {
             float dir = playerTransform.position.x - transform.position.x;
-            if (Mathf.Abs(dir) > 0.01f) sr.flipX = dir < 0f;
+            const float FLIP_DEADZONE = 0.25f;
+            if (Mathf.Abs(dir) > FLIP_DEADZONE) sr.flipX = dir < 0f;
         }
     }
 

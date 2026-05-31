@@ -7,7 +7,7 @@ public class EnemyZumbi : EnemyBase
     {
         maxHealth = 20f;
         moveSpeed = 1.2f;
-        damage    = 8f;
+        damage    = 6f;
         base.Awake();
     }
 }

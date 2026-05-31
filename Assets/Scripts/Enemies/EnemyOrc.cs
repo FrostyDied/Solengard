@@ -6,8 +6,8 @@ public class EnemyOrc : EnemyBase
     protected override void Awake()
     {
         maxHealth = 75f;
-        moveSpeed = 0.9f;
-        damage    = 15f;
+        moveSpeed = 0.75f;
+        damage    = 10f;
         base.Awake();
     }
 

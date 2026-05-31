@@ -8,7 +8,7 @@ public class EnemySlime : EnemyBase
     {
         maxHealth = 20f;
         moveSpeed = 1.0f;
-        damage    = 5f;
+        damage    = 4f;
         base.Awake(); // sets currentHealth = maxHealth with correct values
     }
 
