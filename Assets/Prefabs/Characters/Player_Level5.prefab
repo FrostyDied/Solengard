@@ -123,6 +123,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   iframeDuration: 1
+  hitEffectPrefab: {fileID: 0}
 --- !u!114 &8364259929966515616
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -141,6 +142,7 @@ MonoBehaviour:
   enemyLayerMask:
     serializedVersion: 2
     m_Bits: 0
+  attackEffectPrefab: {fileID: 0}
 --- !u!114 &5776844813197514633
 MonoBehaviour:
   m_ObjectHideFlags: 0
