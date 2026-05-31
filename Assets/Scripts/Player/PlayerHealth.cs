@@ -19,8 +19,10 @@ public class PlayerHealth : MonoBehaviour
     public float maxHealth = 150f;
 
     [Header("Invencibilidade (iframes)")]
-    // Duração em segundos de invencibilidade após receber dano
     public float iframeDuration = 0.5f;
+
+    [Header("Efeito Visual")]
+    [SerializeField] GameObject hitEffectPrefab;
 
     // ── Estado interno ──────────────────────────────────────────────────────────
 
@@ -62,6 +64,12 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = Mathf.Max(currentHealth - amount, 0f);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
         StartCoroutine(FlashWhite());
+
+        if (hitEffectPrefab != null)
+        {
+            var fx = Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
+            Destroy(fx, 0.3f);
+        }
 
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null)

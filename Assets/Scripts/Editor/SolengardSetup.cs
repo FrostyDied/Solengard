@@ -17,6 +17,7 @@ public static class SolengardSetup
     const string GAME_CONFIG_PATH        = "Assets/Data/GameConfig.asset";
     const string PLAYER_DATA_PATH        = "Assets/Data/PlayerData.asset";
     const string SLIME_PREFAB_PATH       = "Assets/Prefabs/Enemies/Slime.prefab";
+    const string HIT_EFFECT_PATH         = "Assets/Prefabs/Effects/HitEffect.prefab";
     const string EXPECTED_SCENE          = "GameScene";
     const string MAIN_MENU_SCENE_PATH    = "Assets/Scenes/MainMenu.unity";
     const string GAME_SCENE_PATH         = "Assets/Scenes/GameScene.unity";
@@ -571,6 +572,8 @@ public static class SolengardSetup
         total += TryAssign<DiamondSystem>("playerData",   playerData,  log);
         total += TryAssign<ScoreSystem>("playerData",     playerData,  log);
         total += TryAssign<SeasonPassSystem>("playerData", playerData, log);
+        total += TryAssignPrefabByPath<PlayerAttack>("attackEffectPrefab", HIT_EFFECT_PATH, log);
+        total += TryAssignPrefabByPath<PlayerHealth>("hitEffectPrefab",    HIT_EFFECT_PATH, log);
         return total;
     }
 
@@ -769,6 +772,9 @@ public static class SolengardSetup
 
         if (player < 0 || enemy < 0 || obstacle < 0) return;
 
+        // Player passes through enemies physically; contact damage handled via OnTriggerStay2D
+        Physics2D.IgnoreLayerCollision(player, enemy, true);
+
         if (ground >= 0)
         {
             Physics2D.IgnoreLayerCollision(ground, ground,   true);
@@ -788,6 +794,8 @@ public static class SolengardSetup
     static int RunSetupPoolsAndUpgrades(StringBuilder log)
     {
         int total = 0;
+
+        total += TrySetEnemyCollidersToTrigger(log);
 
         var slimePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(SLIME_PREFAB_PATH);
         if (slimePrefab == null)
@@ -1166,6 +1174,43 @@ public static class SolengardSetup
         log.AppendLine(msg);
         Debug.Log($"[SolengardSetup] {msg}");
         return 1;
+    }
+
+    // Loads a prefab by path and assigns it to a serialized field (skips if already set)
+    static int TryAssignPrefabByPath<T>(string propertyName, string assetPath, StringBuilder log)
+        where T : Component
+    {
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+        if (prefab == null)
+        {
+            Debug.LogWarning($"[SolengardSetup] Prefab não encontrado: {assetPath}");
+            return 0;
+        }
+        return TryAssign<T>(propertyName, prefab, log);
+    }
+
+    // Sets isTrigger = true on the Collider2D of each enemy prefab so
+    // OnTriggerStay2D fires for contact damage while the player passes through physically.
+    static int TrySetEnemyCollidersToTrigger(StringBuilder log)
+    {
+        int changed = 0;
+        foreach (string path in ENEMY_PREFAB_PATHS)
+        {
+            var prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefabAsset == null) continue;
+
+            var go  = PrefabUtility.LoadPrefabContents(path);
+            var col = go.GetComponent<Collider2D>();
+            if (col != null && !col.isTrigger)
+            {
+                col.isTrigger = true;
+                PrefabUtility.SaveAsPrefabAsset(go, path);
+                changed++;
+                log.AppendLine($"  {System.IO.Path.GetFileNameWithoutExtension(path)}: Collider2D → isTrigger=true");
+            }
+            PrefabUtility.UnloadPrefabContents(go);
+        }
+        return changed;
     }
 
     static void AppendResult(StringBuilder sb, int total, StringBuilder log)

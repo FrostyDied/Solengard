@@ -29,7 +29,8 @@ public class EnemyBase : MonoBehaviour
     protected Rigidbody2D rb;
 
     bool  isDead;
-    float contactDamageTimer;
+    float lastDamageTime;
+    const float contactDamageInterval = 1f;
 
     protected virtual void Awake()
     {
@@ -51,9 +52,9 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual void OnEnable()
     {
-        currentHealth      = maxHealth;
-        contactDamageTimer = 0f;
-        isDead             = false;
+        currentHealth  = maxHealth;
+        lastDamageTime = -contactDamageInterval;
+        isDead         = false;
 
         // Reset animator so pool-reused enemies don't start in Death state
         var anim = GetComponent<CharacterAnimator>();
@@ -114,25 +115,17 @@ public class EnemyBase : MonoBehaviour
         return sep;
     }
 
-    void OnCollisionStay2D(Collision2D collision)
+    void OnTriggerStay2D(Collider2D col)
     {
-        contactDamageTimer -= Time.fixedDeltaTime;
-        if (contactDamageTimer > 0f) return;
-
-        PlayerHealth ph = collision.collider.GetComponent<PlayerHealth>();
-        if (ph == null) return;
-
+        if (!col.CompareTag("Player")) return;
+        if (Time.time - lastDamageTime < contactDamageInterval) return;
+        lastDamageTime = Time.time;
         NotifyDeathCause();
-        ph.TakeDamage(damage);
-        contactDamageTimer = 1f;
+        var ph = col.GetComponent<PlayerHealth>();
+        ph?.TakeDamage(damage);
     }
 
     protected virtual void NotifyDeathCause() { }
-
-    void OnCollisionExit2D(Collision2D collision)
-    {
-        contactDamageTimer = 0f;
-    }
 
     // Recebe dano e dispara Die() quando a vida chega a zero
     public void TakeDamage(float amount)
@@ -141,8 +134,8 @@ public class EnemyBase : MonoBehaviour
         currentHealth -= amount;
         StartCoroutine(FlashRed());
 
-        if (currentHealth <= 0f)
-            Die();
+        if (currentHealth > 0.01f) return;
+        Die();
     }
 
     IEnumerator FlashRed()

@@ -13,11 +13,14 @@ public class PlayerAttack : MonoBehaviour
     public static float LastAttackTime { get; private set; }
 
     [Header("Detecção")]
-    // Layer "Enemy" deve estar configurada no projeto para que a detecção funcione
     public LayerMask enemyLayerMask;
+
+    [Header("Efeito Visual")]
+    [SerializeField] GameObject attackEffectPrefab;
 
     PlayerWeapon weapon;
     float cooldownTimer;
+    Vector2 facingDirection = Vector2.right;
 
     // ── Unity ───────────────────────────────────────────────────────────────────
 
@@ -38,8 +41,10 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
-        cooldownTimer -= Time.deltaTime;
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr != null) facingDirection = sr.flipX ? Vector2.left : Vector2.right;
 
+        cooldownTimer -= Time.deltaTime;
         if (cooldownTimer <= 0f)
         {
             TryAttack();
@@ -52,7 +57,6 @@ public class PlayerAttack : MonoBehaviour
     void TryAttack()
     {
         EnemyBase alvo = EncontrarInimigoMaisProximo();
-
         if (alvo == null) return;
 
         LastAttackTime = Time.time;
@@ -64,8 +68,16 @@ public class PlayerAttack : MonoBehaviour
             if (Mathf.Abs(dir) > 0.01f) sr.flipX = dir < 0f;
         }
 
-        Debug.Log($"[PlayerAttack] Atacando {alvo.name} — damage={attackDamage}");
         alvo.TakeDamage(attackDamage);
+
+        if (attackEffectPrefab != null)
+        {
+            var effectPos = transform.position + (Vector3)(facingDirection * attackRange * 0.6f);
+            var effect    = Instantiate(attackEffectPrefab, effectPos, Quaternion.identity);
+            float angle   = Mathf.Atan2(facingDirection.y, facingDirection.x) * Mathf.Rad2Deg;
+            effect.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            Destroy(effect, 0.2f);
+        }
     }
 
     public void SyncFromWeapon()
@@ -78,22 +90,24 @@ public class PlayerAttack : MonoBehaviour
 
     void AoUpgradeArma(PlayerWeapon pw) => SyncFromWeapon();
 
-    // Retorna o EnemyBase mais próximo dentro do attackRange, ou null se não houver nenhum
+    // Retorna o EnemyBase mais próximo no semicírculo frontal dentro do attackRange
     EnemyBase EncontrarInimigoMaisProximo()
     {
         Collider2D[] colisores = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
 
-        EnemyBase maisProximo  = null;
-        float menorDistancia   = float.MaxValue;
+        EnemyBase maisProximo = null;
+        float menorDistancia  = float.MaxValue;
 
         foreach (Collider2D col in colisores)
         {
             EnemyBase inimigo = col.GetComponent<EnemyBase>();
-
             if (inimigo == null) continue;
 
-            float distancia = Vector2.Distance(transform.position, col.transform.position);
+            // Only hit enemies in the facing semicircle
+            var toEnemy = ((Vector2)(inimigo.transform.position - transform.position)).normalized;
+            if (Vector2.Dot(facingDirection, toEnemy) < 0f) continue;
 
+            float distancia = Vector2.Distance(transform.position, col.transform.position);
             if (distancia < menorDistancia)
             {
                 menorDistancia = distancia;

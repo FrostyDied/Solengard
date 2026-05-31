@@ -45,8 +45,8 @@ public class CameraFollow : MonoBehaviour
         if (Camera.main != null)
         {
             int   enemyCount = FindObjectsByType<EnemyBase>(FindObjectsSortMode.None).Length;
-            float targetSize = Mathf.Lerp(8f, 12f, enemyCount / 30f);
-            Camera.main.orthographicSize = Mathf.Lerp(Camera.main.orthographicSize, targetSize, Time.deltaTime * 2f);
+            float targetSize = Mathf.Lerp(12f, 15f, enemyCount / 30f);
+            Camera.main.orthographicSize = Mathf.Lerp(Camera.main.orthographicSize, targetSize, Time.deltaTime);
         }
     }
 
