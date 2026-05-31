@@ -135,6 +135,7 @@ public class EnemyBase : MonoBehaviour
     // Recebe dano e dispara Die() quando a vida chega a zero
     public void TakeDamage(float amount)
     {
+        Debug.Log($"[Enemy] TakeDamage chamado em {gameObject.name} amount={amount} hp={currentHealth:F1}\n{System.Environment.StackTrace}");
         if (isDead || !CanTakeDamage()) return;
         currentHealth -= amount;
         StartCoroutine(FlashRed());
@@ -154,6 +155,7 @@ public class EnemyBase : MonoBehaviour
 
     void Die()
     {
+        Debug.Log($"[Enemy] Die() chamado em {gameObject.name}\n{System.Environment.StackTrace}");
         if (isDead) return;
         isDead = true;
 
