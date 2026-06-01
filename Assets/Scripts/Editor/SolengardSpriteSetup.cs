@@ -90,11 +90,19 @@ public static class SolengardSpriteSetup
 
         // "Spritesheets" = boss packed sheets; "With_shadow"/"Without_shadow" = per-animation
         // composite sheets; "/Parts/" = individual body-part animation sheets.
-        // All three are multi-frame and need Multiple. Everything else stays Single.
+        // Animation-state-named files (Idle.png, Walk.png, etc.) in /Characters/ are also sheets
+        // (e.g. DarkElf uses simple state filenames instead of the Without_shadow pattern).
+        string filenameLower = path.Substring(path.LastIndexOf('/') + 1);
+        int dotPos = filenameLower.LastIndexOf('.');
+        if (dotPos > 0) filenameLower = filenameLower.Substring(0, dotPos);
+        filenameLower = filenameLower.ToLowerInvariant();
+        bool isAnimStateFile = ContainsAny(filenameLower, "idle", "walk", "run", "attack", "hurt", "death", "dead", "dying");
+
         bool isSpritesheet = path.IndexOf("Spritesheets",   System.StringComparison.Ordinal) >= 0
                           || path.IndexOf("With_shadow",    System.StringComparison.Ordinal) >= 0
                           || path.IndexOf("Without_shadow", System.StringComparison.Ordinal) >= 0
-                          || path.IndexOf("/Parts/",        System.StringComparison.Ordinal) >= 0;
+                          || path.IndexOf("/Parts/",        System.StringComparison.Ordinal) >= 0
+                          || (isAnimStateFile && Contains(path, "/Characters/"));
         importer.spriteImportMode = isSpritesheet ? SpriteImportMode.Multiple : SpriteImportMode.Single;
 
         // Part 2 — pixelsPerUnit by path

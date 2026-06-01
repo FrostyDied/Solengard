@@ -81,6 +81,14 @@ public static class SolengardAnimationSetup
         new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyOrcHeavy3.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Orc/PNG/Orc3/Without_shadow" },
     };
 
+    // ── Configuração de linha lateral ────────────────────────────────────────
+    // Índice da linha do sprite sheet que contém a animação side-facing.
+    // 0 = topo (maior Y no espaço Unity), contando para baixo.
+    // Rode "Solengard → Debug → Preview Sheet Rows" para identificar o índice correto.
+    const int   SIDE_ROW_INDEX  = 1;
+    const float ROW_Y_TOLERANCE = 6f;
+    const float MIN_SPRITE_SIZE = 8f; // descarta artefatos de auto-slice com menos de 8px
+
     [MenuItem("Solengard/Setup Animations")]
     static void SetupAnimations()
     {
@@ -107,15 +115,25 @@ public static class SolengardAnimationSetup
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .ToArray();
 
-            var idle   = LoadStateSprites(pngPaths, new[] { "idle" });
-            var walk   = LoadStateSprites(pngPaths, new[] { "walk", "run", "move" },          new[] { "attack" });
-            var attack = LoadStateSprites(pngPaths, new[] { "attack" });
-            var hurt   = LoadStateSprites(pngPaths, new[] { "hurt", "hit", "damage" });
-            var death  = LoadStateSprites(pngPaths, new[] { "death", "dying", "die", "dead" });
+            // Encontra UM arquivo por estado e extrai apenas a linha lateral
+            string idlePath   = FindStateFile(pngPaths, new[] { "idle" },                          new[] { "shadow" });
+            string walkPath   = FindStateFile(pngPaths, new[] { "walk" },                          new[] { "run", "attack", "shadow" });
+            string attackPath = FindStateFile(pngPaths, new[] { "attack" },                        new[] { "walk", "run", "shadow" });
+            string hurtPath   = FindStateFile(pngPaths, new[] { "hurt", "hit" },                  new[] { "shadow" });
+            string deathPath  = FindStateFile(pngPaths, new[] { "death", "dead", "dying", "die" }, new[] { "shadow" });
+
+            var idle   = ExtractSideRow(idlePath);
+            var walk   = ExtractSideRow(walkPath);
+            var attack = ExtractSideRow(attackPath);
+            var hurt   = ExtractSideRow(hurtPath);
+            var death  = ExtractSideRow(deathPath);
 
             string prefabName = Path.GetFileNameWithoutExtension(entry.prefabPath);
-            if (idle.Length  == 0) noIdle.Add(prefabName);
-            if (walk.Length  == 0) noWalk.Add(prefabName);
+            if (idle.Length == 0) noIdle.Add(prefabName);
+            if (walk.Length == 0) noWalk.Add(prefabName);
+
+            log.AppendLine($"  {prefabName}:");
+            log.AppendLine($"    idle={idle.Length} ({Path.GetFileNameWithoutExtension(idlePath ?? "?")}), walk={walk.Length} ({Path.GetFileNameWithoutExtension(walkPath ?? "?")}), attack={attack.Length}, hurt={hurt.Length}, death={death.Length}");
 
             var contents = PrefabUtility.LoadPrefabContents(entry.prefabPath);
             try
@@ -133,7 +151,6 @@ public static class SolengardAnimationSetup
 
                 PrefabUtility.SaveAsPrefabAsset(contents, entry.prefabPath);
                 configured++;
-                log.AppendLine($"  ✓ {prefabName}: idle={idle.Length} walk={walk.Length} attack={attack.Length} hurt={hurt.Length} death={death.Length}");
             }
             finally
             {
@@ -156,41 +173,43 @@ public static class SolengardAnimationSetup
     [MenuItem("Solengard/Setup Animations", validate = true)]
     static bool Validate() => true;
 
-    // Natural sort comparer: "frame_10" > "frame_2" instead of string "frame_10" < "frame_2"
-    class NaturalComparer : System.Collections.Generic.IComparer<string>
+    // Returns the path of the FIRST png that matches keywords and doesn't match excludeKeywords.
+    static string FindStateFile(string[] allPaths, string[] keywords, string[] excludeKeywords = null)
     {
-        public static readonly NaturalComparer Instance = new NaturalComparer();
-        public int Compare(string x, string y)
-        {
-            int xi = TrailingInt(x), yi = TrailingInt(y);
-            if (xi >= 0 && yi >= 0) return xi.CompareTo(yi);
-            return System.StringComparer.OrdinalIgnoreCase.Compare(x, y);
-        }
-        static int TrailingInt(string s)
-        {
-            int i = s.Length - 1;
-            while (i >= 0 && char.IsDigit(s[i])) i--;
-            return i == s.Length - 1 ? -1 : int.Parse(s.Substring(i + 1));
-        }
-    }
-
-    // keywords: any match includes the file. excludeKeywords: any match excludes it (e.g. "attack" from walk search).
-    static Sprite[] LoadStateSprites(string[] allPaths, string[] keywords, string[] excludeKeywords = null)
-    {
-        var sprites = new List<Sprite>();
         foreach (var path in allPaths)
         {
             string filename = Path.GetFileNameWithoutExtension(path).ToLowerInvariant();
             if (!keywords.Any(k => filename.Contains(k))) continue;
             if (excludeKeywords != null && excludeKeywords.Any(k => filename.Contains(k))) continue;
-
-            var subs = AssetDatabase.LoadAllAssetsAtPath(path)
-                .OfType<Sprite>()
-                .OrderBy(s => s.name, NaturalComparer.Instance)
-                .ToList();
-            sprites.AddRange(subs);
+            return path;
         }
-        return sprites.ToArray();
+        return null;
+    }
+
+    // Extracts only the SIDE_ROW_INDEX row from a directional sprite sheet.
+    // Rows are sorted top→bottom (descending Y). Single-row sheets always return row 0.
+    // Sprites smaller than MIN_SPRITE_SIZE in either dimension are discarded (auto-slice noise).
+    static Sprite[] ExtractSideRow(string sheetPath)
+    {
+        if (string.IsNullOrEmpty(sheetPath)) return new Sprite[0];
+
+        var sprites = AssetDatabase.LoadAllAssetsAtPath(sheetPath)
+            .OfType<Sprite>()
+            .Where(s => s.rect.width >= MIN_SPRITE_SIZE && s.rect.height >= MIN_SPRITE_SIZE)
+            .ToList();
+        if (sprites.Count == 0) return new Sprite[0];
+
+        // Group into rows by Y coordinate with tolerance for slightly misaligned slices
+        var rows = new List<List<Sprite>>();
+        foreach (var s in sprites.OrderByDescending(s => s.rect.y))
+        {
+            var row = rows.FirstOrDefault(r => Mathf.Abs(r[0].rect.y - s.rect.y) < ROW_Y_TOLERANCE);
+            if (row == null) { row = new List<Sprite>(); rows.Add(row); }
+            row.Add(s);
+        }
+
+        int idx = Mathf.Clamp(SIDE_ROW_INDEX, 0, rows.Count - 1);
+        return rows[idx].OrderBy(s => s.rect.x).ToArray();
     }
 
     static void SetSpriteArray(SerializedObject so, string propName, Sprite[] sprites)
