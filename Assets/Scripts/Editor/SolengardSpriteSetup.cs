@@ -4,6 +4,11 @@ using UnityEngine;
 
 public static class SolengardSpriteSetup
 {
+    // FASE 6 — PPU 32 para todos os personagens garante movimento subpixel suave.
+    // CHARACTER_SCALE serve de referência: com PPU 32 e scale 1.8 o herói ocupa ~10% da tela (orthoSize 14).
+    private const float CHARACTER_PPU   = 32f;
+    private const float CHARACTER_SCALE = 1.8f;
+
     private struct CategoryCount
     {
         public int hero, enemies, environment, effects, ui, other;
@@ -136,18 +141,18 @@ public static class SolengardSpriteSetup
         if (Contains(path, "Ghost"))     return ("Inimigo Ghost",    36);
         if (Contains(path, "DarkElf"))   return ("Inimigo DarkElf",  32);
 
-        // Medium enemies
-        if (Contains(path, "Gnoll")) return ("Inimigo Gnoll", 28);
-        if (Contains(path, "Orc"))   return ("Inimigo Orc",   28);
-        if (Contains(path, "Demon")) return ("Inimigo Demon", 28);
+        // Medium enemies — raised to CHARACTER_PPU for smooth subpixel movement
+        if (Contains(path, "Gnoll")) return ("Inimigo Gnoll", (int)CHARACTER_PPU);
+        if (Contains(path, "Orc"))   return ("Inimigo Orc",   (int)CHARACTER_PPU);
+        if (Contains(path, "Demon")) return ("Inimigo Demon",  (int)CHARACTER_PPU);
 
-        // Large enemies
-        if (Contains(path, "Golem")) return ("Inimigo Golem", 20);
-        if (Contains(path, "Lich"))  return ("Inimigo Lich",  20);
+        // Large enemies — raised to CHARACTER_PPU (scale compensates for size)
+        if (Contains(path, "Golem")) return ("Inimigo Golem", (int)CHARACTER_PPU);
+        if (Contains(path, "Lich"))  return ("Inimigo Lich",  (int)CHARACTER_PPU);
 
-        // Boss
+        // Boss — raised to CHARACTER_PPU; scale in prefab adjusts visual size
         if (ContainsAny(path, "Caveman", "Giant", "Viking", "Boss"))
-            return ("Boss", 16);
+            return ("Boss", (int)CHARACTER_PPU);
 
         // Environment
         if (Contains(path, "Tileset"))                                         return ("Ambiente Tileset",  16);

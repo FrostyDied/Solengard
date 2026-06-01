@@ -33,12 +33,14 @@ public class EnemyBase : MonoBehaviour
 
     bool  isDead;
     float _contactTimer;
+    int   _facingSign = 1; // histerese de flip: 1=direita -1=esquerda
 
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        rb.freezeRotation = true;
-        currentHealth = maxHealth;
+        rb.freezeRotation  = true;
+        rb.interpolation   = RigidbodyInterpolation2D.Interpolate;
+        currentHealth      = maxHealth;
 
         if (transform.localScale == Vector3.one)
             transform.localScale = new Vector3(2f, 2f, 1f);
@@ -96,12 +98,22 @@ public class EnemyBase : MonoBehaviour
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.SetState(CharacterAnimator.State.Walk);
 
+        // Histerese por velocidade — evita oscilação quando inimigo está quase parado
         var sr = GetComponent<SpriteRenderer>();
-        if (sr != null && playerTransform != null)
+        if (sr != null)
         {
-            float dir = playerTransform.position.x - transform.position.x;
-            const float FLIP_DEADZONE = 0.25f;
-            if (Mathf.Abs(dir) > FLIP_DEADZONE) sr.flipX = dir < 0f;
+            float vx = rb.linearVelocity.x;
+            const float FLIP_THRESHOLD = 0.3f;
+            if (vx > FLIP_THRESHOLD && _facingSign != 1)
+            {
+                _facingSign = 1;
+                sr.flipX    = false;
+            }
+            else if (vx < -FLIP_THRESHOLD && _facingSign != -1)
+            {
+                _facingSign = -1;
+                sr.flipX    = true;
+            }
         }
     }
 

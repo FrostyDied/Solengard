@@ -27,6 +27,10 @@ public class PlayerController : MonoBehaviour
     SpriteRenderer    _sr;
     CharacterAnimator _anim;
 
+    // Histerese de flip: evita oscilação em movimentos diagonais/verticais
+    int _facingSign = 1; // 1 = direita, -1 = esquerda
+    const float FLIP_THRESHOLD = 0.5f;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -41,6 +45,9 @@ public class PlayerController : MonoBehaviour
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         _rb.interpolation          = RigidbodyInterpolation2D.Interpolate;
         _rb.mass                   = 1000f; // prevents enemies from pushing the player on physical contact
+
+        if (Time.fixedDeltaTime > 0.02f)
+            Debug.Log($"[PlayerController] Fixed Timestep = {Time.fixedDeltaTime:F4}s. Recomendado 0.0167 (60 Hz) em Project Settings → Time para movimento mais suave.");
 
         // Zero-friction material so the player slides along obstacle edges cleanly
         var slideMat = new PhysicsMaterial2D("Slide") { friction = 0f, bounciness = 0f };
@@ -80,10 +87,18 @@ public class PlayerController : MonoBehaviour
 
         MoveDir = joystick.magnitude > 0.1f ? joystick.normalized : keyboardDir;
 
-        // Deadzone evita flip oscilante em movimentos quase-verticais
-        const float FLIP_DEADZONE = 0.3f;
-        if (_sr != null && Mathf.Abs(MoveDir.x) > FLIP_DEADZONE)
-            _sr.flipX = MoveDir.x < 0f;
+        // Histerese: só troca de direção quando claramente comprometido com o novo lado.
+        // Entre -0.5 e 0.5 (movimentos verticais ou diagonal suave) mantém o último flip.
+        if (MoveDir.x > FLIP_THRESHOLD && _facingSign != 1)
+        {
+            _facingSign = 1;
+            if (_sr != null) _sr.flipX = false;
+        }
+        else if (MoveDir.x < -FLIP_THRESHOLD && _facingSign != -1)
+        {
+            _facingSign = -1;
+            if (_sr != null) _sr.flipX = true;
+        }
 
         // FacingDirection suporta 4 direções — eixo dominante define a frente do ataque
         if (MoveDir.magnitude > 0.1f)

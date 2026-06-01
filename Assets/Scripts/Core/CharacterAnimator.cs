@@ -30,6 +30,19 @@ public class CharacterAnimator : MonoBehaviour
         _locked = false;
     }
 
+    void Start()
+    {
+        WarnFrameCount("idle", idleFrames);
+        WarnFrameCount("walk", walkFrames);
+    }
+
+    void WarnFrameCount(string label, Sprite[] frames)
+    {
+        if (frames == null || frames.Length == 0) return;
+        if (frames.Length < 4)
+            Debug.LogWarning($"[CharacterAnimator] {gameObject.name} '{label}': {frames.Length} frame(s) — ideal 4-6 para animação suave.");
+    }
+
     void Update()
     {
         var frames = GetFrames(_state);
