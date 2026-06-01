@@ -1208,6 +1208,10 @@ public static class SolengardSetup
         // IgnoreLayerCollision=false is kept so trigger queries still respect layer masks.
         Physics2D.IgnoreLayerCollision(player, enemy, false);
 
+        // Enemy-enemy: ignore physical collision — separation is handled via ComputeSeparation() in code.
+        // Prevents enemies from forming a ring around the player due to mutual physics repulsion.
+        Physics2D.IgnoreLayerCollision(enemy, enemy, true);
+
         // Obstacles: player collides (uses cover), enemies pass through freely.
         // NOTE: create layer "Obstacle" in Project Settings → Tags and Layers if absent.
         if (obstacle >= 0)

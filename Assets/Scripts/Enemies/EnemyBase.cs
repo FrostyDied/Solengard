@@ -59,8 +59,9 @@ public class EnemyBase : MonoBehaviour
         _sr = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
         if (_sr == null) Debug.LogError($"[EnemyBase] SpriteRenderer não encontrado em '{gameObject.name}' nem em filhos.");
 
-        // Trigger-only: enemies detect contact via OnTriggerStay2D but don't push the player physically
-        var col = GetComponent<Collider2D>();
+        // Trigger-only: enemies detect contact via OnTriggerStay2D but don't push the player physically.
+        // Check both the root and children — many prefabs have the collider on a child GameObject.
+        var col = GetComponent<Collider2D>() ?? GetComponentInChildren<Collider2D>();
         if (col != null) col.isTrigger = true;
 
         if (transform.localScale == Vector3.one)
