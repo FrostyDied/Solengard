@@ -107,11 +107,11 @@ public static class SolengardAnimationSetup
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .ToArray();
 
-            var idle   = LoadStateSprites(pngPaths, "idle");
-            var walk   = LoadStateSprites(pngPaths, "walk", "run");
-            var attack = LoadStateSprites(pngPaths, "attack");
-            var hurt   = LoadStateSprites(pngPaths, "hurt");
-            var death  = LoadStateSprites(pngPaths, "death", "dying", "die");
+            var idle   = LoadStateSprites(pngPaths, new[] { "idle" });
+            var walk   = LoadStateSprites(pngPaths, new[] { "walk", "run", "move" },          new[] { "attack" });
+            var attack = LoadStateSprites(pngPaths, new[] { "attack" });
+            var hurt   = LoadStateSprites(pngPaths, new[] { "hurt", "hit", "damage" });
+            var death  = LoadStateSprites(pngPaths, new[] { "death", "dying", "die", "dead" });
 
             string prefabName = Path.GetFileNameWithoutExtension(entry.prefabPath);
             if (idle.Length  == 0) noIdle.Add(prefabName);
@@ -156,17 +156,37 @@ public static class SolengardAnimationSetup
     [MenuItem("Solengard/Setup Animations", validate = true)]
     static bool Validate() => true;
 
-    static Sprite[] LoadStateSprites(string[] allPaths, params string[] keywords)
+    // Natural sort comparer: "frame_10" > "frame_2" instead of string "frame_10" < "frame_2"
+    class NaturalComparer : System.Collections.Generic.IComparer<string>
+    {
+        public static readonly NaturalComparer Instance = new NaturalComparer();
+        public int Compare(string x, string y)
+        {
+            int xi = TrailingInt(x), yi = TrailingInt(y);
+            if (xi >= 0 && yi >= 0) return xi.CompareTo(yi);
+            return System.StringComparer.OrdinalIgnoreCase.Compare(x, y);
+        }
+        static int TrailingInt(string s)
+        {
+            int i = s.Length - 1;
+            while (i >= 0 && char.IsDigit(s[i])) i--;
+            return i == s.Length - 1 ? -1 : int.Parse(s.Substring(i + 1));
+        }
+    }
+
+    // keywords: any match includes the file. excludeKeywords: any match excludes it (e.g. "attack" from walk search).
+    static Sprite[] LoadStateSprites(string[] allPaths, string[] keywords, string[] excludeKeywords = null)
     {
         var sprites = new List<Sprite>();
         foreach (var path in allPaths)
         {
             string filename = Path.GetFileNameWithoutExtension(path).ToLowerInvariant();
             if (!keywords.Any(k => filename.Contains(k))) continue;
+            if (excludeKeywords != null && excludeKeywords.Any(k => filename.Contains(k))) continue;
 
             var subs = AssetDatabase.LoadAllAssetsAtPath(path)
                 .OfType<Sprite>()
-                .OrderBy(s => s.name)
+                .OrderBy(s => s.name, NaturalComparer.Instance)
                 .ToList();
             sprites.AddRange(subs);
         }

@@ -28,8 +28,11 @@ public class EnemyBase : MonoBehaviour
     public static event System.Action OnEnemyDied;
     [HideInInspector] public string poolTag;
 
+    public const float CHARACTER_WORLD_SCALE = 2f;
+
     protected float currentHealth;
     protected Rigidbody2D rb;
+    protected SpriteRenderer _sr;
 
     bool  isDead;
     float _contactTimer;
@@ -42,8 +45,11 @@ public class EnemyBase : MonoBehaviour
         rb.interpolation   = RigidbodyInterpolation2D.Interpolate;
         currentHealth      = maxHealth;
 
+        _sr = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
+        if (_sr == null) Debug.LogError($"[EnemyBase] SpriteRenderer não encontrado em '{gameObject.name}' nem em filhos.");
+
         if (transform.localScale == Vector3.one)
-            transform.localScale = new Vector3(2f, 2f, 1f);
+            transform.localScale = new Vector3(CHARACTER_WORLD_SCALE, CHARACTER_WORLD_SCALE, 1f);
 
         // Busca o player automaticamente caso não tenha sido atribuído no Inspector
         if (playerTransform == null)
@@ -63,8 +69,7 @@ public class EnemyBase : MonoBehaviour
         // Reset animator and sprite color so pool-reused enemies start clean
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.ForceState(CharacterAnimator.State.Idle);
-        var sr = GetComponent<SpriteRenderer>();
-        if (sr != null) sr.color = Color.white;
+        if (_sr != null) _sr.color = Color.white;
 
         // Re-find player in case the scene was reloaded and the reference became stale
         if (playerTransform == null)
@@ -99,20 +104,19 @@ public class EnemyBase : MonoBehaviour
         if (anim != null) anim.SetState(CharacterAnimator.State.Walk);
 
         // Histerese por velocidade — evita oscilação quando inimigo está quase parado
-        var sr = GetComponent<SpriteRenderer>();
-        if (sr != null)
+        if (_sr != null)
         {
             float vx = rb.linearVelocity.x;
             const float FLIP_THRESHOLD = 0.3f;
             if (vx > FLIP_THRESHOLD && _facingSign != 1)
             {
                 _facingSign = 1;
-                sr.flipX    = false;
+                _sr.flipX   = false;
             }
             else if (vx < -FLIP_THRESHOLD && _facingSign != -1)
             {
                 _facingSign = -1;
-                sr.flipX    = true;
+                _sr.flipX   = true;
             }
         }
     }
@@ -157,11 +161,10 @@ public class EnemyBase : MonoBehaviour
 
     IEnumerator FlashRed()
     {
-        var sr = GetComponent<SpriteRenderer>();
-        if (sr == null) yield break;
-        sr.color = Color.red;
+        if (_sr == null) yield break;
+        _sr.color = Color.red;
         yield return new WaitForSeconds(0.1f);
-        sr.color = Color.white;
+        _sr.color = Color.white;
     }
 
     protected virtual bool CanTakeDamage() => true;

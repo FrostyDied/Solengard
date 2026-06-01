@@ -258,7 +258,8 @@ public static class SolengardSetup
             playerGO = (GameObject)PrefabUtility.InstantiatePrefab(playerPrefabAsset, scene);
             playerGO.name = "Player";
             playerGO.transform.position   = Vector3.zero;
-            playerGO.transform.localScale = new Vector3(2f, 2f, 1f);
+            float s = EnemyBase.CHARACTER_WORLD_SCALE;
+            playerGO.transform.localScale = new Vector3(s, s, 1f);
             Undo.RegisterCreatedObjectUndo(playerGO, "Rebuild GameScene");
             Debug.Log("[SolengardSetup] Player instanciado de Player_Level1.prefab.");
         }

@@ -15,6 +15,7 @@ public static class SolengardPrefabSetup
     private static bool cancelled;
     private static int currentOp;
     private const  int TotalOps = 72; // 9 heroes + 36 enemies + 7 effects + 20 env
+    private static bool _force;
 
     [MenuItem("Solengard/Setup All Prefabs")]
     public static void SetupAllPrefabs()
@@ -470,7 +471,7 @@ public static class SolengardPrefabSetup
             $"Criando: {name}",
             (float)currentOp / TotalOps);
 
-        if (AssetDatabase.LoadAssetAtPath<GameObject>(path) != null)
+        if (!_force && AssetDatabase.LoadAssetAtPath<GameObject>(path) != null)
         {
             skippedCount++;
             return false;
@@ -516,6 +517,42 @@ public static class SolengardPrefabSetup
         }
 
         Debug.LogWarning($"[SolengardPrefabSetup] Layer '{layerName}' não pôde ser criada — sem slots livres.");
+    }
+
+    // ── FORCE REBUILD ────────────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Force Rebuild Character Prefabs")]
+    public static void ForceRebuildCharacterPrefabs()
+    {
+        bool ok = EditorUtility.DisplayDialog(
+            "Force Rebuild Character Prefabs",
+            "Isso vai APAGAR e recriar todos os prefabs de personagens e inimigos.\nAnimações configuradas via Setup Animations serão preservadas (execute-o novamente após).\n\nContinuar?",
+            "Sim, recriar", "Cancelar");
+        if (!ok) return;
+
+        heroCount = enemyCount = skippedCount = missingFolderCount = 0;
+        cancelled = false;
+        currentOp = 0;
+        _force    = true;
+
+        try
+        {
+            AssetDatabase.Refresh();
+            BuildHeroes();
+            if (!cancelled) BuildEnemies();
+        }
+        finally
+        {
+            _force = false;
+            EditorUtility.ClearProgressBar();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        EditorUtility.DisplayDialog(
+            "Force Rebuild — Concluído",
+            $"Personagens recriados: {heroCount}  |  Inimigos recriados: {enemyCount}\n\nExecute 'Solengard → Setup Animations' para repopular os frames de animação.",
+            "OK");
     }
 
     // ── AUDIT ─────────────────────────────────────────────────────────────────

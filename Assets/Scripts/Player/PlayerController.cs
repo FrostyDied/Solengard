@@ -37,8 +37,10 @@ public class PlayerController : MonoBehaviour
         Instance = this;
 
         _rb   = GetComponent<Rigidbody2D>();
-        _sr   = GetComponent<SpriteRenderer>();
-        _anim = GetComponent<CharacterAnimator>();
+        _sr   = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
+        _anim = GetComponent<CharacterAnimator>() ?? GetComponentInChildren<CharacterAnimator>();
+        if (_sr   == null) Debug.LogError($"[PlayerController] SpriteRenderer não encontrado em '{gameObject.name}' nem em filhos.");
+        if (_anim == null) Debug.LogError($"[PlayerController] CharacterAnimator não encontrado em '{gameObject.name}' nem em filhos.");
 
         _rb.gravityScale           = 0f;
         _rb.freezeRotation         = true;

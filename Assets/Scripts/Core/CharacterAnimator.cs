@@ -23,7 +23,8 @@ public class CharacterAnimator : MonoBehaviour
 
     void Awake()
     {
-        _sr     = GetComponent<SpriteRenderer>();
+        _sr     = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
+        if (_sr == null) Debug.LogError($"[CharacterAnimator] SpriteRenderer não encontrado em '{gameObject.name}' nem em filhos.");
         _state  = State.Idle;
         _frame  = 0;
         _timer  = 0f;
