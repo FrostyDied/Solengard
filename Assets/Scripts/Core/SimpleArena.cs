@@ -316,5 +316,67 @@ public static class SimpleArenaTilesetDebug
             $"Se não parecer grama pura, ajuste cellX/cellY em LoadGrassTile().\n" +
             $"Delete o objeto de preview quando terminar.", "OK");
     }
+
+    [UnityEditor.MenuItem("Solengard/Debug/Analyze Grass Tileset")]
+    static void AnalyzeGrassTileset()
+    {
+        const string path = "Assets/Art/Environment/Season3_Grassland/Tileset/PNG/ground_grasss.png";
+
+        var importer = UnityEditor.AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
+        if (importer != null && !importer.isReadable)
+        {
+            importer.isReadable = true;
+            importer.SaveAndReimport();
+        }
+
+        var tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if (tex == null) { Debug.LogError("[AnalyzeGrass] Textura não encontrada: " + path); return; }
+
+        Debug.Log($"=== Análise de {tex.width}×{tex.height} ({tex.width / 16}×{tex.height / 16} células de 16px) ===");
+
+        int cell = 16;
+        int cols = tex.width  / cell;
+        int rows = tex.height / cell;
+        int candidates = 0;
+
+        for (int ry = 0; ry < rows; ry++)
+        {
+            for (int rx = 0; rx < cols; rx++)
+            {
+                int px = rx * cell;
+                int py = ry * cell;
+                int opaque = 0;
+                float sumR = 0, sumG = 0, sumB = 0;
+                int total = cell * cell;
+
+                for (int x = 0; x < cell; x++)
+                    for (int y = 0; y < cell; y++)
+                    {
+                        Color c = tex.GetPixel(px + x, py + y);
+                        if (c.a > 0.9f) opaque++;
+                        sumR += c.r; sumG += c.g; sumB += c.b;
+                    }
+
+                float opacity = (float)opaque / total;
+                float avgR = sumR / total, avgG = sumG / total, avgB = sumB / total;
+
+                // Grama pura: quase totalmente opaca + verde dominante
+                bool isGrass = opacity > 0.95f && avgG > avgR && avgG > avgB && avgG > 0.25f;
+
+                if (isGrass)
+                {
+                    int visualRow = rows - 1 - ry; // linha visual de cima para baixo
+                    Debug.Log($"GRAMA candidata: célula({rx},{ry}) pixel({px},{py}) visualRow={visualRow} " +
+                              $"opacidade={opacity:F2} cor=({avgR:F2},{avgG:F2},{avgB:F2})");
+                    candidates++;
+                }
+            }
+        }
+
+        string summary = $"=== Fim — {candidates} células candidatas de {cols * rows} total ===";
+        Debug.Log(summary);
+        UnityEditor.EditorUtility.DisplayDialog("Analyze Grass Tileset",
+            $"{candidates} células de grama pura encontradas.\nVeja o Console para os pixels exatos.", "OK");
+    }
 }
 #endif
