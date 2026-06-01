@@ -36,7 +36,10 @@ public class EnemyBase : MonoBehaviour
 
     bool  isDead;
     float _contactTimer;
-    int   _facingSign = 1; // histerese de flip: 1=direita -1=esquerda
+    int   _facingSign    = 1;   // histerese de flip: 1=direita -1=esquerda
+    float _lastFlipTime  = -99f;
+    const float FLIP_COOLDOWN  = 0.5f;
+    const float FLIP_THRESHOLD = 0.8f;
 
     protected virtual void Awake()
     {
@@ -47,6 +50,10 @@ public class EnemyBase : MonoBehaviour
 
         _sr = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
         if (_sr == null) Debug.LogError($"[EnemyBase] SpriteRenderer não encontrado em '{gameObject.name}' nem em filhos.");
+
+        // Trigger-only: enemies detect contact via OnTriggerStay2D but don't push the player physically
+        var col = GetComponent<Collider2D>();
+        if (col != null) col.isTrigger = true;
 
         if (transform.localScale == Vector3.one)
             transform.localScale = new Vector3(CHARACTER_WORLD_SCALE, CHARACTER_WORLD_SCALE, 1f);
@@ -103,20 +110,23 @@ public class EnemyBase : MonoBehaviour
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.SetState(CharacterAnimator.State.Walk);
 
-        // Histerese por velocidade — evita oscilação quando inimigo está quase parado
         if (_sr != null)
         {
             float vx = rb.linearVelocity.x;
-            const float FLIP_THRESHOLD = 0.3f;
-            if (vx > FLIP_THRESHOLD && _facingSign != 1)
+            if (Time.time - _lastFlipTime > FLIP_COOLDOWN)
             {
-                _facingSign = 1;
-                _sr.flipX   = false;
-            }
-            else if (vx < -FLIP_THRESHOLD && _facingSign != -1)
-            {
-                _facingSign = -1;
-                _sr.flipX   = true;
+                if (vx > FLIP_THRESHOLD && _facingSign != 1)
+                {
+                    _facingSign   = 1;
+                    _sr.flipX     = false;
+                    _lastFlipTime = Time.time;
+                }
+                else if (vx < -FLIP_THRESHOLD && _facingSign != -1)
+                {
+                    _facingSign   = -1;
+                    _sr.flipX     = true;
+                    _lastFlipTime = Time.time;
+                }
             }
         }
     }
@@ -136,15 +146,14 @@ public class EnemyBase : MonoBehaviour
         return sep;
     }
 
-    void OnCollisionStay2D(Collision2D col)
+    void OnTriggerStay2D(Collider2D col)
     {
-        if (!col.gameObject.CompareTag("Player")) return;
+        if (!col.CompareTag("Player")) return;
         _contactTimer += Time.fixedDeltaTime;
         if (_contactTimer < contactDamageInterval) return;
         _contactTimer = 0f;
         NotifyDeathCause();
-        var ph = col.gameObject.GetComponent<PlayerHealth>();
-        ph?.TakeDamage(damage);
+        col.GetComponent<PlayerHealth>()?.TakeDamage(damage);
     }
 
     protected virtual void NotifyDeathCause() { }

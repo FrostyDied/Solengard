@@ -85,7 +85,7 @@ public static class SolengardAnimationSetup
     // Índice da linha do sprite sheet que contém a animação side-facing.
     // 0 = topo (maior Y no espaço Unity), contando para baixo.
     // Rode "Solengard → Debug → Preview Sheet Rows" para identificar o índice correto.
-    const int   SIDE_ROW_INDEX  = 3; // confirmado via Preview Sheet Rows: linha Y=19 (base do sheet) é o perfil lateral
+    const int   SIDE_ROW_INDEX  = 0; // Craftpix: linha 0 (Y mais alto) = Down (de frente para câmera)
     const float ROW_Y_TOLERANCE = 6f;
     const float MIN_SPRITE_SIZE = 8f; // descarta artefatos de auto-slice com menos de 8px
 
