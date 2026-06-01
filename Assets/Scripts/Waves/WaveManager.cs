@@ -61,7 +61,17 @@ public class WaveManager : MonoBehaviour
         Instance = this;
     }
 
-    void Start() => FindPlayer();
+    void Start()
+    {
+        FindPlayer();
+        LogPrefabOrder();
+    }
+
+    void LogPrefabOrder()
+    {
+        for (int i = 0; i < enemyPrefabs.Count; i++)
+            Debug.Log($"[WaveManager] Prefab[{i}] = {enemyPrefabs[i]?.name ?? "NULL"}");
+    }
 
     void FindPlayer()
     {
@@ -172,6 +182,7 @@ public class WaveManager : MonoBehaviour
         var prefab     = enemyPrefabs[idx];
         if (prefab == null) return;
 
+        Debug.Log($"[Spawn] Wave={CurrentWave} idx={idx} prefab={prefab.name}");
         var enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
 
         var eb = enemy.GetComponent<EnemyBase>();

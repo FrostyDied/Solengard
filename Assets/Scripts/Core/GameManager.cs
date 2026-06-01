@@ -104,7 +104,13 @@ public class GameManager : MonoBehaviour
             Debug.Log($"[GameManager] Sessao ativa encontrada — wave={session.currentWave} kills={session.killCount}");
             OnSessionFound?.Invoke(session);
         }
+
+        // Sem MainMenu separada: iniciar automaticamente ao entrar na GameScene
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "GameScene")
+            Invoke(nameof(AutoStart), 0.5f);
     }
+
+    void AutoStart() => StartGame();
 
     void Update()
     {

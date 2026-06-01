@@ -43,21 +43,9 @@ public class PlayerController : MonoBehaviour
         if (_sr   == null) Debug.LogError($"[PlayerController] SpriteRenderer não encontrado em '{gameObject.name}' nem em filhos.");
         if (_anim == null) Debug.LogError($"[PlayerController] CharacterAnimator não encontrado em '{gameObject.name}' nem em filhos.");
 
-        _rb.gravityScale           = 0f;
-        _rb.freezeRotation         = true;
-        _rb.constraints            = RigidbodyConstraints2D.FreezeRotation;
-        _rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
-        _rb.interpolation          = RigidbodyInterpolation2D.Interpolate;
-        _rb.mass                   = 1000f;
-        _rb.linearDamping          = 8f;
-
-        if (Time.fixedDeltaTime > 0.02f)
-            Debug.Log($"[PlayerController] Fixed Timestep = {Time.fixedDeltaTime:F4}s. Recomendado 0.0167 (60 Hz) em Project Settings → Time para movimento mais suave.");
-
-        // Zero-friction material so the player slides along obstacle edges cleanly
-        var slideMat = new PhysicsMaterial2D("Slide") { friction = 0f, bounciness = 0f };
-        var col = GetComponent<Collider2D>();
-        if (col != null) col.sharedMaterial = slideMat;
+        _rb.gravityScale  = 0f;
+        _rb.isKinematic   = true;
+        _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
 #if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
         Debug.LogError("[PlayerController] Legacy Input desabilitado! Mude Active Input Handling para 'Both' em Project Settings > Player.");
@@ -67,11 +55,8 @@ public class PlayerController : MonoBehaviour
     void Update()      => InputManagement();
     void FixedUpdate()
     {
-        if (MoveDir.magnitude > 0.05f)
-            _rb.linearVelocity = MoveDir * moveSpeed;
-        else
-            _rb.linearVelocity = Vector2.Lerp(_rb.linearVelocity, Vector2.zero, 0.85f);
-        _rb.angularVelocity = 0f;
+        Vector2 next = (Vector2)transform.position + MoveDir * moveSpeed * Time.fixedDeltaTime;
+        _rb.MovePosition(next);
     }
 
     void InputManagement()

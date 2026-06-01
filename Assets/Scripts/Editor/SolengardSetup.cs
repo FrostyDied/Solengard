@@ -1295,7 +1295,7 @@ public static class SolengardSetup
 
         var so  = new SerializedObject(wm);
         var arr = so.FindProperty("enemyPrefabs");
-        if (arr == null || arr.arraySize > 0) return 0;
+        if (arr == null) return 0;
 
         var loaded = new List<GameObject>();
         foreach (string path in ENEMY_PREFAB_PATHS)
@@ -1307,6 +1307,8 @@ public static class SolengardSetup
 
         if (loaded.Count == 0) return 0;
 
+        // Sempre limpa e reordena para garantir que os índices batem com _waveUnlocks
+        arr.ClearArray();
         for (int i = 0; i < loaded.Count; i++)
         {
             arr.InsertArrayElementAtIndex(i);
@@ -1314,8 +1316,8 @@ public static class SolengardSetup
         }
         so.ApplyModifiedProperties();
 
-        log.AppendLine($"  WaveManager.enemyPrefabs → {loaded.Count} prefabs adicionados");
-        Debug.Log($"[SolengardSetup] {loaded.Count} enemy prefabs adicionados ao WaveManager.enemyPrefabs.");
+        log.AppendLine($"  WaveManager.enemyPrefabs → {loaded.Count} prefabs (reordenados)");
+        Debug.Log($"[SolengardSetup] {loaded.Count} enemy prefabs atribuídos ao WaveManager.enemyPrefabs na ordem correta.");
         return 1;
     }
 
