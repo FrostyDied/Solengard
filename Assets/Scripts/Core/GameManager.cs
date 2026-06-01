@@ -116,30 +116,31 @@ public class GameManager : MonoBehaviour
 
     void AutoStart()
     {
+        if (Camera.main != null) Camera.main.backgroundColor = Color.black;
         StartCoroutine(SafetyTimeScale());
-        StartGame(); // lore aparece imediatamente; fade revela o jogo após a lore
+        Invoke(nameof(StartGameDirect), 0.2f);
     }
 
-    // Fade de preto para transparente — usado DEPOIS da lore para revelar o jogo
+    void StartGameDirect() => StartGame();
+
+    // Fade de preto para transparente — chamado APÓS lore para revelar o jogo (sortingOrder 997, abaixo da lore 999)
     IEnumerator FadeFromBlack(System.Action onComplete)
     {
         var overlay = new GameObject("FadeOverlay");
         var canvas  = overlay.AddComponent<Canvas>();
         canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 998;
+        canvas.sortingOrder = 997;
         var img  = overlay.AddComponent<UnityEngine.UI.Image>();
         img.color = Color.black;
         var rect = img.GetComponent<RectTransform>();
         rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
         rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
 
-        yield return new WaitForSecondsRealtime(0.1f);
-
         float t = 0f;
         while (t < 1f)
         {
-            t        += Time.unscaledDeltaTime * 1.5f;
-            img.color = new Color(0f, 0f, 0f, 1f - t);
+            t        += Time.unscaledDeltaTime * 1.2f;
+            img.color = new Color(0f, 0f, 0f, Mathf.Lerp(1f, 0f, t));
             yield return null;
         }
         Destroy(overlay);

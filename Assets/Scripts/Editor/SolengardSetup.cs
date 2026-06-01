@@ -769,13 +769,13 @@ public static class SolengardSetup
 
         var loreUI = canvasGO.AddComponent<LoreScreenUI>();
 
-        // ── LorePanel — full-screen child that activates/deactivates ─────────────
+        // ── LorePanel — 90% da tela, ativa/desativa o conteúdo ──────────────────
         var panelGO = new GameObject("LorePanel");
         Undo.RegisterCreatedObjectUndo(panelGO, "Rebuild GameScene");
         panelGO.transform.SetParent(canvasGO.transform, false);
         var panelRT = panelGO.AddComponent<RectTransform>();
-        panelRT.anchorMin = Vector2.zero;
-        panelRT.anchorMax = Vector2.one;
+        panelRT.anchorMin = new Vector2(0.05f, 0.05f);
+        panelRT.anchorMax = new Vector2(0.95f, 0.95f);
         panelRT.offsetMin = Vector2.zero;
         panelRT.offsetMax = Vector2.zero;
 
@@ -804,8 +804,8 @@ public static class SolengardSetup
         sepRT.anchorMin        = new Vector2(0.5f, 0.5f);
         sepRT.anchorMax        = new Vector2(0.5f, 0.5f);
         sepRT.pivot            = new Vector2(0.5f, 0.5f);
-        sepRT.sizeDelta        = new Vector2(500f, 3f);
-        sepRT.anchoredPosition = new Vector2(0f, 80f);
+        sepRT.sizeDelta        = new Vector2(600f, 3f);
+        sepRT.anchoredPosition = new Vector2(0f, 110f);
         var sepImg = sepGO.AddComponent<Image>();
         sepImg.color = new Color(0.78f, 0.65f, 0.20f, 0f);
 
@@ -817,12 +817,12 @@ public static class SolengardSetup
         nomeRT.anchorMin        = new Vector2(0.5f, 0.5f);
         nomeRT.anchorMax        = new Vector2(0.5f, 0.5f);
         nomeRT.pivot            = new Vector2(0.5f, 0.5f);
-        nomeRT.sizeDelta        = new Vector2(600f, 70f);
-        nomeRT.anchoredPosition = new Vector2(0f, 120f);
+        nomeRT.sizeDelta        = new Vector2(700f, 80f);
+        nomeRT.anchoredPosition = new Vector2(0f, 160f);
         var nomeTMP = nomeGO.AddComponent<TextMeshProUGUI>();
         nomeTMP.text             = "";
         nomeTMP.alignment        = TextAlignmentOptions.Center;
-        nomeTMP.fontSize         = 36f;
+        nomeTMP.fontSize         = 48f;
         nomeTMP.fontStyle        = FontStyles.Bold;
         nomeTMP.color            = new Color(0.78f, 0.65f, 0.20f, 1f);
         nomeTMP.characterSpacing = 12f;
@@ -835,15 +835,15 @@ public static class SolengardSetup
         loreRT.anchorMin        = new Vector2(0.5f, 0.5f);
         loreRT.anchorMax        = new Vector2(0.5f, 0.5f);
         loreRT.pivot            = new Vector2(0.5f, 0.5f);
-        loreRT.sizeDelta        = new Vector2(580f, 300f);
-        loreRT.anchoredPosition = new Vector2(0f, -20f);
+        loreRT.sizeDelta        = new Vector2(700f, 300f);
+        loreRT.anchoredPosition = new Vector2(0f, 0f);
         var loreTMP = loreGO.AddComponent<TextMeshProUGUI>();
         loreTMP.text        = "";
         loreTMP.alignment   = TextAlignmentOptions.Center;
-        loreTMP.fontSize    = 18f;
+        loreTMP.fontSize    = 24f;
         loreTMP.fontStyle   = FontStyles.Italic;
         loreTMP.color       = new Color(0.85f, 0.83f, 0.88f, 1f);
-        loreTMP.lineSpacing = 8f;
+        loreTMP.lineSpacing = 10f;
 
         // Instrucao
         var instrGO = new GameObject("Instrucao");
@@ -853,12 +853,12 @@ public static class SolengardSetup
         instrRT.anchorMin        = new Vector2(0.5f, 0.5f);
         instrRT.anchorMax        = new Vector2(0.5f, 0.5f);
         instrRT.pivot            = new Vector2(0.5f, 0.5f);
-        instrRT.sizeDelta        = new Vector2(400f, 40f);
-        instrRT.anchoredPosition = new Vector2(0f, -200f);
+        instrRT.sizeDelta        = new Vector2(400f, 50f);
+        instrRT.anchoredPosition = new Vector2(0f, -220f);
         var instrTMP = instrGO.AddComponent<TextMeshProUGUI>();
         instrTMP.text      = "";
         instrTMP.alignment = TextAlignmentOptions.Center;
-        instrTMP.fontSize  = 15f;
+        instrTMP.fontSize  = 20f;
         instrTMP.color     = new Color(0.60f, 0.58f, 0.65f, 1f);
 
         // ── Wire fields via SerializedObject ──────────────────────────────────────
