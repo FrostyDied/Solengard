@@ -9,49 +9,46 @@ public class WaveManager : MonoBehaviour
     public static event System.Action<int> OnWaveCompleted;
     public static event System.Action      OnAllWavesCompleted;
 
-    [Header("Configuração de Waves")]
-    public int totalWaves = 10;
-
-    [Header("GameConfig (opcional — sobrescreve os valores acima se atribuído)")]
-    [SerializeField] GameConfig gameConfig;
+    [System.Serializable]
+    public class SpawnPhase
+    {
+        public float  startTime;
+        public string enemyType;
+        public float  spawnInterval;
+        public int    maxOnScreen;
+        public float  healthMult;
+        public float  speedMult;
+    }
 
     [Header("Inimigos")]
     public List<GameObject> enemyPrefabs = new();
-
-    [Header("Pontos de Spawn")]
-    public List<Transform> spawnPoints = new();
-
-    [Header("Spawn contínuo")]
-    [SerializeField] float spawnInterval       = 0.25f;
-    [SerializeField] float minimumWaveDuration = 60f;
-
-    [Header("Spawn dinâmico")]
-    [SerializeField] float     spawnMinDistance = 8f;
-    [SerializeField] float     spawnMaxDistance = 12f;
-    [SerializeField] LayerMask obstacleMask;
 
     [Header("Sistemas")]
     [SerializeField] WaveTimerSystem         waveTimerSystem;
     [SerializeField] DynamicDifficultySystem dynamicDifficulty;
 
-    // ── Valores lidos do GameConfig (com fallback nos padrões) ──────────────────
+    // Mantido para compatibilidade com SolengardSetup (não usado no spawn contínuo)
+    [Header("GameConfig (legado)")]
+    [SerializeField] GameConfig gameConfig;
 
-    int   TotalWavesConfig    => gameConfig != null ? gameConfig.totalWaves               : totalWaves;
-    float RawTimeBetweenWaves => gameConfig != null ? gameConfig.intervaloEntreWaves       : 8f;
-    int   BaseEnemyCount      => gameConfig != null ? gameConfig.inimigosBaseWave1         : 8;
-    int   EnemyCountIncrement => gameConfig != null ? gameConfig.incrementoInimigosPorWave : 5;
-
-    public float TimeBetweenWaves => RawTimeBetweenWaves;
+    static readonly SpawnPhase[] Phases = new SpawnPhase[]
+    {
+        new SpawnPhase { startTime=0,   enemyType="Zombie",   spawnInterval=0.6f, maxOnScreen=15, healthMult=1.0f, speedMult=1.0f },
+        new SpawnPhase { startTime=30,  enemyType="Slime",    spawnInterval=0.5f, maxOnScreen=25, healthMult=1.0f, speedMult=1.0f },
+        new SpawnPhase { startTime=60,  enemyType="Archer",   spawnInterval=0.5f, maxOnScreen=30, healthMult=1.2f, speedMult=1.1f },
+        new SpawnPhase { startTime=90,  enemyType="Orc",      spawnInterval=0.8f, maxOnScreen=35, healthMult=1.3f, speedMult=1.1f },
+        new SpawnPhase { startTime=120, enemyType="Mage",     spawnInterval=0.7f, maxOnScreen=40, healthMult=1.5f, speedMult=1.2f },
+        new SpawnPhase { startTime=180, enemyType="Assassin", spawnInterval=0.4f, maxOnScreen=50, healthMult=1.5f, speedMult=1.3f },
+        new SpawnPhase { startTime=240, enemyType="All",      spawnInterval=0.3f, maxOnScreen=60, healthMult=2.0f, speedMult=1.4f },
+    };
 
     // ── Estado interno ──────────────────────────────────────────────────────────
 
     int   currentWave  = 0;
-    int   enemiesAlive = 0;  // inimigos atualmente ativos na tela
-    int   killCount    = 0;  // kills realizados nesta wave
-    int   killQuota    = 0;  // kills necessários para concluir a wave
+    int   enemiesAlive = 0;
+    int   killCount    = 0;
     bool  isSpawning   = false;
-    float waveStartTime;
-
+    float _gameTime    = 0f;
 
     // ── Unity ───────────────────────────────────────────────────────────────────
 
@@ -59,228 +56,177 @@ public class WaveManager : MonoBehaviour
 
     // ── API pública ─────────────────────────────────────────────────────────────
 
-    // Restaura o WaveManager para uma wave específica sem animação de countdown
-    public void RestoreToWave(int wave)
-    {
-        currentWave  = Mathf.Max(1, wave) - 1; // StartWave() incrementa antes de rodar
-        killQuota    = 0;
-        killCount    = 0;
-        enemiesAlive = 0;
-        isSpawning   = false;
-        Debug.Log($"[WaveManager] RestoreToWave({wave})");
-        StartWave();
-    }
-
     public void StartWave()
     {
-        if (isSpawning) return;
-
-        currentWave++;
-        killQuota     = EnemyCountForWave(currentWave);
-        killCount     = 0;
-        enemiesAlive  = 0;
-        waveStartTime = Time.time;
-
-        Debug.Log($"[WaveManager] Wave {currentWave}/{TotalWavesConfig} — quota: {killQuota} kills");
-
-        waveTimerSystem?.StartTimer();
-        StartCoroutine(SpawnLoop());
+        StopAllCoroutines();
+        StartWavesAt(0f);
     }
 
-    // Chamado pelo OnDeathCallback de cada inimigo
+    public void RestoreToWave(int wave)
+    {
+        isSpawning = false;
+        StopAllCoroutines();
+        int   phaseIdx   = Mathf.Clamp(wave - 1, 0, Phases.Length - 1);
+        float restoreAt  = Phases[phaseIdx].startTime;
+        Debug.Log($"[WaveManager] RestoreToWave({wave}) → gameTime ≈ {restoreAt}s");
+        StartWavesAt(restoreAt);
+    }
+
     public void OnEnemyDied()
     {
-        enemiesAlive--;
+        enemiesAlive = Mathf.Max(0, enemiesAlive - 1);
         killCount++;
-
-        if (killCount >= killQuota && Time.time - waveStartTime >= minimumWaveDuration)
-            EndWave();
     }
 
-    // ── Lógica interna ──────────────────────────────────────────────────────────
+    // ── Núcleo do spawn contínuo ────────────────────────────────────────────────
 
-    // Spawna continuamente enquanto a wave está ativa,
-    // respeitando o limite de inimigos na tela.
-    // Wave 1 = 40, wave 2 = 52, wave 3 = 64, ... (+12 por wave)
-    int   GetMaxEnemies()    => 40 + (currentWave - 1) * 12;
-    float GetSpawnInterval() => Mathf.Max(0.15f, 0.25f - (currentWave - 1) * 0.02f);
-
-    IEnumerator SpawnLoop()
+    void StartWavesAt(float startGameTime)
     {
-        isSpawning = true;
+        if (isSpawning) return;
+        isSpawning   = true;
+        _gameTime    = startGameTime;
+        killCount    = 0;
+        enemiesAlive = 0;
+        currentWave  = 0;
+        waveTimerSystem?.StartTimer();
+        StartCoroutine(SpawnContinuous());
+    }
+
+    IEnumerator SpawnContinuous()
+    {
+        var activated = new HashSet<int>();
 
         while (isSpawning)
         {
-            if (enemiesAlive < GetMaxEnemies())
+            _gameTime += Time.deltaTime;
+
+            for (int i = 0; i < Phases.Length; i++)
             {
-                SpawnEnemy();
+                if (Phases[i].startTime <= _gameTime && !activated.Contains(i))
+                {
+                    activated.Add(i);
+                    currentWave++;
+                    Debug.Log($"[Spawn] Fase {currentWave}: {Phases[i].enemyType} aos {_gameTime:F0}s");
+                    waveTimerSystem?.StartTimer();
+                    OnWaveCompleted?.Invoke(currentWave);
+                    GameManager.Instance?.IncrementWave(currentWave);
+                    int captured = i;
+                    StartCoroutine(SpawnPhaseLoop(Phases[captured]));
+                }
+            }
+
+            yield return null;
+        }
+    }
+
+    IEnumerator SpawnPhaseLoop(SpawnPhase phase)
+    {
+        while (isSpawning)
+        {
+            if (enemiesAlive < phase.maxOnScreen)
+            {
+                SpawnEnemyOfType(phase);
                 enemiesAlive++;
             }
-
-            yield return new WaitForSeconds(GetSpawnInterval());
+            yield return new WaitForSeconds(phase.spawnInterval);
         }
     }
 
-    void SpawnEnemy()
+    // ── Spawn de inimigo ────────────────────────────────────────────────────────
+
+    void SpawnEnemyOfType(SpawnPhase phase)
     {
-        var available = GetFilteredPrefabs();
-        if (available.Count == 0)
+        var prefab = SelectPrefab(phase.enemyType);
+        if (prefab == null)
         {
-            Debug.LogError("[WaveManager] Nenhum prefab de inimigo configurado.");
+            Debug.LogError($"[WaveManager] Nenhum prefab para '{phase.enemyType}'.");
             return;
         }
 
-        GameObject prefab  = available[Random.Range(0, available.Count)];
-        Vector3    posicao = ObterPosicaoDeSpawn();
-
+        Vector3    pos   = GetSpawnPosition();
         GameObject enemy = ObjectPoolManager.Instance?.GetFromPool(prefab.name);
         if (enemy != null)
-            enemy.transform.position = posicao;
+            enemy.transform.position = pos;
         else
-            enemy = Instantiate(prefab, posicao, Quaternion.identity);
+            enemy = Instantiate(prefab, pos, Quaternion.identity);
 
-        EnemyBase enemyBase = enemy.GetComponent<EnemyBase>();
-        if (enemyBase != null)
+        var eb = enemy.GetComponent<EnemyBase>();
+        if (eb != null)
         {
-            enemyBase.OnDeathCallback = OnEnemyDied;
-            enemyBase.poolTag         = prefab.name;
-            ApplyAdaptiveHealthModifier(enemyBase);
-            dynamicDifficulty?.ApplyToEnemy(enemyBase);
-        }
-        else
-            Debug.LogWarning($"[WaveManager] Prefab '{prefab.name}' não possui EnemyBase.");
-    }
+            eb.OnDeathCallback = OnEnemyDied;
+            eb.poolTag         = prefab.name;
 
-    // Filtra enemyPrefabs pelos tipos disponíveis no tier atual do DynamicDifficultySystem
-    List<GameObject> GetFilteredPrefabs()
-    {
-        List<GameObject> result;
-
-        if (dynamicDifficulty == null)
-        {
-            result = enemyPrefabs;
-        }
-        else
-        {
-            string[] available = dynamicDifficulty.GetAvailableEnemyTypes();
-            if (available == null || available.Length == 0)
+            float hpMod = phase.healthMult;
+            if (DifficultyAdaptiveSystem.Instance != null)
+                hpMod *= DifficultyAdaptiveSystem.Instance.EnemyHealthModifier;
+            if (!Mathf.Approximately(hpMod, 1f))
             {
-                result = enemyPrefabs;
+                eb.maxHealth *= hpMod;
+                eb.InitializeHealth();
             }
-            else
-            {
-                var filtered = new List<GameObject>();
-                foreach (var prefab in enemyPrefabs)
-                    if (System.Array.IndexOf(available, prefab.name) >= 0)
-                        filtered.Add(prefab);
-                result = filtered.Count > 0 ? filtered : enemyPrefabs;
-            }
-        }
+            if (!Mathf.Approximately(phase.speedMult, 1f))
+                eb.moveSpeed *= phase.speedMult;
 
-        // Wave 1: apenas inimigos fracos para garantir onboarding suave
-        if (currentWave == 1)
+            dynamicDifficulty?.ApplyToEnemy(eb);
+        }
+        else
+            Debug.LogWarning($"[WaveManager] '{prefab.name}' sem EnemyBase.");
+    }
+
+    GameObject SelectPrefab(string enemyType)
+    {
+        if (enemyPrefabs == null || enemyPrefabs.Count == 0) return null;
+        if (enemyType == "All") return enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
+
+        string[] kws     = GetKeywords(enemyType);
+        var      matches = new List<GameObject>();
+        foreach (var p in enemyPrefabs)
         {
-            var weak = result.FindAll(p => p.name.Contains("Slime") || p.name.Contains("Zumbi"));
-            if (weak.Count > 0) return weak;
+            if (p == null) continue;
+            foreach (var kw in kws)
+                if (p.name.IndexOf(kw, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    { matches.Add(p); break; }
         }
-
-        return result;
+        return matches.Count > 0
+            ? matches[Random.Range(0, matches.Count)]
+            : enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
     }
 
-    void ApplyAdaptiveHealthModifier(EnemyBase enemy)
+    static string[] GetKeywords(string enemyType)
     {
-        if (DifficultyAdaptiveSystem.Instance == null) return;
-        float mod = DifficultyAdaptiveSystem.Instance.EnemyHealthModifier;
-        if (Mathf.Approximately(mod, 1f)) return;
-
-        enemy.maxHealth *= mod;
-        enemy.InitializeHealth();
-    }
-
-    Vector3 ObterPosicaoDeSpawn()
-    {
-        GameObject playerGO = GameObject.FindGameObjectWithTag("Player");
-        Vector2    playerPos = playerGO != null ? (Vector2)playerGO.transform.position : Vector2.zero;
-
-        // 40 % de chance de pressionar o quadrante com menos inimigos; 60 % aleatório
-        float baseAngle = Random.value < 0.4f
-            ? GetLeastPopulatedQuadrantAngle(playerPos)
-            : Random.Range(0f, 360f);
-
-        Vector2 bestCandidate = playerPos + AngleToDir(baseAngle) * spawnMaxDistance;
-
-        for (int attempt = 0; attempt < 5; attempt++)
+        switch (enemyType)
         {
-            float angle    = attempt == 0 ? baseAngle : Random.Range(0f, 360f);
-            float distance = Random.Range(spawnMinDistance, spawnMaxDistance);
-            Vector2 candidate = playerPos + AngleToDir(angle) * distance;
-
-            // obstacleMask == 0 → nenhuma máscara configurada, aceita qualquer posição
-            if (Physics2D.OverlapCircle(candidate, 0.5f, obstacleMask) == null)
-                return candidate;
-
-            bestCandidate = candidate;
+            case "Zombie":   return new[] { "Zumbi", "Zombie" };
+            case "Slime":    return new[] { "Slime" };
+            case "Archer":   return new[] { "Archer" };
+            case "Orc":      return new[] { "Orc" };
+            case "Mage":     return new[] { "Mage" };
+            case "Assassin": return new[] { "Assassin" };
+            default:         return new[] { enemyType };
         }
-        return bestCandidate;
     }
 
-    // Retorna o ângulo central (±30°) do quadrante ao redor do player com menos inimigos
-    float GetLeastPopulatedQuadrantAngle(Vector2 playerPos)
+    // ── Posição de spawn — bordas da câmera ─────────────────────────────────────
+
+    Vector3 GetSpawnPosition()
     {
-        int[] counts = new int[4]; // 0=NE  1=NW  2=SW  3=SE
-        foreach (Collider2D col in Physics2D.OverlapCircleAll(playerPos, spawnMaxDistance + 2f))
+        Camera  cam    = Camera.main;
+        Vector3 camPos = cam != null
+            ? cam.transform.position
+            : (PlayerController.Instance != null
+                ? (Vector3)PlayerController.Instance.transform.position
+                : Vector3.zero);
+
+        float camH = cam != null ? cam.orthographicSize + 2f : 12f;
+        float camW = cam != null ? camH * cam.aspect + 2f    : 20f;
+
+        switch (Random.Range(0, 4))
         {
-            if (col.GetComponent<EnemyBase>() == null) continue;
-            Vector2 rel = (Vector2)col.transform.position - playerPos;
-            int q = rel.x >= 0 ? (rel.y >= 0 ? 0 : 3) : (rel.y >= 0 ? 1 : 2);
-            counts[q]++;
+            case 0:  return new Vector3(camPos.x + Random.Range(-camW, camW), camPos.y + camH, 0f); // topo
+            case 1:  return new Vector3(camPos.x + Random.Range(-camW, camW), camPos.y - camH, 0f); // base
+            case 2:  return new Vector3(camPos.x - camW, camPos.y + Random.Range(-camH, camH), 0f); // esquerda
+            default: return new Vector3(camPos.x + camW,  camPos.y + Random.Range(-camH, camH), 0f); // direita
         }
-        int minQ = 0;
-        for (int i = 1; i < 4; i++)
-            if (counts[i] < counts[minQ]) minQ = i;
-
-        float[] baseAngles = { 45f, 135f, 225f, 315f }; // NE NW SW SE
-        return baseAngles[minQ] + Random.Range(-30f, 30f);
-    }
-
-    static Vector2 AngleToDir(float degrees)
-    {
-        float rad = degrees * Mathf.Deg2Rad;
-        return new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
-    }
-
-    void EndWave()
-    {
-        isSpawning = false; // para o SpawnLoop
-
-        Debug.Log($"[WaveManager] Wave {currentWave} concluída ({killCount} kills). Inimigos restantes na tela NÃO são destruídos.");
-        GameManager.Instance?.IncrementWave(currentWave);
-        waveTimerSystem?.StopTimer();
-        Debug.Log($"[Wave] Wave {currentWave} completa, disparando boost");
-        OnWaveCompleted?.Invoke(currentWave);
-
-        if (currentWave >= TotalWavesConfig)
-        {
-            Debug.Log("[WaveManager] Todas as waves concluídas!");
-            OnAllWavesCompleted?.Invoke();
-            return;
-        }
-
-        StartCoroutine(NextWaveCountdown());
-    }
-
-    IEnumerator NextWaveCountdown()
-    {
-        Debug.Log($"[WaveManager] Próxima wave em {RawTimeBetweenWaves}s...");
-        yield return new WaitForSeconds(RawTimeBetweenWaves);
-        StartWave();
-    }
-
-    int EnemyCountForWave(int wave)
-    {
-        int count     = BaseEnemyCount + EnemyCountIncrement * (wave - 1);
-        int reduction = DifficultyAdaptiveSystem.Instance?.EnemyCountReduction ?? 0;
-        return Mathf.Max(1, count - reduction);
     }
 
     // ── Propriedades de leitura ─────────────────────────────────────────────────
@@ -289,15 +235,16 @@ public class WaveManager : MonoBehaviour
     {
         get
         {
-            if (currentWave >= TotalWavesConfig)       return WaveType.Boss;
-            if (currentWave == 5 || currentWave == 8)  return WaveType.Elite;
+            if (currentWave >= Phases.Length) return WaveType.Boss;
+            if (currentWave == 4 || currentWave == 5) return WaveType.Elite;
             return WaveType.Normal;
         }
     }
 
-    public int CurrentWave  => currentWave;
-    public int TotalWaves   => TotalWavesConfig;
-    public int EnemiesAlive => enemiesAlive;
-    public int KillCount    => killCount;
-    public int KillQuota    => killQuota;
+    public float GameTime     => _gameTime;
+    public int   CurrentWave  => currentWave;
+    public int   TotalWaves   => Phases.Length;
+    public int   EnemiesAlive => enemiesAlive;
+    public int   KillCount    => killCount;
+    public int   KillQuota    => 0;
 }
