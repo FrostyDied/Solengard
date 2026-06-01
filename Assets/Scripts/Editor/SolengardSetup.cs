@@ -742,9 +742,17 @@ public static class SolengardSetup
         return total;
     }
 
-    // Creates LoreScreen UI hierarchy (Canvas → full-screen overlay with dark-fantasy typography).
+    // Creates LoreScreen UI hierarchy:
+    //   LoreScreenCanvas (Canvas + LoreScreenUI) — ALWAYS ACTIVE
+    //     └── LorePanel (CanvasGroup) — inactive by default; activated by ShowLore
+    //           ├── Background
+    //           ├── Separador
+    //           ├── NomeBioma
+    //           ├── TextoLore
+    //           └── Instrucao
     static void CreateLoreScreenUI(Scene scene)
     {
+        // ── Canvas root — stays active so FindFirstObjectByType finds it ──────────
         var canvasGO = new GameObject("LoreScreenCanvas");
         Undo.RegisterCreatedObjectUndo(canvasGO, "Rebuild GameScene");
         SceneManager.MoveGameObjectToScene(canvasGO, scene);
@@ -759,15 +767,27 @@ public static class SolengardSetup
         scaler.matchWidthOrHeight  = 0.5f;
         canvasGO.AddComponent<GraphicRaycaster>();
 
-        var cg = canvasGO.AddComponent<CanvasGroup>();
+        var loreUI = canvasGO.AddComponent<LoreScreenUI>();
+
+        // ── LorePanel — full-screen child that activates/deactivates ─────────────
+        var panelGO = new GameObject("LorePanel");
+        Undo.RegisterCreatedObjectUndo(panelGO, "Rebuild GameScene");
+        panelGO.transform.SetParent(canvasGO.transform, false);
+        var panelRT = panelGO.AddComponent<RectTransform>();
+        panelRT.anchorMin = Vector2.zero;
+        panelRT.anchorMax = Vector2.one;
+        panelRT.offsetMin = Vector2.zero;
+        panelRT.offsetMax = Vector2.zero;
+
+        var cg = panelGO.AddComponent<CanvasGroup>();
         cg.alpha = 0f;
 
-        var loreUI = canvasGO.AddComponent<LoreScreenUI>();
+        // ── Content — all parented to LorePanel ──────────────────────────────────
 
         // Background full-screen
         var bgGO = new GameObject("Background");
         Undo.RegisterCreatedObjectUndo(bgGO, "Rebuild GameScene");
-        bgGO.transform.SetParent(canvasGO.transform, false);
+        bgGO.transform.SetParent(panelGO.transform, false);
         var bgRT = bgGO.AddComponent<RectTransform>();
         bgRT.anchorMin = Vector2.zero;
         bgRT.anchorMax = Vector2.one;
@@ -779,7 +799,7 @@ public static class SolengardSetup
         // Separator — gold horizontal line
         var sepGO = new GameObject("Separador");
         Undo.RegisterCreatedObjectUndo(sepGO, "Rebuild GameScene");
-        sepGO.transform.SetParent(canvasGO.transform, false);
+        sepGO.transform.SetParent(panelGO.transform, false);
         var sepRT = sepGO.AddComponent<RectTransform>();
         sepRT.anchorMin        = new Vector2(0.5f, 0.5f);
         sepRT.anchorMax        = new Vector2(0.5f, 0.5f);
@@ -792,7 +812,7 @@ public static class SolengardSetup
         // NomeBioma
         var nomeGO = new GameObject("NomeBioma");
         Undo.RegisterCreatedObjectUndo(nomeGO, "Rebuild GameScene");
-        nomeGO.transform.SetParent(canvasGO.transform, false);
+        nomeGO.transform.SetParent(panelGO.transform, false);
         var nomeRT = nomeGO.AddComponent<RectTransform>();
         nomeRT.anchorMin        = new Vector2(0.5f, 0.5f);
         nomeRT.anchorMax        = new Vector2(0.5f, 0.5f);
@@ -800,17 +820,17 @@ public static class SolengardSetup
         nomeRT.sizeDelta        = new Vector2(700f, 60f);
         nomeRT.anchoredPosition = new Vector2(0f, 30f);
         var nomeTMP = nomeGO.AddComponent<TextMeshProUGUI>();
-        nomeTMP.text           = "";
-        nomeTMP.alignment      = TextAlignmentOptions.Center;
-        nomeTMP.fontSize       = 28f;
-        nomeTMP.fontStyle      = FontStyles.Bold;
-        nomeTMP.color          = new Color(0.78f, 0.65f, 0.20f, 1f);
+        nomeTMP.text             = "";
+        nomeTMP.alignment        = TextAlignmentOptions.Center;
+        nomeTMP.fontSize         = 28f;
+        nomeTMP.fontStyle        = FontStyles.Bold;
+        nomeTMP.color            = new Color(0.78f, 0.65f, 0.20f, 1f);
         nomeTMP.characterSpacing = 8f;
 
         // TextoLore
         var loreGO = new GameObject("TextoLore");
         Undo.RegisterCreatedObjectUndo(loreGO, "Rebuild GameScene");
-        loreGO.transform.SetParent(canvasGO.transform, false);
+        loreGO.transform.SetParent(panelGO.transform, false);
         var loreRT = loreGO.AddComponent<RectTransform>();
         loreRT.anchorMin        = new Vector2(0.5f, 0.5f);
         loreRT.anchorMax        = new Vector2(0.5f, 0.5f);
@@ -818,17 +838,17 @@ public static class SolengardSetup
         loreRT.sizeDelta        = new Vector2(500f, 300f);
         loreRT.anchoredPosition = new Vector2(0f, -60f);
         var loreTMP = loreGO.AddComponent<TextMeshProUGUI>();
-        loreTMP.text          = "";
-        loreTMP.alignment     = TextAlignmentOptions.Center;
-        loreTMP.fontSize      = 16f;
-        loreTMP.fontStyle     = FontStyles.Italic;
-        loreTMP.color         = new Color(0.85f, 0.83f, 0.88f, 1f);
-        loreTMP.lineSpacing   = 6f;
+        loreTMP.text        = "";
+        loreTMP.alignment   = TextAlignmentOptions.Center;
+        loreTMP.fontSize    = 16f;
+        loreTMP.fontStyle   = FontStyles.Italic;
+        loreTMP.color       = new Color(0.85f, 0.83f, 0.88f, 1f);
+        loreTMP.lineSpacing = 6f;
 
         // Instrucao
         var instrGO = new GameObject("Instrucao");
         Undo.RegisterCreatedObjectUndo(instrGO, "Rebuild GameScene");
-        instrGO.transform.SetParent(canvasGO.transform, false);
+        instrGO.transform.SetParent(panelGO.transform, false);
         var instrRT = instrGO.AddComponent<RectTransform>();
         instrRT.anchorMin        = new Vector2(0.5f, 0.5f);
         instrRT.anchorMax        = new Vector2(0.5f, 0.5f);
@@ -841,8 +861,9 @@ public static class SolengardSetup
         instrTMP.fontSize  = 13f;
         instrTMP.color     = new Color(0.60f, 0.58f, 0.65f, 1f);
 
-        // Wire fields via SerializedObject
+        // ── Wire fields via SerializedObject ──────────────────────────────────────
         var so = new UnityEditor.SerializedObject(loreUI);
+        so.FindProperty("lorePanel").objectReferenceValue   = panelGO;
         so.FindProperty("canvasGroup").objectReferenceValue = cg;
         so.FindProperty("background").objectReferenceValue  = bgImg;
         so.FindProperty("nomeBioma").objectReferenceValue   = nomeTMP;
@@ -851,8 +872,9 @@ public static class SolengardSetup
         so.FindProperty("separador").objectReferenceValue   = sepImg;
         so.ApplyModifiedPropertiesWithoutUndo();
 
-        canvasGO.SetActive(false);
-        Debug.Log($"[SolengardSetup] LoreScreenUI criada — Canvas sortingOrder={canvas.sortingOrder}");
+        // Canvas root stays active; only the panel is hidden by default
+        panelGO.SetActive(false);
+        Debug.Log($"[SolengardSetup] LoreScreenUI criada — Canvas sempre ativo, LorePanel inativo por padrão (sortingOrder={canvas.sortingOrder})");
     }
 
     // Creates required system GameObjects if absent; called by SetupAll before wiring.

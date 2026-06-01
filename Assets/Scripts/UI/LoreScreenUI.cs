@@ -9,7 +9,8 @@ public class LoreScreenUI : MonoBehaviour
     public static LoreScreenUI Instance { get; private set; }
 
     [Header("Referências UI")]
-    [SerializeField] CanvasGroup     canvasGroup;
+    [SerializeField] GameObject    lorePanel;  // filho do Canvas — ativa/desativa o conteúdo
+    [SerializeField] CanvasGroup   canvasGroup;
     [SerializeField] Image           background;
     [SerializeField] TextMeshProUGUI nomeBioma;
     [SerializeField] TextMeshProUGUI textoLore;
@@ -23,19 +24,24 @@ public class LoreScreenUI : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         if (canvasGroup != null) canvasGroup.alpha = 0f;
-        gameObject.SetActive(false);
+        // Só o painel interno fica inativo — o Canvas raiz permanece ativo
+        // para que FindFirstObjectByType (sem Include) também o encontre.
+        if (lorePanel != null) lorePanel.SetActive(false);
     }
 
     public IEnumerator ShowLore(BiomeSystem.BiomeConfig config, System.Action onComplete)
     {
-        Debug.Log($"[Lore] ShowLore iniciado, gameObject.active={gameObject.activeInHierarchy}");
-        gameObject.SetActive(true);
-        Debug.Log($"[Lore] Após SetActive(true), active={gameObject.activeInHierarchy}");
+        Debug.Log($"[Lore] ShowLore iniciado, lorePanel={lorePanel != null}, active={lorePanel?.activeInHierarchy}");
+
+        if (lorePanel != null) lorePanel.SetActive(true);
+        Debug.Log($"[Lore] Após SetActive(true), lorePanel.active={lorePanel?.activeInHierarchy}");
+
         yield return null; // wait one frame so Canvas renders before pausing time
-        Debug.Log($"[Lore] Após yield, active={gameObject.activeInHierarchy}, timeScale={Time.timeScale}");
-        if (!gameObject.activeInHierarchy)
+        Debug.Log($"[Lore] Após yield, active={lorePanel?.activeInHierarchy}, timeScale={Time.timeScale}");
+
+        if (lorePanel == null || !lorePanel.activeInHierarchy)
         {
-            Debug.LogWarning("[Lore] gameObject inativo após yield — early exit, timeScale forçado para 1");
+            Debug.LogWarning("[Lore] lorePanel inativo após yield — early exit, timeScale forçado para 1");
             Time.timeScale = 1f;
             onComplete?.Invoke();
             yield break;
@@ -99,7 +105,7 @@ public class LoreScreenUI : MonoBehaviour
         canvasGroup.DOFade(0f, 0.6f).SetUpdate(true);
         yield return new WaitForSecondsRealtime(0.6f);
 
-        gameObject.SetActive(false);
+        if (lorePanel != null) lorePanel.SetActive(false);
         Time.timeScale = 1f; // always restore — even if something failed above
         onComplete?.Invoke();
     }
