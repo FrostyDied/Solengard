@@ -115,12 +115,12 @@ public static class SolengardAnimationSetup
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .ToArray();
 
-            // Encontra UM arquivo por estado e extrai apenas a linha lateral
-            string idlePath   = FindStateFile(pngPaths, new[] { "idle" },                          new[] { "shadow" });
-            string walkPath   = FindStateFile(pngPaths, new[] { "walk" },                          new[] { "run", "attack", "shadow" });
-            string attackPath = FindStateFile(pngPaths, new[] { "attack" },                        new[] { "walk", "run", "shadow" });
-            string hurtPath   = FindStateFile(pngPaths, new[] { "hurt", "hit" },                  new[] { "shadow" });
-            string deathPath  = FindStateFile(pngPaths, new[] { "death", "dead", "dying", "die" }, new[] { "shadow" });
+            // "shadow_" (not "shadow") so "without_shadow" filenames are NOT excluded — only standalone shadow variants are.
+            string idlePath   = FindStateFile(pngPaths, new[] { "idle" },                           new[] { "shadow_" });
+            string walkPath   = FindStateFile(pngPaths, new[] { "walk" },                           new[] { "run", "attack", "shadow_" });
+            string attackPath = FindStateFile(pngPaths, new[] { "attack" },                         new[] { "walk", "run", "shadow_" });
+            string hurtPath   = FindStateFile(pngPaths, new[] { "hurt", "hit" },                   new[] { "shadow_" });
+            string deathPath  = FindStateFile(pngPaths, new[] { "death", "dead", "dying", "die" },  new[] { "shadow_" });
 
             var idle   = ExtractSideRow(idlePath);
             var walk   = ExtractSideRow(walkPath);
@@ -193,15 +193,13 @@ public static class SolengardAnimationSetup
     {
         if (string.IsNullOrEmpty(sheetPath)) return new Sprite[0];
 
-        var sprites = AssetDatabase.LoadAllAssetsAtPath(sheetPath)
-            .OfType<Sprite>()
-            .Where(s => s.rect.width >= MIN_SPRITE_SIZE && s.rect.height >= MIN_SPRITE_SIZE)
-            .ToList();
-        if (sprites.Count == 0) return new Sprite[0];
+        var sprites = AssetDatabase.LoadAllAssetsAtPath(sheetPath).OfType<Sprite>().ToList();
+        var valid   = sprites.Where(s => s.rect.width >= MIN_SPRITE_SIZE && s.rect.height >= MIN_SPRITE_SIZE).ToList();
+        if (valid.Count == 0) return new Sprite[0];
 
         // Group into rows by Y coordinate with tolerance for slightly misaligned slices
         var rows = new List<List<Sprite>>();
-        foreach (var s in sprites.OrderByDescending(s => s.rect.y))
+        foreach (var s in valid.OrderByDescending(s => s.rect.y))
         {
             var row = rows.FirstOrDefault(r => Mathf.Abs(r[0].rect.y - s.rect.y) < ROW_Y_TOLERANCE);
             if (row == null) { row = new List<Sprite>(); rows.Add(row); }
