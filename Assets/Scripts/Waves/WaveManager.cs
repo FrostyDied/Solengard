@@ -182,7 +182,7 @@ public class WaveManager : MonoBehaviour
         var prefab     = enemyPrefabs[idx];
         if (prefab == null) return;
 
-        Debug.Log($"[Spawn] Wave={CurrentWave} idx={idx} prefab={prefab.name}");
+        Debug.Log($"[Spawn] Wave={CurrentWave} indices=[{string.Join(",", GetAllowedIndices())}] escolhido={idx} prefab={prefab.name}");
         var enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
 
         var eb = enemy.GetComponent<EnemyBase>();

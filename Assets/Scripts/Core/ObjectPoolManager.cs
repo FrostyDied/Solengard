@@ -30,8 +30,12 @@ public class ObjectPoolManager : MonoBehaviour
 
     void InicializarPools()
     {
-        foreach (Pool pool in pools)
+        // Snapshot do count antes de qualquer Instantiate — Awakes dos prefabs podem chamar
+        // RegisterPool() que adiciona a pools[], corrompendo um foreach em andamento.
+        int count = pools.Count;
+        for (int p = 0; p < count; p++)
         {
+            Pool pool = pools[p];
             Queue<GameObject> fila = new();
             for (int i = 0; i < pool.tamanhoInicial; i++)
             {
