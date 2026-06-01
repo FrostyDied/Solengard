@@ -108,5 +108,11 @@ InitTestScene*.unity*
 # Assets de arte - grande demais para o Git
 Assets/Art/
 
+# Plugins de terceiros (DOTween, Hovl Studio) - instalar via Unity Asset Store
+Assets/Plugins/
+Assets/Plugins.meta
+Assets/Hovl Studio/
+Assets/Hovl Studio.meta
+
 # Manter só os prefabs e sprites que forem usados nos prefabs
 !Assets/Art/Characters/Enemies/Slime/PNG/
