@@ -81,15 +81,15 @@ public class LevelUpUI : MonoBehaviour
         return new List<UpgradeOption>
         {
             new UpgradeOption { id = "dano",     nome = "Lamina Afiada",     descricao = "+25% dano de ataque",
-                onChoose = () => { if (pa) pa.attackDamage *= 1.25f; } },
+                onChoose = () => { if (pa) pa.attackDamage = Mathf.Min(pa.attackDamage * 1.25f, 150f); } },
             new UpgradeOption { id = "vel",      nome = "Pes Ageis",         descricao = "+20% velocidade de movimento",
-                onChoose = () => { if (pc) pc.moveSpeed *= 1.2f; } },
+                onChoose = () => { if (pc) pc.moveSpeed = Mathf.Min(pc.moveSpeed * 1.2f, PlayerController.MAX_MOVE_SPEED); } },
             new UpgradeOption { id = "vida",     nome = "Coracao Forte",     descricao = "+30 vida maxima e cura 20",
                 onChoose = () => { if (ph) { ph.AumentarVidaMax(30f); ph.Curar(20f); } } },
             new UpgradeOption { id = "range",    nome = "Alcance Mistico",   descricao = "+30% alcance de ataque",
-                onChoose = () => { if (pa) pa.attackRange *= 1.3f; } },
+                onChoose = () => { if (pa) pa.attackRange = Mathf.Min(pa.attackRange * 1.3f, 12f); } },
             new UpgradeOption { id = "cooldown", nome = "Furia de Combate",  descricao = "Ataca 25% mais rapido",
-                onChoose = () => { if (pa) pa.attackCooldown *= 0.75f; } },
+                onChoose = () => { if (pa) pa.attackCooldown = Mathf.Max(pa.attackCooldown * 0.75f, 0.12f); } },
             new UpgradeOption { id = "xpmagnet", nome = "Cristal Magnetico", descricao = "Cristais de XP se atraem de longe",
                 onChoose = () => { XPDrop.GlobalMagnetRadius += 3f; } },
         };

@@ -39,8 +39,9 @@ public class EnemyBase : MonoBehaviour
 
     bool  isDead;
     float _contactTimer;
-    int   _facingSign    = 1;   // histerese de flip: 1=direita -1=esquerda
-    float _lastFlipTime  = -99f;
+    int   _facingSign       = 1;
+    float _lastFlipTime     = -99f;
+    float _findPlayerTimer  = 0f;
     const float FLIP_COOLDOWN  = 0.5f;
     const float FLIP_THRESHOLD = 0.8f;
 
@@ -96,14 +97,34 @@ public class EnemyBase : MonoBehaviour
         moveSpeed *= 1.2f; // horda 20% mais rápida globalmente
     }
 
+    protected virtual void Update()
+    {
+        if (playerTransform == null)
+        {
+            _findPlayerTimer -= Time.deltaTime;
+            if (_findPlayerTimer <= 0f) { FindPlayer(); _findPlayerTimer = 0.5f; }
+        }
+    }
+
     protected virtual void FixedUpdate()
     {
         MoveTowardsPlayer();
     }
 
+    void FindPlayer()
+    {
+        if (PlayerController.Instance != null)
+            playerTransform = PlayerController.Instance.transform;
+        else
+        {
+            var p = GameObject.FindGameObjectWithTag("Player");
+            if (p != null) playerTransform = p.transform;
+        }
+    }
+
     void MoveTowardsPlayer()
     {
-        if (playerTransform == null) return;
+        if (playerTransform == null) { FindPlayer(); return; }
 
         float dist = Vector2.Distance(rb.position, (Vector2)playerTransform.position);
         if (dist <= stoppingDistance) { rb.linearVelocity = Vector2.zero; return; }

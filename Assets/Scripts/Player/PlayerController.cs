@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Movimento")]
     public float moveSpeed = 5f;
+    public const float MAX_MOVE_SPEED = 9f;
 
     // Direção atual do movimento (fonte da verdade para flip e ataque)
     public Vector2 MoveDir { get; private set; }
@@ -84,10 +85,12 @@ public class PlayerController : MonoBehaviour
 
         // MobileJoystick sobrescreve teclado quando ativo
         Vector2 joystick = JoystickInput;
+        if (joystick.magnitude < 0.1f) joystick = Vector2.zero;
         if (MobileJoystick.Instance != null && MobileJoystick.Instance.IsActive)
             joystick = MobileJoystick.Instance.InputDirection;
 
         MoveDir = joystick.magnitude > 0.1f ? joystick.normalized : keyboardDir;
+        if (MoveDir.magnitude < 0.05f) MoveDir = Vector2.zero;
 
         // Histerese: só troca de direção quando claramente comprometido com o novo lado.
         // Entre -0.5 e 0.5 (movimentos verticais ou diagonal suave) mantém o último flip.
@@ -119,6 +122,6 @@ public class PlayerController : MonoBehaviour
 
     void Move()
     {
-        _rb.linearVelocity = MoveDir * moveSpeed;
+        _rb.linearVelocity = MoveDir.magnitude > 0.05f ? MoveDir * moveSpeed : Vector2.zero;
     }
 }
