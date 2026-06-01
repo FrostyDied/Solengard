@@ -32,8 +32,7 @@ public class WaveWarningUI : MonoBehaviour
         int nextWave = completedWave + 1;
         if (nextWave > waveManager.TotalWaves) return;
 
-        float delay = Mathf.Max(0f, waveManager.TimeBetweenWaves - 3f);
-        StartCoroutine(ShowAfterDelay(delay, nextWave));
+        StartCoroutine(ShowAfterDelay(0f, nextWave));
     }
 
     IEnumerator ShowAfterDelay(float delay, int waveNumber)
