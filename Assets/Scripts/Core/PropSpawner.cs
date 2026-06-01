@@ -5,12 +5,9 @@ public class PropSpawner : MonoBehaviour
 {
     public static PropSpawner Instance { get; private set; }
 
-    [Header("Prefabs de obstáculos")]
-    [SerializeField] List<GameObject> obstaclePrefabs = new();
-
     [Header("Densidade")]
     [SerializeField] int   maxProps           = 12;
-    [SerializeField] float spawnRadiusMin     = 18f;  // sempre fora da tela (orthoSize=14)
+    [SerializeField] float spawnRadiusMin     = 18f;
     [SerializeField] float spawnRadiusMax     = 26f;
     [SerializeField] float despawnRadius      = 32f;
     [SerializeField] float minSpacing         = 8f;
@@ -24,7 +21,6 @@ public class PropSpawner : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        if (obstaclePrefabs.Count == 0) LoadDefaultObstacles();
     }
 
     void Start()
@@ -51,11 +47,9 @@ public class PropSpawner : MonoBehaviour
         TrySpawnProp();
     }
 
-    // Distribui os props iniciais em anel ao redor do player antes do jogo começar.
-    // Props aparecem fora do campo de visão desde o primeiro frame.
+    // Distribui props sombrios em anel ao redor do player antes do primeiro frame.
     void PrePopulate()
     {
-        if (obstaclePrefabs.Count == 0) return;
         Vector3 center = _player != null ? _player.position : Vector3.zero;
         for (int i = 0; i < maxProps; i++)
         {
@@ -68,7 +62,7 @@ public class PropSpawner : MonoBehaviour
 
     void TrySpawnProp()
     {
-        if (_activeProps.Count >= maxProps || obstaclePrefabs.Count == 0) return;
+        if (_activeProps.Count >= maxProps) return;
 
         float angle = Random.Range(0f, Mathf.PI * 2f);
         float dist  = Random.Range(spawnRadiusMin, spawnRadiusMax);
@@ -84,19 +78,69 @@ public class PropSpawner : MonoBehaviour
             if (Vector3.Distance(prop.transform.position, pos) < minSpacing) return;
         }
 
-        if (obstaclePrefabs.Count == 0) return;
-        var prefab = obstaclePrefabs[Random.Range(0, obstaclePrefabs.Count)];
-        if (prefab == null) return;
+        var go = CreateProceduralProp(pos);
+        go.transform.SetParent(transform);
+        _activeProps.Add(go);
+    }
 
-        var instance = Instantiate(prefab, pos, Quaternion.identity);
-        instance.SetActive(true);
-        instance.transform.SetParent(transform);
+    GameObject CreateProceduralProp(Vector3 pos)
+    {
+        var types = System.Enum.GetValues(typeof(ProceduralProps.PropType));
+        var type  = (ProceduralProps.PropType)types.GetValue(Random.Range(0, types.Length));
+        int seed  = Random.Range(0, 99999);
+
+        var go = new GameObject($"Prop_{type}");
+        go.transform.position = pos;
+
+        var sr       = go.AddComponent<SpriteRenderer>();
+        sr.sprite    = ProceduralProps.Generate(type, seed);
+        sr.sortingOrder = Mathf.RoundToInt(-pos.y * 10);
+
+        bool blocks = type != ProceduralProps.PropType.Bones
+                   && type != ProceduralProps.PropType.Crystal;
+        if (blocks)
+        {
+            var col    = go.AddComponent<CircleCollider2D>();
+            col.radius = 0.35f;
+            col.offset = new Vector2(0f, -0.3f);
+            var rb         = go.AddComponent<Rigidbody2D>();
+            rb.bodyType    = RigidbodyType2D.Static;
+        }
 
         int obstacleLayer = LayerMask.NameToLayer("Obstacle");
-        if (obstacleLayer >= 0)
-            SetLayerRecursive(instance, obstacleLayer);
+        if (obstacleLayer >= 0) go.layer = obstacleLayer;
 
-        _activeProps.Add(instance);
+        if ((type == ProceduralProps.PropType.DeadTree || type == ProceduralProps.PropType.Tombstone)
+            && Random.value < 0.25f)
+            AddRedEyes(go);
+
+        return go;
+    }
+
+    void AddRedEyes(GameObject parent)
+    {
+        var eyes = new GameObject("RedEyes");
+        eyes.transform.SetParent(parent.transform);
+        eyes.transform.localPosition = new Vector3(0f, 0.3f, 0f);
+        var sr       = eyes.AddComponent<SpriteRenderer>();
+        sr.sprite    = MakeRedEyesSprite();
+        sr.sortingOrder = 60;
+        eyes.AddComponent<PulsingGlow>();
+    }
+
+    Sprite MakeRedEyesSprite()
+    {
+        var tex = new Texture2D(8, 4);
+        for (int i = 0; i < 8; i++)
+            for (int j = 0; j < 4; j++)
+                tex.SetPixel(i, j, new Color(0, 0, 0, 0));
+
+        var red = new Color(1f, 0.15f, 0.1f, 1f);
+        tex.SetPixel(1, 2, red); tex.SetPixel(2, 2, red);
+        tex.SetPixel(5, 2, red); tex.SetPixel(6, 2, red);
+        tex.Apply();
+        tex.filterMode = FilterMode.Point;
+        return Sprite.Create(tex, new Rect(0, 0, 8, 4), new Vector2(0.5f, 0.5f), 16f);
     }
 
     void CleanupDistantProps()
@@ -110,54 +154,5 @@ public class PropSpawner : MonoBehaviour
                 _activeProps.RemoveAt(i);
             }
         }
-    }
-
-    static void SetLayerRecursive(GameObject go, int layer)
-    {
-        go.layer = layer;
-        foreach (Transform child in go.transform)
-            SetLayerRecursive(child.gameObject, layer);
-    }
-
-    void LoadDefaultObstacles()
-    {
-#if UNITY_EDITOR
-        // Season3 prefabs prioritários — rochas e ruínas de grama
-        string[] prefabPaths = {
-            "Assets/Prefabs/Environment/Season3/GrasslandRock.prefab",
-            "Assets/Prefabs/Environment/Season3/GrasslandRuin.prefab",
-        };
-        foreach (var p in prefabPaths)
-        {
-            var go = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(p);
-            if (go != null) obstaclePrefabs.Add(go);
-        }
-
-        if (obstaclePrefabs.Count > 0) return;
-
-        // Fallback: criar templates simples a partir dos PNGs individuais da Season3
-        string[] spritePaths = {
-            "Assets/Art/Environment/Season3_Grassland/Tileset/PNG/Objects_separated/Tree1.png",
-            "Assets/Art/Environment/Season3_Grassland/Tileset/PNG/Objects_separated/Tree2.png",
-            "Assets/Art/Environment/Season3_Grassland/Tileset/PNG/Objects_separated/Rpck_grass1.png",
-            "Assets/Art/Environment/Season3_Grassland/Rocks/PNG/Objects_separately/Rock1_1.png",
-        };
-        foreach (var p in spritePaths)
-        {
-            var spr = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(p);
-            if (spr == null) continue;
-            var go = new GameObject(System.IO.Path.GetFileNameWithoutExtension(p));
-            go.transform.SetParent(transform);
-            go.SetActive(false);
-            var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite       = spr;
-            sr.sortingOrder = 1;
-            go.AddComponent<BoxCollider2D>();
-            obstaclePrefabs.Add(go);
-        }
-
-        if (obstaclePrefabs.Count == 0)
-            Debug.LogWarning("[PropSpawner] Nenhum prefab encontrado. Atribua no Inspector.");
-#endif
     }
 }

@@ -228,6 +228,7 @@ public static class SolengardSetup
         CreateSceneSystem<SimpleArena>              ("SimpleArena");
         CreateSceneSystem<PropSpawner>              ("PropSpawner");
         CreateSceneSystem<WaveBoostSystem>          ("WaveBoostSystem");
+        CreateSceneSystem<AtmosphereController>     ("AtmosphereController");
 
         // EventSystem — required for UI clicks; module depends on Input System setting
         {
@@ -690,6 +691,7 @@ public static class SolengardSetup
         total += EnsureSystemObject<TemporaryPowerSystem>    ("TemporaryPowerSystem",      log);
         total += EnsureSystemObject<PropSpawner>             ("PropSpawner",               log);
         total += EnsureSystemObject<WaveBoostSystem>         ("WaveBoostSystem",           log);
+        total += EnsureSystemObject<AtmosphereController>    ("AtmosphereController",      log);
 
         return total;
     }
