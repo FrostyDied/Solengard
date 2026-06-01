@@ -351,6 +351,17 @@ public static class SolengardSetup
     static bool ValidateRebuildGameScene() =>
         EditorSceneManager.GetActiveScene().name == EXPECTED_SCENE;
 
+    // ── Debug ────────────────────────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Debug/Limpar Sessao Salva")]
+    static void LimparSessao()
+    {
+        PlayerPrefs.DeleteAll();
+        PlayerPrefs.Save();
+        Debug.Log("[Debug] Sessao e PlayerPrefs limpos.");
+        EditorUtility.DisplayDialog("Solengard Debug", "PlayerPrefs limpos.\nPróxima run começará do zero.", "OK");
+    }
+
     // ── Setup VFX Resources ──────────────────────────────────────────────────────
 
     [MenuItem("Solengard/Setup VFX Resources")]

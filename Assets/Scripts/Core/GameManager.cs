@@ -181,12 +181,11 @@ public class GameManager : MonoBehaviour
         Physics2D.positionIterations     = 2;
         Time.fixedDeltaTime              = 0.02f;
 
-        // Sessão ativa → restaurar em vez de começar do zero
-        if (RunSessionManager.Instance != null && RunSessionManager.Instance.HasActiveSession())
-        {
-            RestoreSession(RunSessionManager.Instance.LoadSession());
-            return;
-        }
+        // Captura sessão SEM restaurar agora — lore vem primeiro sempre
+        bool sessaoAtiva = RunSessionManager.Instance != null && RunSessionManager.Instance.HasActiveSession();
+        RunSessionData sessaoData = sessaoAtiva ? RunSessionManager.Instance.LoadSession() : default;
+        if (sessaoAtiva)
+            Debug.Log($"[GameManager] Sessao ativa detectada — wave={sessaoData.currentWave}, sera restaurada apos lore");
 
         currentRunData = new RunData { causeOfDeath = "inimigo" };
         runStartTime   = Time.time;
@@ -194,7 +193,6 @@ public class GameManager : MonoBehaviour
 
         SetState(GameState.Playing);
         Debug.Log("[GameManager] Estado setado para Playing");
-        proceduralArena?.InitializeRun();
 
         if (waveManager == null)
         {
@@ -214,15 +212,26 @@ public class GameManager : MonoBehaviour
             StartCoroutine(SafetyTimeScale());
             StartCoroutine(loreUI.ShowLore(config, () =>
             {
-                Debug.Log("[GameManager] Lore callback — iniciando waves");
+                Debug.Log("[GameManager] Lore callback — verificando sessao");
                 BiomeSystem.Instance?.SetBiome(BiomeSystem.Biome.Veremoth);
-                waveManager.StartWaves();
+                if (sessaoAtiva)
+                    RestoreSession(sessaoData);
+                else
+                {
+                    proceduralArena?.InitializeRun();
+                    waveManager.StartWaves();
+                }
             }));
         }
         else
         {
             Debug.LogWarning($"[GameManager] FALLBACK — loreUI={loreUI != null} config={config != null}");
-            waveManager.StartWaves();
+            if (sessaoAtiva) RestoreSession(sessaoData);
+            else
+            {
+                proceduralArena?.InitializeRun();
+                waveManager.StartWaves();
+            }
         }
     }
 
