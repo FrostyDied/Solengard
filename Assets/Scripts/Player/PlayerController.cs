@@ -43,9 +43,10 @@ public class PlayerController : MonoBehaviour
         if (_sr   == null) Debug.LogError($"[PlayerController] SpriteRenderer não encontrado em '{gameObject.name}' nem em filhos.");
         if (_anim == null) Debug.LogError($"[PlayerController] CharacterAnimator não encontrado em '{gameObject.name}' nem em filhos.");
 
-        _rb.gravityScale  = 0f;
-        _rb.isKinematic   = true;
-        _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+        _rb.gravityScale           = 0f;
+        _rb.isKinematic            = true;
+        _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        _rb.interpolation          = RigidbodyInterpolation2D.Interpolate;
 
 #if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
         Debug.LogError("[PlayerController] Legacy Input desabilitado! Mude Active Input Handling para 'Both' em Project Settings > Player.");

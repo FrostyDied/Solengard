@@ -12,9 +12,11 @@ public class EnemyAssassin : EnemyBase
 
     protected override void Awake()
     {
-        maxHealth = 20f;
-        moveSpeed = 2.0f;
-        damage    = 12f;
+        maxHealth         = 20f;
+        moveSpeed         = 4f;
+        damage            = 12f;
+        separationStrength = 0f;   // ignora multidão — sempre carrega direto no player
+        separationRadius  = 0f;
         base.Awake();
     }
 
