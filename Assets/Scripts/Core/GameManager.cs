@@ -169,7 +169,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
-        Debug.Log("[GameManager] StartGame chamado");
+        Debug.Log("[GameManager] StartGame iniciado, _gameStarted=" + _gameStarted);
         if (_gameStarted) { Debug.LogWarning("[GameManager] StartGame já foi chamado — ignorando duplicata"); return; }
         _gameStarted = true;
         if (currentState != GameState.MainMenu && currentState != GameState.GameOver) return;
@@ -193,6 +193,7 @@ public class GameManager : MonoBehaviour
         runTimer       = 0f;
 
         SetState(GameState.Playing);
+        Debug.Log("[GameManager] Estado setado para Playing");
         proceduralArena?.InitializeRun();
 
         if (waveManager == null)
@@ -201,24 +202,26 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        Debug.Log("[GameManager] Buscando LoreScreenUI...");
         var loreUI = Object.FindFirstObjectByType<LoreScreenUI>(FindObjectsInactive.Include);
-        var config  = BiomeSystem.Instance?.GetConfig(1);
-        Debug.Log($"[GameManager] LoreScreenUI encontrada: {loreUI != null}, BiomeConfig: {config != null}");
+        Debug.Log($"[GameManager] loreUI={loreUI != null} (obj={loreUI?.gameObject.name})");
+
+        var config = BiomeSystem.Instance?.GetConfig(1);
+        Debug.Log($"[GameManager] config={config != null} BiomeSystem={BiomeSystem.Instance != null}");
 
         if (loreUI != null && config != null)
         {
-            StartCoroutine(SafetyTimeScale()); // começa a contar agora que a lore vai rodar
+            Debug.Log("[GameManager] Iniciando coroutine ShowLore");
+            StartCoroutine(SafetyTimeScale());
             StartCoroutine(loreUI.ShowLore(config, () =>
             {
+                Debug.Log("[GameManager] Lore callback — iniciando waves");
                 BiomeSystem.Instance?.SetBiome(BiomeSystem.Biome.Veremoth);
                 waveManager.StartWaves();
             }));
         }
         else
         {
-            if (loreUI == null) Debug.LogWarning("[GameManager] LoreScreenUI NULL — verifique se o GameObject está na cena");
-            if (config  == null) Debug.LogWarning("[GameManager] BiomeConfig NULL — BiomeSystem.GetConfig(1) retornou null");
+            Debug.LogWarning($"[GameManager] FALLBACK — loreUI={loreUI != null} config={config != null}");
             waveManager.StartWaves();
         }
     }

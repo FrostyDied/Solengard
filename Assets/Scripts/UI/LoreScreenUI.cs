@@ -28,10 +28,14 @@ public class LoreScreenUI : MonoBehaviour
 
     public IEnumerator ShowLore(BiomeSystem.BiomeConfig config, System.Action onComplete)
     {
+        Debug.Log($"[Lore] ShowLore iniciado, gameObject.active={gameObject.activeInHierarchy}");
         gameObject.SetActive(true);
+        Debug.Log($"[Lore] Após SetActive(true), active={gameObject.activeInHierarchy}");
         yield return null; // wait one frame so Canvas renders before pausing time
+        Debug.Log($"[Lore] Após yield, active={gameObject.activeInHierarchy}, timeScale={Time.timeScale}");
         if (!gameObject.activeInHierarchy)
         {
+            Debug.LogWarning("[Lore] gameObject inativo após yield — early exit, timeScale forçado para 1");
             Time.timeScale = 1f;
             onComplete?.Invoke();
             yield break;
