@@ -24,14 +24,14 @@ public static class SolengardSetup
     const string PLAYER_LEVEL1_PREFAB    = "Assets/Prefabs/Characters/Player_Level1.prefab";
     static readonly string[] ENEMY_PREFAB_PATHS =
     {
-        "Assets/Prefabs/Enemies/EnemySlime.prefab",
-        "Assets/Prefabs/Enemies/EnemyZumbi.prefab",
-        "Assets/Prefabs/Enemies/EnemyOrc.prefab",
-        "Assets/Prefabs/Enemies/EnemyArcher.prefab",
-        "Assets/Prefabs/Enemies/EnemyMage.prefab",
-        "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
-        "Assets/Prefabs/Enemies/EnemyGolem.prefab",
-        "Assets/Prefabs/Enemies/EnemyBoss.prefab",
+        "Assets/Prefabs/Enemies/EnemySlime.prefab",     // [0] Wave 1
+        "Assets/Prefabs/Enemies/EnemyZumbi.prefab",     // [1] Wave 1
+        "Assets/Prefabs/Enemies/EnemyArcher.prefab",    // [2] Wave 2
+        "Assets/Prefabs/Enemies/EnemyOrc.prefab",       // [3] Wave 3
+        "Assets/Prefabs/Enemies/EnemyMage.prefab",      // [4] Wave 4
+        "Assets/Prefabs/Enemies/EnemyAssassin.prefab",  // [5] Wave 4
+        "Assets/Prefabs/Enemies/EnemyGolem.prefab",     // [6] Wave 5
+        "Assets/Prefabs/Enemies/EnemyBoss.prefab",      // [7] reservado
     };
 
     // ── Setup Scene ──────────────────────────────────────────────────────────────

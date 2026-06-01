@@ -46,9 +46,10 @@ public class PlayerController : MonoBehaviour
         _rb.gravityScale           = 0f;
         _rb.freezeRotation         = true;
         _rb.constraints            = RigidbodyConstraints2D.FreezeRotation;
-        _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        _rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
         _rb.interpolation          = RigidbodyInterpolation2D.Interpolate;
         _rb.mass                   = 1000f;
+        _rb.linearDamping          = 8f;
 
         if (Time.fixedDeltaTime > 0.02f)
             Debug.Log($"[PlayerController] Fixed Timestep = {Time.fixedDeltaTime:F4}s. Recomendado 0.0167 (60 Hz) em Project Settings → Time para movimento mais suave.");
@@ -66,7 +67,10 @@ public class PlayerController : MonoBehaviour
     void Update()      => InputManagement();
     void FixedUpdate()
     {
-        Move();
+        if (MoveDir.magnitude > 0.05f)
+            _rb.linearVelocity = MoveDir * moveSpeed;
+        else
+            _rb.linearVelocity = Vector2.Lerp(_rb.linearVelocity, Vector2.zero, 0.85f);
         _rb.angularVelocity = 0f;
     }
 
@@ -125,17 +129,4 @@ public class PlayerController : MonoBehaviour
                 : CharacterAnimator.State.Idle);
     }
 
-    void Move()
-    {
-        if (MoveDir.magnitude > 0.05f)
-        {
-            _rb.linearVelocity = MoveDir * moveSpeed;
-        }
-        else
-        {
-            if (_rb.linearVelocity.magnitude > 0.1f)
-                Debug.LogWarning($"[Player] Velocidade residual detectada: {_rb.linearVelocity}");
-            _rb.linearVelocity = Vector2.zero;
-        }
-    }
 }

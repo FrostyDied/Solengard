@@ -29,7 +29,7 @@ public class XPDrop : MonoBehaviour
 
         if (_rb != null)
         {
-            _rb.linearVelocity = Random.insideUnitCircle * 2.5f;
+            _rb.linearVelocity = Random.insideUnitCircle * 1.0f;
             _rb.gravityScale   = 0f;
         }
     }
@@ -83,7 +83,10 @@ public class XPDrop : MonoBehaviour
 
         var rb = go.AddComponent<Rigidbody2D>();
         rb.gravityScale           = 0f;
-        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        rb.linearDamping          = 10f;
+        rb.angularDamping         = 10f;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
+        go.transform.localScale   = Vector3.one * 0.85f;
 
         var drop = go.AddComponent<XPDrop>();
         drop.xpValue = xp;
@@ -92,7 +95,7 @@ public class XPDrop : MonoBehaviour
 
     static Sprite MakeCrystalSprite()
     {
-        int w = 8, h = 10;
+        int w = 7, h = 9;
         var tex   = new Texture2D(w, h);
         var clear = new Color(0, 0, 0, 0);
         for (int x = 0; x < w; x++)

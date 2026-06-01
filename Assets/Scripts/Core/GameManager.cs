@@ -139,10 +139,26 @@ public class GameManager : MonoBehaviour
         SetState(GameState.Playing);
         proceduralArena?.InitializeRun();
 
-        if (waveManager != null)
-            waveManager.StartWave();
-        else
+        if (waveManager == null)
+        {
             Debug.LogWarning("[GameManager] WaveManager não atribuído no Inspector.");
+            return;
+        }
+
+        var loreUI = Object.FindFirstObjectByType<LoreScreenUI>(FindObjectsInactive.Include);
+        var config  = BiomeSystem.Instance?.GetConfig(1);
+        if (loreUI != null && config != null)
+        {
+            StartCoroutine(loreUI.ShowLore(config, () =>
+            {
+                BiomeSystem.Instance?.SetBiome(BiomeSystem.Biome.Veremoth);
+                waveManager.StartWaves();
+            }));
+        }
+        else
+        {
+            waveManager.StartWaves();
+        }
     }
 
     // Restaura o estado de jogo a partir de uma sessão salva

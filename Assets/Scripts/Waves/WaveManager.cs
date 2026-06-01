@@ -6,272 +6,214 @@ public enum WaveType { Normal, Elite, Boss }
 
 public class WaveManager : MonoBehaviour
 {
-    public static event System.Action<int> OnWaveCompleted;
-    public static event System.Action      OnAllWavesCompleted;
+    public static WaveManager Instance { get; private set; }
 
-    [System.Serializable]
-    public class SpawnPhase
-    {
-        public float  startTime;
-        public string enemyType;
-        public float  spawnInterval;
-        public int    maxOnScreen;
-        public float  healthMult;
-        public float  speedMult;
-    }
-
-    [Header("Inimigos")]
+    [Header("Prefabs de inimigos")]
     public List<GameObject> enemyPrefabs = new();
 
-    [Header("Sistemas")]
-    [SerializeField] WaveTimerSystem         waveTimerSystem;
-    [SerializeField] DynamicDifficultySystem dynamicDifficulty;
+    [Header("Configuração base")]
+    [SerializeField] float spawnInterval    = 0.5f;
+    [SerializeField] int   maxOnScreen      = 40;
+    [SerializeField] int   totalWaves       = 5;
+    [SerializeField] float waveDuration     = 60f;
+    [SerializeField] float timeBetweenWaves = 3f;
 
-    // Mantido para compatibilidade com SolengardSetup (não usado no spawn contínuo)
-    [Header("GameConfig (legado)")]
-    [SerializeField] GameConfig gameConfig;
+    public int   CurrentWave       { get; private set; } = 1;
+    public int   TotalWaves        => totalWaves;
+    public float WaveTimeRemaining { get; private set; }
+    public int   KillCount         { get; private set; }
+    public bool  IsRunning         { get; private set; }
 
-    static readonly SpawnPhase[] Phases = new SpawnPhase[]
-    {
-        new SpawnPhase { startTime=0,   enemyType="Zombie",   spawnInterval=0.6f, maxOnScreen=15, healthMult=1.0f, speedMult=1.0f },
-        new SpawnPhase { startTime=30,  enemyType="Slime",    spawnInterval=0.5f, maxOnScreen=25, healthMult=1.0f, speedMult=1.0f },
-        new SpawnPhase { startTime=60,  enemyType="Archer",   spawnInterval=0.5f, maxOnScreen=30, healthMult=1.2f, speedMult=1.1f },
-        new SpawnPhase { startTime=90,  enemyType="Orc",      spawnInterval=0.8f, maxOnScreen=35, healthMult=1.3f, speedMult=1.1f },
-        new SpawnPhase { startTime=120, enemyType="Mage",     spawnInterval=0.7f, maxOnScreen=40, healthMult=1.5f, speedMult=1.2f },
-        new SpawnPhase { startTime=180, enemyType="Assassin", spawnInterval=0.4f, maxOnScreen=50, healthMult=1.5f, speedMult=1.3f },
-        new SpawnPhase { startTime=240, enemyType="All",      spawnInterval=0.3f, maxOnScreen=60, healthMult=2.0f, speedMult=1.4f },
-    };
-
-    // ── Estado interno ──────────────────────────────────────────────────────────
-
-    int   currentWave  = 0;
-    int   enemiesAlive = 0;
-    int   killCount    = 0;
-    bool  isSpawning   = false;
-    float _gameTime    = 0f;
-
-    // ── Unity ───────────────────────────────────────────────────────────────────
-
-    void Start() { }
-
-    // ── API pública ─────────────────────────────────────────────────────────────
-
-    public void StartWave()
-    {
-        StopAllCoroutines();
-        StartWavesAt(0f);
-    }
-
-    public void RestoreToWave(int wave)
-    {
-        isSpawning = false;
-        StopAllCoroutines();
-        int   phaseIdx   = Mathf.Clamp(wave - 1, 0, Phases.Length - 1);
-        float restoreAt  = Phases[phaseIdx].startTime;
-        Debug.Log($"[WaveManager] RestoreToWave({wave}) → gameTime ≈ {restoreAt}s");
-        StartWavesAt(restoreAt);
-    }
-
-    public void OnEnemyDied()
-    {
-        enemiesAlive = Mathf.Max(0, enemiesAlive - 1);
-        killCount++;
-    }
-
-    // ── Núcleo do spawn contínuo ────────────────────────────────────────────────
-
-    void StartWavesAt(float startGameTime)
-    {
-        if (isSpawning) return;
-        isSpawning   = true;
-        _gameTime    = startGameTime;
-        killCount    = 0;
-        enemiesAlive = 0;
-        currentWave  = 0;
-        waveTimerSystem?.StartTimer();
-        StartCoroutine(SpawnContinuous());
-    }
-
-    IEnumerator SpawnContinuous()
-    {
-        var activated = new HashSet<int>();
-
-        while (isSpawning)
-        {
-            _gameTime += Time.deltaTime;
-
-            for (int i = 0; i < Phases.Length; i++)
-            {
-                if (Phases[i].startTime <= _gameTime && !activated.Contains(i))
-                {
-                    activated.Add(i);
-                    currentWave++;
-                    Debug.Log($"[Spawn] Fase {currentWave}: {Phases[i].enemyType} aos {_gameTime:F0}s");
-                    waveTimerSystem?.StartTimer();
-                    OnWaveCompleted?.Invoke(currentWave);
-                    GameManager.Instance?.IncrementWave(currentWave);
-                    int capturedI    = i;
-                    int capturedWave = currentWave;
-                    StartCoroutine(ActivatePhase(Phases[capturedI], capturedWave));
-                }
-            }
-
-            yield return null;
-        }
-    }
-
-    IEnumerator ActivatePhase(SpawnPhase phase, int waveNum)
-    {
-        if (waveNum <= 5 && BiomeSystem.Instance != null)
-        {
-            var loreUI = Object.FindFirstObjectByType<LoreScreenUI>(FindObjectsInactive.Include);
-            var config  = BiomeSystem.Instance.GetConfig(waveNum);
-            int capturedWave = waveNum;
-
-            if (loreUI != null && config != null)
-            {
-                yield return loreUI.StartCoroutine(
-                    loreUI.ShowLore(config, () =>
-                        BiomeSystem.Instance.SetBiome((BiomeSystem.Biome)(capturedWave - 1))
-                    )
-                );
-            }
-            else
-            {
-                BiomeSystem.Instance.SetBiome((BiomeSystem.Biome)(capturedWave - 1));
-            }
-        }
-        BeginSpawning(phase);
-    }
-
-    void BeginSpawning(SpawnPhase phase) => StartCoroutine(SpawnPhaseLoop(phase));
-
-    IEnumerator SpawnPhaseLoop(SpawnPhase phase)
-    {
-        while (isSpawning)
-        {
-            if (enemiesAlive < phase.maxOnScreen)
-            {
-                SpawnEnemyOfType(phase);
-                enemiesAlive++;
-            }
-            yield return new WaitForSeconds(phase.spawnInterval);
-        }
-    }
-
-    // ── Spawn de inimigo ────────────────────────────────────────────────────────
-
-    void SpawnEnemyOfType(SpawnPhase phase)
-    {
-        var prefab = SelectPrefab(phase.enemyType);
-        if (prefab == null)
-        {
-            Debug.LogError($"[WaveManager] Nenhum prefab para '{phase.enemyType}'.");
-            return;
-        }
-
-        Vector3    pos   = GetSpawnPosition();
-        GameObject enemy = ObjectPoolManager.Instance?.GetFromPool(prefab.name);
-        if (enemy != null)
-            enemy.transform.position = pos;
-        else
-            enemy = Instantiate(prefab, pos, Quaternion.identity);
-
-        var eb = enemy.GetComponent<EnemyBase>();
-        if (eb != null)
-        {
-            eb.OnDeathCallback = OnEnemyDied;
-            eb.poolTag         = prefab.name;
-
-            float hpMod = phase.healthMult;
-            if (DifficultyAdaptiveSystem.Instance != null)
-                hpMod *= DifficultyAdaptiveSystem.Instance.EnemyHealthModifier;
-            if (!Mathf.Approximately(hpMod, 1f))
-            {
-                eb.maxHealth *= hpMod;
-                eb.InitializeHealth();
-            }
-            if (!Mathf.Approximately(phase.speedMult, 1f))
-                eb.moveSpeed *= phase.speedMult;
-
-            dynamicDifficulty?.ApplyToEnemy(eb);
-        }
-        else
-            Debug.LogWarning($"[WaveManager] '{prefab.name}' sem EnemyBase.");
-    }
-
-    GameObject SelectPrefab(string enemyType)
-    {
-        if (enemyPrefabs == null || enemyPrefabs.Count == 0) return null;
-        if (enemyType == "All") return enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
-
-        string[] kws     = GetKeywords(enemyType);
-        var      matches = new List<GameObject>();
-        foreach (var p in enemyPrefabs)
-        {
-            if (p == null) continue;
-            foreach (var kw in kws)
-                if (p.name.IndexOf(kw, System.StringComparison.OrdinalIgnoreCase) >= 0)
-                    { matches.Add(p); break; }
-        }
-        return matches.Count > 0
-            ? matches[Random.Range(0, matches.Count)]
-            : enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
-    }
-
-    static string[] GetKeywords(string enemyType)
-    {
-        switch (enemyType)
-        {
-            case "Zombie":   return new[] { "Zumbi", "Zombie" };
-            case "Slime":    return new[] { "Slime" };
-            case "Archer":   return new[] { "Archer" };
-            case "Orc":      return new[] { "Orc" };
-            case "Mage":     return new[] { "Mage" };
-            case "Assassin": return new[] { "Assassin" };
-            default:         return new[] { enemyType };
-        }
-    }
-
-    // ── Posição de spawn — bordas da câmera ─────────────────────────────────────
-
-    Vector3 GetSpawnPosition()
-    {
-        Camera  cam    = Camera.main;
-        Vector3 camPos = cam != null
-            ? cam.transform.position
-            : (PlayerController.Instance != null
-                ? (Vector3)PlayerController.Instance.transform.position
-                : Vector3.zero);
-
-        float camH = cam != null ? cam.orthographicSize + 2f : 12f;
-        float camW = cam != null ? camH * cam.aspect + 2f    : 20f;
-
-        switch (Random.Range(0, 4))
-        {
-            case 0:  return new Vector3(camPos.x + Random.Range(-camW, camW), camPos.y + camH, 0f); // topo
-            case 1:  return new Vector3(camPos.x + Random.Range(-camW, camW), camPos.y - camH, 0f); // base
-            case 2:  return new Vector3(camPos.x - camW, camPos.y + Random.Range(-camH, camH), 0f); // esquerda
-            default: return new Vector3(camPos.x + camW,  camPos.y + Random.Range(-camH, camH), 0f); // direita
-        }
-    }
-
-    // ── Propriedades de leitura ─────────────────────────────────────────────────
-
+    // Compatibilidade com sistemas que leem CurrentWaveType
     public WaveType CurrentWaveType
     {
         get
         {
-            if (currentWave >= Phases.Length) return WaveType.Boss;
-            if (currentWave == 4 || currentWave == 5) return WaveType.Elite;
+            if (CurrentWave >= totalWaves) return WaveType.Boss;
+            if (CurrentWave == 4 || CurrentWave == 5) return WaveType.Elite;
             return WaveType.Normal;
         }
     }
 
-    public float GameTime     => _gameTime;
-    public int   CurrentWave  => currentWave;
-    public int   TotalWaves   => Phases.Length;
-    public int   EnemiesAlive => enemiesAlive;
-    public int   KillCount    => killCount;
-    public int   KillQuota    => 0;
+    public static event System.Action<int> OnWaveStarted;
+    public static event System.Action<int> OnWaveCompleted;
+    public static event System.Action      OnAllWavesCompleted;
+
+    // Índices em enemyPrefabs por wave
+    // [0] Slime  [1] Zumbi  [2] Archer  [3] Orc  [4] Mage  [5] Assassin  [6] Golem
+    readonly int[][] _waveUnlocks = new int[][]
+    {
+        new int[]{ 0, 1 },             // Wave 1: Slime + Zumbi
+        new int[]{ 0, 1, 2 },          // Wave 2: + Archer
+        new int[]{ 0, 1, 2, 3 },       // Wave 3: + Orc
+        new int[]{ 1, 2, 3, 4, 5 },    // Wave 4: + Mage + Assassin
+        new int[]{ 2, 3, 4, 5, 6 },    // Wave 5: + Golem
+    };
+
+    Transform           _player;
+    List<GameObject>    _activeEnemies = new();
+    Coroutine           _spawnCoroutine;
+    Coroutine           _waveCoroutine;
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+    }
+
+    void Start() => FindPlayer();
+
+    void FindPlayer()
+    {
+        if (PlayerController.Instance != null)
+            _player = PlayerController.Instance.transform;
+        else
+        {
+            var p = GameObject.FindGameObjectWithTag("Player");
+            if (p != null) _player = p.transform;
+        }
+    }
+
+    // ── API pública ─────────────────────────────────────────────────────────────
+
+    public void StartWaves()
+    {
+        if (IsRunning) return;
+        IsRunning   = true;
+        KillCount   = 0;
+        CurrentWave = 1;
+        _waveCoroutine = StartCoroutine(WaveLoop());
+    }
+
+    // Alias para compatibilidade com GameManager existente
+    public void StartWave() => StartWaves();
+
+    public void RestoreToWave(int wave)
+    {
+        if (_spawnCoroutine != null) StopCoroutine(_spawnCoroutine);
+        if (_waveCoroutine  != null) StopCoroutine(_waveCoroutine);
+        IsRunning   = false;
+        CurrentWave = Mathf.Clamp(wave, 1, totalWaves);
+        IsRunning   = true;
+        _waveCoroutine = StartCoroutine(WaveLoop());
+        Debug.Log($"[WaveManager] RestoreToWave({wave})");
+    }
+
+    // ── Loop principal ──────────────────────────────────────────────────────────
+
+    IEnumerator WaveLoop()
+    {
+        while (CurrentWave <= totalWaves)
+        {
+            WaveTimeRemaining = waveDuration;
+            OnWaveStarted?.Invoke(CurrentWave);
+            GameManager.Instance?.IncrementWave(CurrentWave);
+            Debug.Log($"[Wave] Wave {CurrentWave} iniciada");
+
+            _spawnCoroutine = StartCoroutine(SpawnLoop());
+
+            while (WaveTimeRemaining > 0f)
+            {
+                WaveTimeRemaining -= Time.deltaTime;
+                yield return null;
+            }
+
+            if (_spawnCoroutine != null) StopCoroutine(_spawnCoroutine);
+            OnWaveCompleted?.Invoke(CurrentWave);
+            Debug.Log($"[Wave] Wave {CurrentWave} completa. Kills: {KillCount}");
+
+            ClearEnemies();
+            yield return new WaitForSeconds(timeBetweenWaves);
+            CurrentWave++;
+        }
+
+        IsRunning = false;
+        OnAllWavesCompleted?.Invoke();
+        Debug.Log("[Wave] Todas as waves concluídas!");
+    }
+
+    IEnumerator SpawnLoop()
+    {
+        while (true)
+        {
+            if (_player == null) FindPlayer();
+
+            float interval = Mathf.Max(0.15f, spawnInterval - (CurrentWave - 1) * 0.07f);
+            int   max      = maxOnScreen + (CurrentWave - 1) * 12;
+
+            if (_player != null && CountActive() < max && enemyPrefabs.Count > 0)
+                SpawnEnemy();
+
+            yield return new WaitForSeconds(interval);
+        }
+    }
+
+    // ── Spawn ───────────────────────────────────────────────────────────────────
+
+    void SpawnEnemy()
+    {
+        Camera  cam    = Camera.main;
+        Vector3 camPos = cam != null ? cam.transform.position : _player.position;
+
+        float camH = cam != null ? cam.orthographicSize + 3f : 14f;
+        float camW = cam != null ? camH * cam.aspect    + 3f : 20f;
+
+        Vector3 spawnPos;
+        switch (Random.Range(0, 4))
+        {
+            case 0:  spawnPos = new Vector3(camPos.x + Random.Range(-camW, camW), camPos.y + camH, 0f); break;
+            case 1:  spawnPos = new Vector3(camPos.x + Random.Range(-camW, camW), camPos.y - camH, 0f); break;
+            case 2:  spawnPos = new Vector3(camPos.x - camW, camPos.y + Random.Range(-camH, camH), 0f); break;
+            default: spawnPos = new Vector3(camPos.x + camW,  camPos.y + Random.Range(-camH, camH), 0f); break;
+        }
+
+        var allowedIdx = GetAllowedIndices();
+        int idx        = allowedIdx[Random.Range(0, allowedIdx.Length)];
+        var prefab     = enemyPrefabs[idx];
+        if (prefab == null) return;
+
+        var enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
+
+        var eb = enemy.GetComponent<EnemyBase>();
+        if (eb != null)
+        {
+            var captured = enemy;
+            eb.OnDeathCallback = () =>
+            {
+                KillCount++;
+                _activeEnemies.Remove(captured);
+            };
+        }
+
+        _activeEnemies.Add(enemy);
+    }
+
+    int[] GetAllowedIndices()
+    {
+        int waveIdx = Mathf.Clamp(CurrentWave - 1, 0, _waveUnlocks.Length - 1);
+        var allowed = _waveUnlocks[waveIdx];
+        var valid   = new List<int>();
+        foreach (var i in allowed)
+            if (i < enemyPrefabs.Count) valid.Add(i);
+        return valid.Count > 0 ? valid.ToArray() : new int[] { 0 };
+    }
+
+    int CountActive()
+    {
+        _activeEnemies.RemoveAll(e => e == null);
+        return _activeEnemies.Count;
+    }
+
+    void ClearEnemies()
+    {
+        foreach (var e in _activeEnemies)
+            if (e != null) Destroy(e);
+        _activeEnemies.Clear();
+    }
+
+    // OnEnemyDied mantido para compatibilidade com sistemas legados
+    public void OnEnemyDied()
+    {
+        KillCount++;
+    }
 }
