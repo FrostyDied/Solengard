@@ -805,7 +805,7 @@ public static class SolengardSetup
         sepRT.anchorMax        = new Vector2(0.5f, 0.5f);
         sepRT.pivot            = new Vector2(0.5f, 0.5f);
         sepRT.sizeDelta        = new Vector2(600f, 3f);
-        sepRT.anchoredPosition = new Vector2(0f, 110f);
+        sepRT.anchoredPosition = new Vector2(0f, 150f);
         var sepImg = sepGO.AddComponent<Image>();
         sepImg.color = new Color(0.78f, 0.65f, 0.20f, 0f);
 
@@ -818,7 +818,7 @@ public static class SolengardSetup
         nomeRT.anchorMax        = new Vector2(0.5f, 0.5f);
         nomeRT.pivot            = new Vector2(0.5f, 0.5f);
         nomeRT.sizeDelta        = new Vector2(700f, 80f);
-        nomeRT.anchoredPosition = new Vector2(0f, 160f);
+        nomeRT.anchoredPosition = new Vector2(0f, 200f);
         var nomeTMP = nomeGO.AddComponent<TextMeshProUGUI>();
         nomeTMP.text             = "";
         nomeTMP.alignment        = TextAlignmentOptions.Center;
@@ -835,15 +835,16 @@ public static class SolengardSetup
         loreRT.anchorMin        = new Vector2(0.5f, 0.5f);
         loreRT.anchorMax        = new Vector2(0.5f, 0.5f);
         loreRT.pivot            = new Vector2(0.5f, 0.5f);
-        loreRT.sizeDelta        = new Vector2(680f, 300f);
-        loreRT.anchoredPosition = new Vector2(0f, 0f);
+        loreRT.sizeDelta        = new Vector2(680f, 280f);
+        loreRT.anchoredPosition = new Vector2(0f, -60f);
         var loreTMP = loreGO.AddComponent<TextMeshProUGUI>();
         loreTMP.text        = "";
         loreTMP.alignment   = TextAlignmentOptions.Center;
-        loreTMP.fontSize    = 32f;
-        loreTMP.fontStyle   = FontStyles.Normal;
-        loreTMP.color       = new Color(0.85f, 0.83f, 0.88f, 1f);
-        loreTMP.lineSpacing = 12f;
+        loreTMP.fontSize      = 32f;
+        loreTMP.fontStyle     = FontStyles.Normal;
+        loreTMP.color         = new Color(0.85f, 0.83f, 0.88f, 1f);
+        loreTMP.lineSpacing   = 12f;
+        loreTMP.overflowMode  = TMPro.TextOverflowModes.Overflow;
 
         // Instrucao
         var instrGO = new GameObject("Instrucao");
