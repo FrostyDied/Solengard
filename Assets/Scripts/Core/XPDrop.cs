@@ -3,11 +3,12 @@ using UnityEngine;
 public class XPDrop : MonoBehaviour
 {
     [SerializeField] int   xpValue       = 3;
-    [SerializeField] float collectRadius = 1.2f;
+    [SerializeField] float collectRadius = 0.8f;
     [SerializeField] float moveSpeed     = 8f;
     [SerializeField] float lifetime      = 12f;
 
-    public static float GlobalMagnetRadius = 6f;
+    // 0 = sem atração automática; upgrade "Cristal Magnético" incrementa este valor
+    public static float GlobalMagnetRadius = 0f;
 
     Transform      _player;
     bool           _attracted;
@@ -65,6 +66,7 @@ public class XPDrop : MonoBehaviour
 
     void Collect()
     {
+        VFXFactory.SpawnXPCollect(transform.position);
         XPSystem.Instance?.AddXP(xpValue);
         Destroy(gameObject);
     }
@@ -90,7 +92,7 @@ public class XPDrop : MonoBehaviour
 
     static Sprite MakeCrystalSprite()
     {
-        int w = 12, h = 14;
+        int w = 8, h = 10;
         var tex   = new Texture2D(w, h);
         var clear = new Color(0, 0, 0, 0);
         for (int x = 0; x < w; x++)
@@ -114,8 +116,9 @@ public class XPDrop : MonoBehaviour
                 tex.SetPixel(x, y, c);
             }
         }
-        tex.SetPixel(w / 2,     h * 2 / 3, bright);
-        tex.SetPixel(w / 2 + 1, h * 2 / 3, new Color(1f, 1f, 1f, 0.8f));
+        if (w / 2 + 1 < w)
+            tex.SetPixel(w / 2 + 1, h * 2 / 3, new Color(1f, 1f, 1f, 0.8f));
+        tex.SetPixel(w / 2, h * 2 / 3, bright);
 
         tex.Apply();
         tex.filterMode = FilterMode.Point;

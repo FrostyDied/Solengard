@@ -701,7 +701,7 @@ public static class SolengardSetup
         return total;
     }
 
-    // Creates the full LevelUp UI hierarchy (Canvas → Panel → 3 option buttons) and wires LevelUpUI.
+    // Creates the full LevelUp UI hierarchy (Canvas → Panel → 3 dark-fantasy cards horizontal) and wires LevelUpUI.
     static void CreateLevelUpUIInScene(Scene scene)
     {
         var canvasGO = new GameObject("LevelUpCanvas");
@@ -709,7 +709,7 @@ public static class SolengardSetup
         SceneManager.MoveGameObjectToScene(canvasGO, scene);
 
         var canvas = canvasGO.AddComponent<Canvas>();
-        canvas.renderMode  = RenderMode.ScreenSpaceOverlay;
+        canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 100;
 
         var scaler = canvasGO.AddComponent<CanvasScaler>();
@@ -720,7 +720,7 @@ public static class SolengardSetup
 
         var levelUpUI = canvasGO.AddComponent<LevelUpUI>();
 
-        // Full-screen dark overlay panel (inactive by default)
+        // ── Full-screen dark overlay panel (inactive by default) ─────────────────
         var panelGO = new GameObject("LevelUpPanel");
         Undo.RegisterCreatedObjectUndo(panelGO, "Rebuild GameScene");
         panelGO.transform.SetParent(canvasGO.transform, false);
@@ -732,79 +732,146 @@ public static class SolengardSetup
         panelGO.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.85f);
         panelGO.SetActive(false);
 
-        // Container centred in the middle third of the screen
-        var containerGO = new GameObject("OptionsContainer");
+        // ── Title "ESCOLHA SEU PODER" ─────────────────────────────────────────────
+        var titleGO = new GameObject("Title");
+        Undo.RegisterCreatedObjectUndo(titleGO, "Rebuild GameScene");
+        titleGO.transform.SetParent(panelGO.transform, false);
+        var titleRT = titleGO.AddComponent<RectTransform>();
+        titleRT.anchorMin        = new Vector2(0.5f, 0.5f);
+        titleRT.anchorMax        = new Vector2(0.5f, 0.5f);
+        titleRT.pivot            = new Vector2(0.5f, 0.5f);
+        titleRT.sizeDelta        = new Vector2(800f, 70f);
+        titleRT.anchoredPosition = new Vector2(0f, 160f);
+        var titleTMP = titleGO.AddComponent<TextMeshProUGUI>();
+        titleTMP.text      = "ESCOLHA SEU PODER";
+        titleTMP.alignment = TextAlignmentOptions.Center;
+        titleTMP.fontSize  = 28f;
+        titleTMP.fontStyle = FontStyles.Bold;
+        titleTMP.color     = new Color(1f, 0.85f, 0.3f);
+
+        // ── Container for 3 cards side-by-side: 180×220 each, 20px gap → 580×220 ─
+        var containerGO = new GameObject("CardsContainer");
         Undo.RegisterCreatedObjectUndo(containerGO, "Rebuild GameScene");
         containerGO.transform.SetParent(panelGO.transform, false);
         var containerRT = containerGO.AddComponent<RectTransform>();
-        containerRT.anchorMin = new Vector2(0.08f, 0.22f);
-        containerRT.anchorMax = new Vector2(0.92f, 0.78f);
-        containerRT.offsetMin = Vector2.zero;
-        containerRT.offsetMax = Vector2.zero;
+        containerRT.anchorMin        = new Vector2(0.5f, 0.5f);
+        containerRT.anchorMax        = new Vector2(0.5f, 0.5f);
+        containerRT.pivot            = new Vector2(0.5f, 0.5f);
+        containerRT.sizeDelta        = new Vector2(580f, 220f);
+        containerRT.anchoredPosition = new Vector2(0f, -10f);
 
         var buttons     = new Button[3];
         var optionNames = new TextMeshProUGUI[3];
         var optionDescs = new TextMeshProUGUI[3];
 
+        float[] cardCenterX = { -200f, 0f, 200f }; // 180px wide + 20px gap
+
         for (int i = 0; i < 3; i++)
         {
-            var btnGO = new GameObject($"OptionButton_{i}");
-            Undo.RegisterCreatedObjectUndo(btnGO, "Rebuild GameScene");
-            btnGO.transform.SetParent(containerGO.transform, false);
-            var btnRT = btnGO.AddComponent<RectTransform>();
+            // ── Card root (Button + EventTrigger for hover scale) ─────────────────
+            var cardGO = new GameObject($"Card_{i}");
+            Undo.RegisterCreatedObjectUndo(cardGO, "Rebuild GameScene");
+            cardGO.transform.SetParent(containerGO.transform, false);
+            var cardRT = cardGO.AddComponent<RectTransform>();
+            cardRT.anchorMin        = new Vector2(0.5f, 0.5f);
+            cardRT.anchorMax        = new Vector2(0.5f, 0.5f);
+            cardRT.pivot            = new Vector2(0.5f, 0.5f);
+            cardRT.sizeDelta        = new Vector2(180f, 220f);
+            cardRT.anchoredPosition = new Vector2(cardCenterX[i], 0f);
 
-            // Stack 3 buttons top-to-bottom with small gap
-            float gap  = 0.03f;
-            float h    = (1f - gap * 4f) / 3f;
-            float yMin = 1f - (i + 1) * (h + gap) + gap;
-            float yMax = 1f - i * (h + gap);
-            btnRT.anchorMin = new Vector2(0f, yMin);
-            btnRT.anchorMax = new Vector2(1f, yMax);
-            btnRT.offsetMin = Vector2.zero;
-            btnRT.offsetMax = Vector2.zero;
+            // Gold border background (fills card completely)
+            var borderGO = new GameObject("Border");
+            Undo.RegisterCreatedObjectUndo(borderGO, "Rebuild GameScene");
+            borderGO.transform.SetParent(cardGO.transform, false);
+            var borderRT = borderGO.AddComponent<RectTransform>();
+            borderRT.anchorMin = Vector2.zero;
+            borderRT.anchorMax = Vector2.one;
+            borderRT.offsetMin = Vector2.zero;
+            borderRT.offsetMax = Vector2.zero;
+            var borderImg = borderGO.AddComponent<Image>();
+            borderImg.color = new Color(1f, 0.75f, 0.2f);
 
-            var img = btnGO.AddComponent<Image>();
-            img.color = new Color(0.10f, 0.05f, 0.18f, 0.97f);
-            var btn = btnGO.AddComponent<Button>();
-            btn.targetGraphic = img;
+            // Dark purple fill (3px inset from border on each side)
+            var fillGO = new GameObject("Fill");
+            Undo.RegisterCreatedObjectUndo(fillGO, "Rebuild GameScene");
+            fillGO.transform.SetParent(cardGO.transform, false);
+            var fillRT = fillGO.AddComponent<RectTransform>();
+            fillRT.anchorMin = Vector2.zero;
+            fillRT.anchorMax = Vector2.one;
+            fillRT.offsetMin = new Vector2( 3f,  3f);
+            fillRT.offsetMax = new Vector2(-3f, -3f);
+            fillGO.AddComponent<Image>().color = new Color(0.08f, 0.06f, 0.12f, 0.97f);
 
-            // Name TMP — upper half, gold
+            // Button on card root — targetGraphic = border for color transitions on click
+            var btn = cardGO.AddComponent<Button>();
+            btn.targetGraphic = borderImg;
+            var colors = btn.colors;
+            colors.highlightedColor = new Color(1f, 0.9f, 0.5f);
+            colors.pressedColor     = new Color(0.8f, 0.6f, 0.1f);
+            btn.colors = colors;
+
+            // Hover scale via EventTrigger
+            var trigger     = cardGO.AddComponent<EventTrigger>();
+            var capturedCard = cardGO;
+            var enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+            enter.callback.AddListener(_ => capturedCard.transform.localScale = Vector3.one * 1.05f);
+            trigger.triggers.Add(enter);
+            var exitEv = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+            exitEv.callback.AddListener(_ => capturedCard.transform.localScale = Vector3.one);
+            trigger.triggers.Add(exitEv);
+
+            // ── Icon TMP (top 30%) ────────────────────────────────────────────────
+            var iconGO = new GameObject("Icon");
+            Undo.RegisterCreatedObjectUndo(iconGO, "Rebuild GameScene");
+            iconGO.transform.SetParent(cardGO.transform, false);
+            var iconRT = iconGO.AddComponent<RectTransform>();
+            iconRT.anchorMin = new Vector2(0.05f, 0.68f);
+            iconRT.anchorMax = new Vector2(0.95f, 0.96f);
+            iconRT.offsetMin = Vector2.zero;
+            iconRT.offsetMax = Vector2.zero;
+            var iconTMP = iconGO.AddComponent<TextMeshProUGUI>();
+            iconTMP.text      = "?";
+            iconTMP.alignment = TextAlignmentOptions.Center;
+            iconTMP.fontSize  = 36f;
+            iconTMP.color     = Color.white;
+
+            // ── Name TMP (middle 25%) — gold bold ────────────────────────────────
             var nameGO = new GameObject("Name");
             Undo.RegisterCreatedObjectUndo(nameGO, "Rebuild GameScene");
-            nameGO.transform.SetParent(btnGO.transform, false);
+            nameGO.transform.SetParent(cardGO.transform, false);
             var nameRT = nameGO.AddComponent<RectTransform>();
-            nameRT.anchorMin = new Vector2(0.04f, 0.50f);
-            nameRT.anchorMax = new Vector2(0.96f, 0.94f);
+            nameRT.anchorMin = new Vector2(0.04f, 0.42f);
+            nameRT.anchorMax = new Vector2(0.96f, 0.70f);
             nameRT.offsetMin = Vector2.zero;
             nameRT.offsetMax = Vector2.zero;
             var nameTMP = nameGO.AddComponent<TextMeshProUGUI>();
             nameTMP.text      = "—";
             nameTMP.alignment = TextAlignmentOptions.Center;
-            nameTMP.fontSize  = 38f;
+            nameTMP.fontSize  = 18f;
             nameTMP.fontStyle = FontStyles.Bold;
-            nameTMP.color     = new Color(1f, 0.88f, 0.35f);
+            nameTMP.color     = new Color(1f, 0.85f, 0.3f);
 
-            // Desc TMP — lower half, white
+            // ── Desc TMP (bottom 40%) — light gray ───────────────────────────────
             var descGO = new GameObject("Desc");
             Undo.RegisterCreatedObjectUndo(descGO, "Rebuild GameScene");
-            descGO.transform.SetParent(btnGO.transform, false);
+            descGO.transform.SetParent(cardGO.transform, false);
             var descRT = descGO.AddComponent<RectTransform>();
-            descRT.anchorMin = new Vector2(0.04f, 0.07f);
-            descRT.anchorMax = new Vector2(0.96f, 0.50f);
+            descRT.anchorMin = new Vector2(0.04f, 0.06f);
+            descRT.anchorMax = new Vector2(0.96f, 0.43f);
             descRT.offsetMin = Vector2.zero;
             descRT.offsetMax = Vector2.zero;
             var descTMP = descGO.AddComponent<TextMeshProUGUI>();
             descTMP.text      = "—";
             descTMP.alignment = TextAlignmentOptions.Center;
-            descTMP.fontSize  = 26f;
-            descTMP.color     = Color.white;
+            descTMP.fontSize  = 13f;
+            descTMP.color     = new Color(0.8f, 0.8f, 0.8f);
 
             buttons[i]     = btn;
             optionNames[i] = nameTMP;
             optionDescs[i] = descTMP;
         }
 
-        // Wire all references on LevelUpUI
+        // ── Wire all references on LevelUpUI ─────────────────────────────────────
         var so = new SerializedObject(levelUpUI);
         so.FindProperty("panel").objectReferenceValue = panelGO;
 
@@ -825,7 +892,7 @@ public static class SolengardSetup
 
         so.ApplyModifiedProperties();
 
-        Debug.Log("[SolengardSetup] LevelUpUI criado e referências conectadas.");
+        Debug.Log("[SolengardSetup] LevelUpUI dark-fantasy criado e referências conectadas.");
     }
 
     static int EnsureSystemObject<T>(string goName, StringBuilder log) where T : Component

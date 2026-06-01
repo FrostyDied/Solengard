@@ -31,7 +31,7 @@ public class EnemyBase : MonoBehaviour
     public static event System.Action OnEnemyDied;
     [HideInInspector] public string poolTag;
 
-    public const float CHARACTER_WORLD_SCALE = 0.8f;
+    public const float CHARACTER_WORLD_SCALE = 1.0f;
 
     protected float currentHealth;
     protected Rigidbody2D rb;
@@ -90,6 +90,11 @@ public class EnemyBase : MonoBehaviour
     }
 
     protected virtual void OnDisable() { }
+
+    protected virtual void Start()
+    {
+        moveSpeed *= 1.2f; // horda 20% mais rápida globalmente
+    }
 
     protected virtual void FixedUpdate()
     {
@@ -164,9 +169,9 @@ public class EnemyBase : MonoBehaviour
     // Recebe dano e dispara Die() quando a vida chega a zero
     public void TakeDamage(float amount)
     {
-        Debug.Log($"[Enemy] TakeDamage chamado em {gameObject.name} amount={amount} hp={currentHealth:F1}\n{System.Environment.StackTrace}");
         if (isDead || !CanTakeDamage()) return;
         currentHealth -= amount;
+        VFXFactory.SpawnHitSpark(transform.position);
         StartCoroutine(FlashRed());
         if (currentHealth <= 0.01f) Die();
     }
@@ -181,15 +186,26 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual bool CanTakeDamage() => true;
 
+    protected virtual Color GetDeathColor()
+    {
+        string n = gameObject.name;
+        if (n.Contains("Slime"))              return new Color(0.3f, 0.8f, 0.2f);
+        if (n.Contains("Zumbi") || n.Contains("Zombie")) return new Color(0.5f, 0.1f, 0.5f);
+        if (n.Contains("Orc")  || n.Contains("Gnoll"))   return new Color(0.7f, 0.1f, 0.1f);
+        if (n.Contains("Golem"))              return new Color(0.5f, 0.6f, 0.7f);
+        if (n.Contains("Boss") || n.Contains("Lich"))    return new Color(1f,   0.8f, 0.1f);
+        return new Color(1f, 0.4f, 0.1f);
+    }
+
     void Die()
     {
-        Debug.Log($"[Enemy] Die() chamado em {gameObject.name}\n{System.Environment.StackTrace}");
         if (isDead) return;
         isDead = true;
 
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.SetState(CharacterAnimator.State.Death);
 
+        VFXFactory.SpawnDeathExplosion(transform.position, GetDeathColor());
         GameManager.Instance?.IncrementKill();
         XPDrop.SpawnAt(transform.position, xpValue);
         OnDie();
