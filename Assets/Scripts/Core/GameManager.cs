@@ -56,6 +56,8 @@ public class GameManager : MonoBehaviour
     GameState currentState;
     public GameState CurrentState => currentState;
 
+    bool _gameStarted;
+
     public RunData currentRunData;
     float          runStartTime;
 
@@ -168,6 +170,8 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         Debug.Log("[GameManager] StartGame chamado");
+        if (_gameStarted) { Debug.LogWarning("[GameManager] StartGame já foi chamado — ignorando duplicata"); return; }
+        _gameStarted = true;
         if (currentState != GameState.MainMenu && currentState != GameState.GameOver) return;
 
         Application.targetFrameRate      = 60;
@@ -297,7 +301,8 @@ public class GameManager : MonoBehaviour
     // Recarrega a cena ativa para iniciar uma nova run
     public void RestartRun()
     {
-        SetState(GameState.MainMenu); // reseta estado antes de recarregar para GameSceneBootstrap encontrar MainMenu
+        _gameStarted = false;
+        SetState(GameState.MainMenu);
         RunSessionManager.Instance?.ClearSession();
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);

@@ -1,7 +1,7 @@
 using UnityEngine;
 
-// [DefaultExecutionOrder(50)]: garante que Start() roda APÓS GameManager (ordem 0),
-// assegurando que o estado MainMenu já foi setado antes de chamarmos StartGame().
+// GameManager.AutoStart (via Invoke 1.5s) é responsável por iniciar o jogo na GameScene.
+// Este Bootstrap existe para futuras inicializações de cena que não sejam StartGame().
 [DefaultExecutionOrder(50)]
 public class GameSceneBootstrap : MonoBehaviour
 {
@@ -9,22 +9,10 @@ public class GameSceneBootstrap : MonoBehaviour
     {
         if (GameManager.Instance == null)
         {
-            Debug.LogWarning("[GameSceneBootstrap] GameManager não encontrado — verifique se existe um GameManager persistente.");
+            Debug.LogWarning("[GameSceneBootstrap] GameManager não encontrado.");
             return;
         }
 
-        var state = GameManager.Instance.CurrentState;
-
-        // Aceita MainMenu (carga inicial) ou GameOver (GameManager persistindo entre runs
-        // sem ter passado por RestartRun — edge case de testes no editor)
-        if (state == GameState.MainMenu || state == GameState.GameOver)
-        {
-            Debug.Log($"[GameSceneBootstrap] Estado {state} — iniciando StartGame()");
-            GameManager.Instance.StartGame();
-        }
-        else
-        {
-            Debug.Log($"[GameSceneBootstrap] Estado {state} — StartGame não invocado (já em execução).");
-        }
+        Debug.Log($"[GameSceneBootstrap] Cena pronta — estado={GameManager.Instance.CurrentState}. StartGame será chamado pelo AutoStart.");
     }
 }
