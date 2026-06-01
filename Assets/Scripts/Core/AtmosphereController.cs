@@ -1,10 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class AtmosphereController : MonoBehaviour
 {
     [SerializeField] Color ambientTint = new Color(0.45f, 0.45f, 0.6f);
     [SerializeField] Color fogColor    = new Color(0.3f,  0.5f,  0.35f, 0.12f);
 
+    readonly List<SpriteRenderer> _fogRenderers = new();
     Transform _player;
 
     void Start()
@@ -56,6 +59,19 @@ public class AtmosphereController : MonoBehaviour
             sr.sortingOrder = 90 + i;
             go.transform.localScale = new Vector3(50, 50, 1);
             go.AddComponent<FogDrift>().Init(_player, i % 2 == 0 ? 0.3f : -0.2f, 90 + i);
+            _fogRenderers.Add(sr);
+        }
+    }
+
+    public void TransitionTo(Color newFogColor, float density, float duration)
+    {
+        var target = newFogColor;
+        target.a   = density;
+        foreach (var sr in _fogRenderers)
+        {
+            if (sr == null) continue;
+            if (duration <= 0f) sr.color = target;
+            else                sr.DOColor(target, duration);
         }
     }
 

@@ -1,5 +1,6 @@
 using System.Linq;
 using UnityEngine;
+using DG.Tweening;
 
 [DefaultExecutionOrder(-100)]
 public class SimpleArena : MonoBehaviour
@@ -290,6 +291,70 @@ public class SimpleArena : MonoBehaviour
     public Bounds PlayArea => new Bounds(
         _player != null ? _player.position : Vector3.zero,
         new Vector3(tileAreaSize, tileAreaSize, 0f));
+
+    // ── API de bioma ─────────────────────────────────────────────────────────────
+
+    public SpriteRenderer GetFloorRenderer() => _floorRenderer;
+
+    public void SetBiomePalette(Color baseColor, Color accentColor, BiomePattern pattern, bool instant)
+    {
+        if (_floorRenderer == null) return;
+        var spr = GenerateBiomeFloor(baseColor, accentColor, pattern);
+        _floorRenderer.sprite = spr;
+        if (instant) _floorRenderer.color = Color.white;
+        else         _floorRenderer.DOColor(Color.white, 3f);
+    }
+
+    public enum BiomePattern { Forest, Cave, Cemetery, Swamp, Battlefield }
+
+    public Sprite GenerateBiomeFloor(Color baseColor, Color accentColor, BiomePattern pattern)
+    {
+        const int size = 256;
+        var tex = new Texture2D(size, size);
+
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float fx = (float)x / size;
+                float fy = (float)y / size;
+                float n  = TileableNoise(fx, fy, 5f) * 0.6f
+                         + TileableNoise(fx, fy, 14f) * 0.4f;
+
+                Color c = Color.Lerp(baseColor, accentColor, n);
+
+                switch (pattern)
+                {
+                    case BiomePattern.Forest:
+                        if (TileableNoise(fx, fy, 25f) > 0.82f)
+                            c = Color.Lerp(c, new Color(0.6f, 0.9f, 0.5f), 0.4f);
+                        break;
+                    case BiomePattern.Cave:
+                        if (TileableNoise(fx, fy, 18f) > 0.80f)
+                            c = Color.Lerp(c, new Color(0.8f, 0.4f, 0.0f), 0.5f);
+                        break;
+                    case BiomePattern.Cemetery:
+                        if (TileableNoise(fx * 2f, fy * 2f, 8f) > 0.75f)
+                            c = Color.Lerp(c, new Color(0.05f, 0.08f, 0.04f), 0.6f);
+                        break;
+                    case BiomePattern.Swamp:
+                        float oily = TileableNoise(fx * 3f, fy * 3f, 6f);
+                        c = Color.Lerp(c, new Color(0.1f, 0.2f, 0.1f), oily * 0.5f);
+                        break;
+                    case BiomePattern.Battlefield:
+                        if (TileableNoise(fx, fy, 10f) > 0.78f)
+                            c = Color.Lerp(c, new Color(0.05f, 0.02f, 0.00f), 0.7f);
+                        break;
+                }
+
+                tex.SetPixel(x, y, c);
+            }
+        }
+        tex.Apply();
+        tex.filterMode = FilterMode.Point;
+        tex.wrapMode   = TextureWrapMode.Repeat;
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 16f);
+    }
 }
 
 #if UNITY_EDITOR

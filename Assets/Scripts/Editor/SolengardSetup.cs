@@ -230,6 +230,8 @@ public static class SolengardSetup
         CreateSceneSystem<WaveBoostSystem>          ("WaveBoostSystem");
         CreateSceneSystem<AtmosphereController>     ("AtmosphereController");
         CreateSceneSystem<XPSystem>                 ("XPSystem");
+        CreateSceneSystem<BiomeSystem>              ("BiomeSystem");
+        CreateSceneSystem<VFXManager>               ("VFXManager");
 
         // EventSystem — required for UI clicks; module depends on Input System setting
         {
@@ -245,6 +247,7 @@ public static class SolengardSetup
         }
 
         CreateLevelUpUIInScene(scene);
+        CreateLoreScreenUI(scene);
 
         // 5. Player — destroy any lingering Player-tagged objects before creating a fresh one
         foreach (var go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -661,6 +664,119 @@ public static class SolengardSetup
         return total;
     }
 
+    // Creates LoreScreen UI hierarchy (Canvas → full-screen overlay with dark-fantasy typography).
+    static void CreateLoreScreenUI(Scene scene)
+    {
+        var canvasGO = new GameObject("LoreScreenCanvas");
+        Undo.RegisterCreatedObjectUndo(canvasGO, "Rebuild GameScene");
+        SceneManager.MoveGameObjectToScene(canvasGO, scene);
+
+        var canvas = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 200;
+
+        var scaler = canvasGO.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1080f, 1920f);
+        scaler.matchWidthOrHeight  = 0.5f;
+        canvasGO.AddComponent<GraphicRaycaster>();
+
+        var cg = canvasGO.AddComponent<CanvasGroup>();
+        cg.alpha = 0f;
+
+        var loreUI = canvasGO.AddComponent<LoreScreenUI>();
+
+        // Background full-screen
+        var bgGO = new GameObject("Background");
+        Undo.RegisterCreatedObjectUndo(bgGO, "Rebuild GameScene");
+        bgGO.transform.SetParent(canvasGO.transform, false);
+        var bgRT = bgGO.AddComponent<RectTransform>();
+        bgRT.anchorMin = Vector2.zero;
+        bgRT.anchorMax = Vector2.one;
+        bgRT.offsetMin = Vector2.zero;
+        bgRT.offsetMax = Vector2.zero;
+        var bgImg = bgGO.AddComponent<Image>();
+        bgImg.color = new Color(0f, 0f, 0f, 0.92f);
+
+        // Separator — gold horizontal line
+        var sepGO = new GameObject("Separador");
+        Undo.RegisterCreatedObjectUndo(sepGO, "Rebuild GameScene");
+        sepGO.transform.SetParent(canvasGO.transform, false);
+        var sepRT = sepGO.AddComponent<RectTransform>();
+        sepRT.anchorMin        = new Vector2(0.5f, 0.5f);
+        sepRT.anchorMax        = new Vector2(0.5f, 0.5f);
+        sepRT.pivot            = new Vector2(0.5f, 0.5f);
+        sepRT.sizeDelta        = new Vector2(400f, 2f);
+        sepRT.anchoredPosition = new Vector2(0f, 60f);
+        var sepImg = sepGO.AddComponent<Image>();
+        sepImg.color = new Color(0.78f, 0.65f, 0.20f, 0f);
+
+        // NomeBioma
+        var nomeGO = new GameObject("NomeBioma");
+        Undo.RegisterCreatedObjectUndo(nomeGO, "Rebuild GameScene");
+        nomeGO.transform.SetParent(canvasGO.transform, false);
+        var nomeRT = nomeGO.AddComponent<RectTransform>();
+        nomeRT.anchorMin        = new Vector2(0.5f, 0.5f);
+        nomeRT.anchorMax        = new Vector2(0.5f, 0.5f);
+        nomeRT.pivot            = new Vector2(0.5f, 0.5f);
+        nomeRT.sizeDelta        = new Vector2(700f, 60f);
+        nomeRT.anchoredPosition = new Vector2(0f, 30f);
+        var nomeTMP = nomeGO.AddComponent<TextMeshProUGUI>();
+        nomeTMP.text           = "";
+        nomeTMP.alignment      = TextAlignmentOptions.Center;
+        nomeTMP.fontSize       = 28f;
+        nomeTMP.fontStyle      = FontStyles.Bold;
+        nomeTMP.color          = new Color(0.78f, 0.65f, 0.20f, 1f);
+        nomeTMP.characterSpacing = 8f;
+
+        // TextoLore
+        var loreGO = new GameObject("TextoLore");
+        Undo.RegisterCreatedObjectUndo(loreGO, "Rebuild GameScene");
+        loreGO.transform.SetParent(canvasGO.transform, false);
+        var loreRT = loreGO.AddComponent<RectTransform>();
+        loreRT.anchorMin        = new Vector2(0.5f, 0.5f);
+        loreRT.anchorMax        = new Vector2(0.5f, 0.5f);
+        loreRT.pivot            = new Vector2(0.5f, 0.5f);
+        loreRT.sizeDelta        = new Vector2(500f, 300f);
+        loreRT.anchoredPosition = new Vector2(0f, -60f);
+        var loreTMP = loreGO.AddComponent<TextMeshProUGUI>();
+        loreTMP.text          = "";
+        loreTMP.alignment     = TextAlignmentOptions.Center;
+        loreTMP.fontSize      = 16f;
+        loreTMP.fontStyle     = FontStyles.Italic;
+        loreTMP.color         = new Color(0.85f, 0.83f, 0.88f, 1f);
+        loreTMP.lineSpacing   = 6f;
+
+        // Instrucao
+        var instrGO = new GameObject("Instrucao");
+        Undo.RegisterCreatedObjectUndo(instrGO, "Rebuild GameScene");
+        instrGO.transform.SetParent(canvasGO.transform, false);
+        var instrRT = instrGO.AddComponent<RectTransform>();
+        instrRT.anchorMin        = new Vector2(0.5f, 0.5f);
+        instrRT.anchorMax        = new Vector2(0.5f, 0.5f);
+        instrRT.pivot            = new Vector2(0.5f, 0.5f);
+        instrRT.sizeDelta        = new Vector2(400f, 40f);
+        instrRT.anchoredPosition = new Vector2(0f, -180f);
+        var instrTMP = instrGO.AddComponent<TextMeshProUGUI>();
+        instrTMP.text      = "";
+        instrTMP.alignment = TextAlignmentOptions.Center;
+        instrTMP.fontSize  = 13f;
+        instrTMP.color     = new Color(0.60f, 0.58f, 0.65f, 1f);
+
+        // Wire fields via SerializedObject
+        var so = new UnityEditor.SerializedObject(loreUI);
+        so.FindProperty("canvasGroup").objectReferenceValue = cg;
+        so.FindProperty("background").objectReferenceValue  = bgImg;
+        so.FindProperty("nomeBioma").objectReferenceValue   = nomeTMP;
+        so.FindProperty("textoLore").objectReferenceValue   = loreTMP;
+        so.FindProperty("instrucao").objectReferenceValue   = instrTMP;
+        so.FindProperty("separador").objectReferenceValue   = sepImg;
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        canvasGO.SetActive(false);
+        Debug.Log("[SolengardSetup] LoreScreenUI criada.");
+    }
+
     // Creates required system GameObjects if absent; called by SetupAll before wiring.
     static int RunCreateNewSystemObjects(StringBuilder log)
     {
@@ -696,6 +812,8 @@ public static class SolengardSetup
         total += EnsureSystemObject<WaveBoostSystem>         ("WaveBoostSystem",           log);
         total += EnsureSystemObject<AtmosphereController>    ("AtmosphereController",      log);
         total += EnsureSystemObject<XPSystem>                ("XPSystem",                  log);
+        total += EnsureSystemObject<BiomeSystem>             ("BiomeSystem",               log);
+        total += EnsureSystemObject<VFXManager>              ("VFXManager",                log);
 
         return total;
     }

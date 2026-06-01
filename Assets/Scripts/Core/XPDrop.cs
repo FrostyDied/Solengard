@@ -66,7 +66,7 @@ public class XPDrop : MonoBehaviour
 
     void Collect()
     {
-        VFXFactory.SpawnXPCollect(transform.position);
+        VFXManager.Instance?.SpawnXPCollect(transform.position);
         XPSystem.Instance?.AddXP(xpValue);
         Destroy(gameObject);
     }

@@ -15,6 +15,10 @@ public class EnemyBase : MonoBehaviour
     public float separationRadius   = 2.0f;
     public float separationStrength = 1.5f;
 
+    [Header("Tipo")]
+    [SerializeField] protected bool isHeavy = false;
+    [SerializeField] protected bool isBoss  = false;
+
     [Header("Dano de Contato")]
     [SerializeField] float contactDamageInterval = 0.5f;
 
@@ -192,7 +196,9 @@ public class EnemyBase : MonoBehaviour
     {
         if (isDead || !CanTakeDamage()) return;
         currentHealth -= amount;
-        VFXFactory.SpawnHitSpark(transform.position);
+        var hitType = isBoss  ? VFXManager.EnemyType.Boss  :
+                      isHeavy ? VFXManager.EnemyType.Heavy : VFXManager.EnemyType.Normal;
+        VFXManager.Instance?.SpawnHit(transform.position, hitType);
         StartCoroutine(FlashRed());
         if (currentHealth <= 0.01f) Die();
     }
@@ -226,7 +232,9 @@ public class EnemyBase : MonoBehaviour
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.SetState(CharacterAnimator.State.Death);
 
-        VFXFactory.SpawnDeathExplosion(transform.position, GetDeathColor());
+        var deathType = isBoss  ? VFXManager.EnemyType.Boss  :
+                        isHeavy ? VFXManager.EnemyType.Heavy : VFXManager.EnemyType.Normal;
+        VFXManager.Instance?.SpawnDeath(transform.position, deathType);
         GameManager.Instance?.IncrementKill();
         XPDrop.SpawnAt(transform.position, xpValue);
         OnDie();

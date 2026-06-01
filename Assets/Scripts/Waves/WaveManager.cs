@@ -110,13 +110,29 @@ public class WaveManager : MonoBehaviour
                     waveTimerSystem?.StartTimer();
                     OnWaveCompleted?.Invoke(currentWave);
                     GameManager.Instance?.IncrementWave(currentWave);
-                    int captured = i;
-                    StartCoroutine(SpawnPhaseLoop(Phases[captured]));
+                    int capturedI    = i;
+                    int capturedWave = currentWave;
+                    StartCoroutine(ActivatePhase(Phases[capturedI], capturedWave));
                 }
             }
 
             yield return null;
         }
+    }
+
+    IEnumerator ActivatePhase(SpawnPhase phase, int waveNum)
+    {
+        if (waveNum <= 5 && LoreScreenUI.Instance != null && BiomeSystem.Instance != null)
+        {
+            var config = BiomeSystem.Instance.GetConfig(waveNum);
+            int capturedWave = waveNum;
+            yield return LoreScreenUI.Instance.StartCoroutine(
+                LoreScreenUI.Instance.ShowLore(config, () =>
+                    BiomeSystem.Instance.SetBiome((BiomeSystem.Biome)(capturedWave - 1))
+                )
+            );
+        }
+        StartCoroutine(SpawnPhaseLoop(phase));
     }
 
     IEnumerator SpawnPhaseLoop(SpawnPhase phase)

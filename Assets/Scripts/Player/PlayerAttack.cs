@@ -52,7 +52,7 @@ public class PlayerAttack : MonoBehaviour
 
     void SpawnSpinSlash()
     {
-        VFXFactory.SpawnAttackAura(transform.position, attackRange);
+        VFXManager.Instance?.SpawnAttackAoE(transform.position);
     }
 
     // ── Weapon sync ─────────────────────────────────────────────────────────────

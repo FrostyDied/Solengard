@@ -33,6 +33,8 @@ public class LevelUpUI : MonoBehaviour
 
     public void Show(int level)
     {
+        var pc = PlayerController.Instance;
+        VFXManager.Instance?.SpawnLevelUp(pc != null ? pc.transform.position : Vector3.zero);
         Time.timeScale = 0f;
         var options = GetRandomOptions(3);
         if (panel != null) panel.SetActive(true);
