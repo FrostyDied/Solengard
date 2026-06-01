@@ -40,31 +40,26 @@ public class VFXManager : MonoBehaviour
 
     void AutoLoadPrefabs()
     {
-#if UNITY_EDITOR
-        const string base_ = "Assets/Hovl Studio/Magic effects pack/Prefabs/";
-        Load(ref attackAoEPrefab,     base_ + "AoE effects/AoE slash orange.prefab");
-        Load(ref hitLightPrefab,      base_ + "Hits and explosions/Electro hit.prefab");
-        Load(ref hitHeavyPrefab,      base_ + "Hits and explosions/Stones hit.prefab");
-        Load(ref hitBossPrefab,       base_ + "Hits and explosions/Explosion.prefab");
-        Load(ref deathSmallPrefab,    base_ + "Sparks/Sparks explode blue.prefab");
-        Load(ref deathNormalPrefab,   base_ + "Hits and explosions/Explosion.prefab");
-        Load(ref deathHeavyPrefab,    base_ + "AoE effects/Smoke AOE explosion.prefab");
-        Load(ref deathBossPrefab,     base_ + "AoE effects/Red energy explosion.prefab");
-        Load(ref xpCollectPrefab,     base_ + "Sparks/Sparks explode blue.prefab");
-        Load(ref crystalEnvPrefab,    base_ + "Environment/Crystal effect blue.prefab");
-        Load(ref levelUpCirclePrefab, base_ + "Magic circles/Healing circle.prefab");
-        Load(ref levelUpAuraPrefab,   base_ + "Character auras/Star aura.prefab");
-        Load(ref playerAuraPrefab,    base_ + "Character auras/Buff.prefab");
-#endif
+        Load(ref attackAoEPrefab,     "VFX/AoE slash orange");
+        Load(ref hitLightPrefab,      "VFX/Electro hit");
+        Load(ref hitHeavyPrefab,      "VFX/Stones hit");
+        Load(ref hitBossPrefab,       "VFX/Explosion");
+        Load(ref deathSmallPrefab,    "VFX/Sparks explode blue");
+        Load(ref deathNormalPrefab,   "VFX/Explosion");
+        Load(ref deathHeavyPrefab,    "VFX/Smoke AOE explosion");
+        Load(ref deathBossPrefab,     "VFX/Red energy explosion");
+        Load(ref xpCollectPrefab,     "VFX/Sparks explode blue");
+        Load(ref crystalEnvPrefab,    "VFX/Crystal effect blue");
+        Load(ref levelUpCirclePrefab, "VFX/Healing circle");
+        Load(ref levelUpAuraPrefab,   "VFX/Star aura");
+        Load(ref playerAuraPrefab,    "VFX/Buff");
     }
 
     static void Load(ref GameObject field, string path)
     {
-#if UNITY_EDITOR
         if (field != null) return;
-        field = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
-        if (field == null) Debug.LogWarning($"[VFX] Prefab não encontrado: {path}");
-#endif
+        field = Resources.Load<GameObject>(path);
+        if (field == null) Debug.LogWarning($"[VFX] Prefab não encontrado em Resources/{path}");
     }
 
     // ── API pública ─────────────────────────────────────────────────────────────

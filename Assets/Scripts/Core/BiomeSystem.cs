@@ -128,6 +128,19 @@ public class BiomeSystem : MonoBehaviour
 
         SimpleArena.Instance?.SetBiomePalette(config.corChao, config.corChaoAccent, config.floorPattern, instant);
 
+        var targetBgColor = config.corAmbiente * 0.3f;
+        targetBgColor.a   = 1f;
+        if (Camera.main != null)
+        {
+            if (instant)
+                Camera.main.backgroundColor = targetBgColor;
+            else
+                DOTween.To(
+                    () => Camera.main.backgroundColor,
+                    c  => Camera.main.backgroundColor = c,
+                    targetBgColor, duration);
+        }
+
         Debug.Log($"[Biome] Transição para: {config.nome}");
     }
 

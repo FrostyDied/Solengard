@@ -122,18 +122,29 @@ public class WaveManager : MonoBehaviour
 
     IEnumerator ActivatePhase(SpawnPhase phase, int waveNum)
     {
-        if (waveNum <= 5 && LoreScreenUI.Instance != null && BiomeSystem.Instance != null)
+        if (waveNum <= 5 && BiomeSystem.Instance != null)
         {
-            var config = BiomeSystem.Instance.GetConfig(waveNum);
+            var loreUI = Object.FindFirstObjectByType<LoreScreenUI>(FindObjectsInactive.Include);
+            var config  = BiomeSystem.Instance.GetConfig(waveNum);
             int capturedWave = waveNum;
-            yield return LoreScreenUI.Instance.StartCoroutine(
-                LoreScreenUI.Instance.ShowLore(config, () =>
-                    BiomeSystem.Instance.SetBiome((BiomeSystem.Biome)(capturedWave - 1))
-                )
-            );
+
+            if (loreUI != null && config != null)
+            {
+                yield return loreUI.StartCoroutine(
+                    loreUI.ShowLore(config, () =>
+                        BiomeSystem.Instance.SetBiome((BiomeSystem.Biome)(capturedWave - 1))
+                    )
+                );
+            }
+            else
+            {
+                BiomeSystem.Instance.SetBiome((BiomeSystem.Biome)(capturedWave - 1));
+            }
         }
-        StartCoroutine(SpawnPhaseLoop(phase));
+        BeginSpawning(phase);
     }
+
+    void BeginSpawning(SpawnPhase phase) => StartCoroutine(SpawnPhaseLoop(phase));
 
     IEnumerator SpawnPhaseLoop(SpawnPhase phase)
     {

@@ -201,7 +201,7 @@ public static class SolengardSetup
             if (cam != null)
             {
                 cam.clearFlags      = CameraClearFlags.SolidColor;
-                cam.backgroundColor = new Color(0.05f, 0.05f, 0.1f);
+                cam.backgroundColor = new Color(0.08f, 0.07f, 0.10f);
             }
         }
 
@@ -312,9 +312,15 @@ public static class SolengardSetup
         if (mainCam != null)
             mainCam.AddComponent<CameraFollow>();
 
-        // Wire camera target to player
+        // Wire camera target to player and fix orthoSize
         var cf = mainCam != null ? mainCam.GetComponent<CameraFollow>() : null;
-        if (cf != null && playerGO != null) cf.SetTarget(playerGO.transform);
+        if (cf != null)
+        {
+            if (playerGO != null) cf.SetTarget(playerGO.transform);
+            var so = new SerializedObject(cf);
+            so.FindProperty("orthoSize").floatValue = 12f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
 
         // 6. Wire references — Setup Scene + Systems + Pools
         var log   = new StringBuilder();
@@ -344,6 +350,67 @@ public static class SolengardSetup
     [MenuItem("Solengard/Rebuild GameScene", validate = true)]
     static bool ValidateRebuildGameScene() =>
         EditorSceneManager.GetActiveScene().name == EXPECTED_SCENE;
+
+    // ── Setup VFX Resources ──────────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Setup VFX Resources")]
+    static void SetupVFXResources()
+    {
+        const string src = "Assets/Hovl Studio/Magic effects pack/Prefabs/";
+        const string dst = "Assets/Resources/VFX/";
+
+        if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+            AssetDatabase.CreateFolder("Assets", "Resources");
+        if (!AssetDatabase.IsValidFolder("Assets/Resources/VFX"))
+            AssetDatabase.CreateFolder("Assets/Resources", "VFX");
+
+        var copies = new System.Collections.Generic.Dictionary<string, string>
+        {
+            { src + "AoE effects/AoE slash orange.prefab",       dst + "AoE slash orange.prefab" },
+            { src + "Hits and explosions/Electro hit.prefab",     dst + "Electro hit.prefab" },
+            { src + "Hits and explosions/Stones hit.prefab",      dst + "Stones hit.prefab" },
+            { src + "Hits and explosions/Explosion.prefab",       dst + "Explosion.prefab" },
+            { src + "Sparks/Sparks explode blue.prefab",          dst + "Sparks explode blue.prefab" },
+            { src + "AoE effects/Smoke AOE explosion.prefab",     dst + "Smoke AOE explosion.prefab" },
+            { src + "AoE effects/Red energy explosion.prefab",    dst + "Red energy explosion.prefab" },
+            { src + "Magic circles/Healing circle.prefab",        dst + "Healing circle.prefab" },
+            { src + "Character auras/Star aura.prefab",           dst + "Star aura.prefab" },
+            { src + "Character auras/Buff.prefab",                dst + "Buff.prefab" },
+        };
+
+        int copied = 0;
+        var missing = new System.Text.StringBuilder();
+        foreach (var kv in copies)
+        {
+            if (!System.IO.File.Exists(kv.Key.Replace("/", "\\")))
+            {
+                missing.AppendLine($"  Não encontrado: {kv.Key}");
+                continue;
+            }
+            if (!System.IO.File.Exists(kv.Value.Replace("/", "\\")))
+            {
+                AssetDatabase.CopyAsset(kv.Key, kv.Value);
+                copied++;
+            }
+        }
+
+        // Crystal effect blue lives under Environment/
+        string crystalSrc = src + "Environment/Crystal effect blue.prefab";
+        string crystalDst = dst + "Crystal effect blue.prefab";
+        if (System.IO.File.Exists(crystalSrc.Replace("/", "\\")))
+        {
+            if (!System.IO.File.Exists(crystalDst.Replace("/", "\\")))
+            { AssetDatabase.CopyAsset(crystalSrc, crystalDst); copied++; }
+        }
+        else missing.AppendLine($"  Não encontrado: {crystalSrc}");
+
+        AssetDatabase.Refresh();
+
+        var msg = $"✓ {copied} prefab(s) copiado(s) para Resources/VFX/.";
+        if (missing.Length > 0) msg += $"\n\n⚠ Prefabs ausentes (verifique os nomes):\n{missing}";
+        EditorUtility.DisplayDialog("Solengard — Setup VFX Resources", msg, "OK");
+        Debug.Log($"[VFX] {copied} prefab(s) copiados para Resources/VFX/.");
+    }
 
     // ── Create MainMenu Scene ────────────────────────────────────────────────────
 

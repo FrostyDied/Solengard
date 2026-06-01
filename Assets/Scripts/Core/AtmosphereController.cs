@@ -5,7 +5,7 @@ using DG.Tweening;
 public class AtmosphereController : MonoBehaviour
 {
     [SerializeField] Color ambientTint = new Color(0.45f, 0.45f, 0.6f);
-    [SerializeField] Color fogColor    = new Color(0.3f,  0.5f,  0.35f, 0.12f);
+    [SerializeField] Color fogColor    = new Color(0.35f, 0.55f, 0.40f, 0.20f);
 
     readonly List<SpriteRenderer> _fogRenderers = new();
     Transform _player;
@@ -32,7 +32,7 @@ public class AtmosphereController : MonoBehaviour
                 float dx = (x - size / 2f) / (size / 2f);
                 float dy = (y - size / 2f) / (size / 2f);
                 float d  = Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy));
-                float darkness = Mathf.Lerp(0.25f, 0.65f, d);
+                float darkness = Mathf.Lerp(0.15f, 0.45f, d);
                 tex.SetPixel(x, y, new Color(0.05f, 0.05f, 0.1f, darkness));
             }
         }
@@ -49,13 +49,18 @@ public class AtmosphereController : MonoBehaviour
 
     void CreateFogLayers()
     {
+        var fogColors = new Color[]
+        {
+            new Color(0.35f, 0.55f, 0.40f, 0.20f),
+            new Color(0.30f, 0.48f, 0.38f, 0.15f),
+        };
         for (int i = 0; i < 2; i++)
         {
             var go   = new GameObject($"FogLayer{i}");
             go.transform.SetParent(transform);
             var sr   = go.AddComponent<SpriteRenderer>();
             sr.sprite       = MakeFogSprite();
-            sr.color        = fogColor;
+            sr.color        = fogColors[i];
             sr.sortingOrder = 90 + i;
             go.transform.localScale = new Vector3(50, 50, 1);
             go.AddComponent<FogDrift>().Init(_player, i % 2 == 0 ? 0.3f : -0.2f, 90 + i);
