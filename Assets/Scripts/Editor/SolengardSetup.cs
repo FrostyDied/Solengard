@@ -841,7 +841,7 @@ public static class SolengardSetup
         so.ApplyModifiedPropertiesWithoutUndo();
 
         canvasGO.SetActive(false);
-        Debug.Log("[SolengardSetup] LoreScreenUI criada.");
+        Debug.Log($"[SolengardSetup] LoreScreenUI criada — Canvas sortingOrder={canvas.sortingOrder}");
     }
 
     // Creates required system GameObjects if absent; called by SetupAll before wiring.

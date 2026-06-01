@@ -115,7 +115,8 @@ public class GameManager : MonoBehaviour
     void AutoStart()
     {
         StartCoroutine(FadeFromBlack(() => StartGame()));
-        StartCoroutine(SafetyTimeScale());
+        // SafetyTimeScale é iniciada dentro de StartGame(), após a lore começar,
+        // para que o timeout conte a partir do momento em que timeScale é zerado.
     }
 
     IEnumerator FadeFromBlack(System.Action onComplete)
@@ -143,12 +144,14 @@ public class GameManager : MonoBehaviour
         onComplete?.Invoke();
     }
 
+    // Timeout longo: lore pode durar ~10s + tempo do usuário pressionar.
+    // 15s a partir do início da lore é seguro sem prejudicar a UX normal.
     IEnumerator SafetyTimeScale()
     {
-        yield return new WaitForSecondsRealtime(2f);
+        yield return new WaitForSecondsRealtime(15f);
         if (Time.timeScale == 0f)
         {
-            Debug.LogWarning("[GameManager] timeScale estava 0 após 2s — forçando para 1");
+            Debug.LogWarning("[GameManager] timeScale estava 0 após 15s — forçando para 1 (lore travada?)");
             Time.timeScale = 1f;
             WaveManager.Instance?.StartWaves();
         }
@@ -164,6 +167,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
+        Debug.Log("[GameManager] StartGame chamado");
         if (currentState != GameState.MainMenu && currentState != GameState.GameOver) return;
 
         Application.targetFrameRate      = 60;
@@ -193,10 +197,14 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        Debug.Log("[GameManager] Buscando LoreScreenUI...");
         var loreUI = Object.FindFirstObjectByType<LoreScreenUI>(FindObjectsInactive.Include);
         var config  = BiomeSystem.Instance?.GetConfig(1);
+        Debug.Log($"[GameManager] LoreScreenUI encontrada: {loreUI != null}, BiomeConfig: {config != null}");
+
         if (loreUI != null && config != null)
         {
+            StartCoroutine(SafetyTimeScale()); // começa a contar agora que a lore vai rodar
             StartCoroutine(loreUI.ShowLore(config, () =>
             {
                 BiomeSystem.Instance?.SetBiome(BiomeSystem.Biome.Veremoth);
@@ -205,6 +213,8 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            if (loreUI == null) Debug.LogWarning("[GameManager] LoreScreenUI NULL — verifique se o GameObject está na cena");
+            if (config  == null) Debug.LogWarning("[GameManager] BiomeConfig NULL — BiomeSystem.GetConfig(1) retornou null");
             waveManager.StartWaves();
         }
     }
