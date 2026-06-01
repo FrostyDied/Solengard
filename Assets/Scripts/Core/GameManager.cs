@@ -107,10 +107,50 @@ public class GameManager : MonoBehaviour
 
         // Sem MainMenu separada: iniciar automaticamente ao entrar na GameScene
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "GameScene")
-            Invoke(nameof(AutoStart), 0.5f);
+            Invoke(nameof(AutoStart), 1.5f);
     }
 
-    void AutoStart() => StartGame();
+    void AutoStart()
+    {
+        StartCoroutine(FadeFromBlack(() => StartGame()));
+        StartCoroutine(SafetyTimeScale());
+    }
+
+    IEnumerator FadeFromBlack(System.Action onComplete)
+    {
+        var overlay = new GameObject("FadeOverlay");
+        var canvas  = overlay.AddComponent<Canvas>();
+        canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 998;
+        var img  = overlay.AddComponent<UnityEngine.UI.Image>();
+        img.color = Color.black;
+        var rect = img.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
+
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        float t = 0f;
+        while (t < 1f)
+        {
+            t        += Time.unscaledDeltaTime * 1.5f;
+            img.color = new Color(0f, 0f, 0f, 1f - t);
+            yield return null;
+        }
+        Destroy(overlay);
+        onComplete?.Invoke();
+    }
+
+    IEnumerator SafetyTimeScale()
+    {
+        yield return new WaitForSecondsRealtime(2f);
+        if (Time.timeScale == 0f)
+        {
+            Debug.LogWarning("[GameManager] timeScale estava 0 após 2s — forçando para 1");
+            Time.timeScale = 1f;
+            WaveManager.Instance?.StartWaves();
+        }
+    }
 
     void Update()
     {

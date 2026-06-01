@@ -29,6 +29,13 @@ public class LoreScreenUI : MonoBehaviour
     public IEnumerator ShowLore(BiomeSystem.BiomeConfig config, System.Action onComplete)
     {
         gameObject.SetActive(true);
+        yield return null; // wait one frame so Canvas renders before pausing time
+        if (!gameObject.activeInHierarchy)
+        {
+            Time.timeScale = 1f;
+            onComplete?.Invoke();
+            yield break;
+        }
         Time.timeScale = 0f;
 
         if (nomeBioma != null) nomeBioma.text  = config.nome.ToUpper();
@@ -88,8 +95,8 @@ public class LoreScreenUI : MonoBehaviour
         canvasGroup.DOFade(0f, 0.6f).SetUpdate(true);
         yield return new WaitForSecondsRealtime(0.6f);
 
-        Time.timeScale = 1f;
         gameObject.SetActive(false);
+        Time.timeScale = 1f; // always restore — even if something failed above
         onComplete?.Invoke();
     }
 }
