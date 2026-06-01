@@ -40,13 +40,7 @@ public class SimpleArena : MonoBehaviour
     void BuildFloor()
     {
         if (floorSprite == null)
-        {
-#if UNITY_EDITOR
-            floorSprite = LoadGrassTile();
-#else
-            floorSprite = GenerateGrassFloor();
-#endif
-        }
+            floorSprite = GenerateSeamlessGrass();
 
         // Derive the snap grid size from the chosen tile so the grid aligns exactly.
         if (floorSprite != null)
@@ -124,6 +118,99 @@ public class SimpleArena : MonoBehaviour
         spr.name = "GrassFloor";
         Debug.Log("[SimpleArena] Chão de grama procedural gerado (64x64px, PPU=16, tileWorld=4).");
         return spr;
+    }
+
+    // Grama tileável 256×256 — textura de qualidade com wrap perfeito nas bordas.
+    // internal static permite acesso pelo menu de preview sem precisar de instância.
+    internal static Sprite GenerateSeamlessGrass()
+    {
+        const int size = 256;
+        var tex = new Texture2D(size, size);
+
+        Color deepGreen  = new Color(0.18f, 0.34f, 0.16f);
+        Color baseGreen  = new Color(0.24f, 0.43f, 0.21f);
+        Color midGreen   = new Color(0.30f, 0.52f, 0.26f);
+        Color lightGreen = new Color(0.38f, 0.60f, 0.32f);
+
+        var rng = new System.Random(12345);
+
+        // 1. Base com ruído tileável em duas frequências (macro + micro)
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float fx = (float)x / size;
+                float fy = (float)y / size;
+
+                float macro = TileableNoise(fx, fy, 4f);
+                float micro = TileableNoise(fx, fy, 12f) * 0.5f;
+                float n     = Mathf.Clamp01(macro * 0.6f + micro * 0.4f);
+
+                Color c;
+                if      (n < 0.3f) c = Color.Lerp(deepGreen, baseGreen, n / 0.3f);
+                else if (n < 0.6f) c = Color.Lerp(baseGreen, midGreen, (n - 0.3f) / 0.3f);
+                else               c = Color.Lerp(midGreen, lightGreen, (n - 0.6f) / 0.4f);
+
+                tex.SetPixel(x, y, c);
+            }
+        }
+
+        // 2. Tufos de grama — linhas verticais curtas com wrap nas bordas
+        for (int i = 0; i < 900; i++)
+        {
+            int tx   = rng.Next(size);
+            int ty   = rng.Next(size);
+            int h    = 2 + rng.Next(4);
+            Color tuft = rng.NextDouble() > 0.5 ? lightGreen : midGreen;
+            for (int j = 0; j < h; j++)
+            {
+                int yy = (ty + j) % size;
+                tex.SetPixel(tx, yy, Color.Lerp(tex.GetPixel(tx, yy), tuft, 0.6f));
+            }
+        }
+
+        // 3. Pontos escuros (terra/sombra) para profundidade
+        for (int i = 0; i < 120; i++)
+        {
+            int dx = rng.Next(size);
+            int dy = rng.Next(size);
+            int r  = 1 + rng.Next(2);
+            for (int ox = -r; ox <= r; ox++)
+                for (int oy = -r; oy <= r; oy++)
+                {
+                    int xx = ((dx + ox) % size + size) % size;
+                    int yy = ((dy + oy) % size + size) % size;
+                    tex.SetPixel(xx, yy, Color.Lerp(tex.GetPixel(xx, yy), deepGreen, 0.4f));
+                }
+        }
+
+        tex.Apply();
+        tex.filterMode = FilterMode.Point;
+        tex.wrapMode   = TextureWrapMode.Repeat;
+
+        var spr = Sprite.Create(tex,
+            new Rect(0, 0, size, size),
+            new Vector2(0.5f, 0.5f),
+            pixelsPerUnit: 16f,
+            extrude: 0,
+            meshType: SpriteMeshType.FullRect);
+        spr.name = "SeamlessGrass";
+        Debug.Log("[SimpleArena] Grama tileável 256×256 gerada (tileWorld=16u).");
+        return spr;
+    }
+
+    // Ruído periódico: garante continuidade perfeita nas bordas via interpolação bilinear
+    // com amostras de Perlin deslocadas de ±1 em x e y.
+    static float TileableNoise(float x, float y, float freq)
+    {
+        float a = Mathf.PerlinNoise( x          * freq,  y          * freq);
+        float b = Mathf.PerlinNoise((x - 1f)    * freq,  y          * freq);
+        float c = Mathf.PerlinNoise( x          * freq, (y - 1f)    * freq);
+        float d = Mathf.PerlinNoise((x - 1f)    * freq, (y - 1f)    * freq);
+        return a * (1 - x) * (1 - y)
+             + b *      x  * (1 - y)
+             + c * (1 - x) *      y
+             + d *      x  *      y;
     }
 
 #if UNITY_EDITOR
@@ -315,6 +402,28 @@ public static class SimpleArenaTilesetDebug
             $"Linha visual ≈ {(tex.height - cellY - region) / 16} do topo, coluna {cellX / 16}\n\n" +
             $"Se não parecer grama pura, ajuste cellX/cellY em LoadGrassTile().\n" +
             $"Delete o objeto de preview quando terminar.", "OK");
+    }
+
+    [UnityEditor.MenuItem("Solengard/Debug/Preview Seamless Grass")]
+    static void PreviewSeamlessGrass()
+    {
+        var spr = SimpleArena.GenerateSeamlessGrass();
+
+        var go = new UnityEngine.GameObject("__SeamlessGrassPreview__");
+        var sr = go.AddComponent<UnityEngine.SpriteRenderer>();
+        sr.sprite       = spr;
+        sr.drawMode     = SpriteDrawMode.Tiled;
+        sr.size         = new UnityEngine.Vector2(20f, 20f);
+        sr.tileMode     = SpriteTileMode.Continuous;
+        sr.sortingOrder = -100;
+        go.transform.position = UnityEngine.Vector3.zero;
+
+        UnityEditor.Selection.activeGameObject = go;
+        UnityEditor.EditorUtility.DisplayDialog("Preview Seamless Grass",
+            "GameObject '__SeamlessGrassPreview__' criado.\n\n" +
+            "Textura: 256×256px, 16 PPU → tile de 16u\n" +
+            "Painel: 20×20 unidades de mundo\n\n" +
+            "Delete o objeto quando terminar.", "OK");
     }
 
     [UnityEditor.MenuItem("Solengard/Debug/Analyze Grass Tileset")]
