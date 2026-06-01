@@ -229,6 +229,7 @@ public static class SolengardSetup
         CreateSceneSystem<PropSpawner>              ("PropSpawner");
         CreateSceneSystem<WaveBoostSystem>          ("WaveBoostSystem");
         CreateSceneSystem<AtmosphereController>     ("AtmosphereController");
+        CreateSceneSystem<XPSystem>                 ("XPSystem");
 
         // EventSystem — required for UI clicks; module depends on Input System setting
         {
@@ -242,6 +243,8 @@ public static class SolengardSetup
             esGO.AddComponent<StandaloneInputModule>();
 #endif
         }
+
+        CreateLevelUpUIInScene(scene);
 
         // 5. Player — destroy any lingering Player-tagged objects before creating a fresh one
         foreach (var go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -693,8 +696,136 @@ public static class SolengardSetup
         total += EnsureSystemObject<PropSpawner>             ("PropSpawner",               log);
         total += EnsureSystemObject<WaveBoostSystem>         ("WaveBoostSystem",           log);
         total += EnsureSystemObject<AtmosphereController>    ("AtmosphereController",      log);
+        total += EnsureSystemObject<XPSystem>                ("XPSystem",                  log);
 
         return total;
+    }
+
+    // Creates the full LevelUp UI hierarchy (Canvas → Panel → 3 option buttons) and wires LevelUpUI.
+    static void CreateLevelUpUIInScene(Scene scene)
+    {
+        var canvasGO = new GameObject("LevelUpCanvas");
+        Undo.RegisterCreatedObjectUndo(canvasGO, "Rebuild GameScene");
+        SceneManager.MoveGameObjectToScene(canvasGO, scene);
+
+        var canvas = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode  = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 100;
+
+        var scaler = canvasGO.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1080f, 1920f);
+        scaler.matchWidthOrHeight  = 0.5f;
+        canvasGO.AddComponent<GraphicRaycaster>();
+
+        var levelUpUI = canvasGO.AddComponent<LevelUpUI>();
+
+        // Full-screen dark overlay panel (inactive by default)
+        var panelGO = new GameObject("LevelUpPanel");
+        Undo.RegisterCreatedObjectUndo(panelGO, "Rebuild GameScene");
+        panelGO.transform.SetParent(canvasGO.transform, false);
+        var panelRT = panelGO.AddComponent<RectTransform>();
+        panelRT.anchorMin = Vector2.zero;
+        panelRT.anchorMax = Vector2.one;
+        panelRT.offsetMin = Vector2.zero;
+        panelRT.offsetMax = Vector2.zero;
+        panelGO.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.85f);
+        panelGO.SetActive(false);
+
+        // Container centred in the middle third of the screen
+        var containerGO = new GameObject("OptionsContainer");
+        Undo.RegisterCreatedObjectUndo(containerGO, "Rebuild GameScene");
+        containerGO.transform.SetParent(panelGO.transform, false);
+        var containerRT = containerGO.AddComponent<RectTransform>();
+        containerRT.anchorMin = new Vector2(0.08f, 0.22f);
+        containerRT.anchorMax = new Vector2(0.92f, 0.78f);
+        containerRT.offsetMin = Vector2.zero;
+        containerRT.offsetMax = Vector2.zero;
+
+        var buttons     = new Button[3];
+        var optionNames = new TextMeshProUGUI[3];
+        var optionDescs = new TextMeshProUGUI[3];
+
+        for (int i = 0; i < 3; i++)
+        {
+            var btnGO = new GameObject($"OptionButton_{i}");
+            Undo.RegisterCreatedObjectUndo(btnGO, "Rebuild GameScene");
+            btnGO.transform.SetParent(containerGO.transform, false);
+            var btnRT = btnGO.AddComponent<RectTransform>();
+
+            // Stack 3 buttons top-to-bottom with small gap
+            float gap  = 0.03f;
+            float h    = (1f - gap * 4f) / 3f;
+            float yMin = 1f - (i + 1) * (h + gap) + gap;
+            float yMax = 1f - i * (h + gap);
+            btnRT.anchorMin = new Vector2(0f, yMin);
+            btnRT.anchorMax = new Vector2(1f, yMax);
+            btnRT.offsetMin = Vector2.zero;
+            btnRT.offsetMax = Vector2.zero;
+
+            var img = btnGO.AddComponent<Image>();
+            img.color = new Color(0.10f, 0.05f, 0.18f, 0.97f);
+            var btn = btnGO.AddComponent<Button>();
+            btn.targetGraphic = img;
+
+            // Name TMP — upper half, gold
+            var nameGO = new GameObject("Name");
+            Undo.RegisterCreatedObjectUndo(nameGO, "Rebuild GameScene");
+            nameGO.transform.SetParent(btnGO.transform, false);
+            var nameRT = nameGO.AddComponent<RectTransform>();
+            nameRT.anchorMin = new Vector2(0.04f, 0.50f);
+            nameRT.anchorMax = new Vector2(0.96f, 0.94f);
+            nameRT.offsetMin = Vector2.zero;
+            nameRT.offsetMax = Vector2.zero;
+            var nameTMP = nameGO.AddComponent<TextMeshProUGUI>();
+            nameTMP.text      = "—";
+            nameTMP.alignment = TextAlignmentOptions.Center;
+            nameTMP.fontSize  = 38f;
+            nameTMP.fontStyle = FontStyles.Bold;
+            nameTMP.color     = new Color(1f, 0.88f, 0.35f);
+
+            // Desc TMP — lower half, white
+            var descGO = new GameObject("Desc");
+            Undo.RegisterCreatedObjectUndo(descGO, "Rebuild GameScene");
+            descGO.transform.SetParent(btnGO.transform, false);
+            var descRT = descGO.AddComponent<RectTransform>();
+            descRT.anchorMin = new Vector2(0.04f, 0.07f);
+            descRT.anchorMax = new Vector2(0.96f, 0.50f);
+            descRT.offsetMin = Vector2.zero;
+            descRT.offsetMax = Vector2.zero;
+            var descTMP = descGO.AddComponent<TextMeshProUGUI>();
+            descTMP.text      = "—";
+            descTMP.alignment = TextAlignmentOptions.Center;
+            descTMP.fontSize  = 26f;
+            descTMP.color     = Color.white;
+
+            buttons[i]     = btn;
+            optionNames[i] = nameTMP;
+            optionDescs[i] = descTMP;
+        }
+
+        // Wire all references on LevelUpUI
+        var so = new SerializedObject(levelUpUI);
+        so.FindProperty("panel").objectReferenceValue = panelGO;
+
+        var btnProp = so.FindProperty("optionButtons");
+        btnProp.arraySize = 3;
+        for (int i = 0; i < 3; i++)
+            btnProp.GetArrayElementAtIndex(i).objectReferenceValue = buttons[i];
+
+        var namesProp = so.FindProperty("optionNames");
+        namesProp.arraySize = 3;
+        for (int i = 0; i < 3; i++)
+            namesProp.GetArrayElementAtIndex(i).objectReferenceValue = optionNames[i];
+
+        var descsProp = so.FindProperty("optionDescs");
+        descsProp.arraySize = 3;
+        for (int i = 0; i < 3; i++)
+            descsProp.GetArrayElementAtIndex(i).objectReferenceValue = optionDescs[i];
+
+        so.ApplyModifiedProperties();
+
+        Debug.Log("[SolengardSetup] LevelUpUI criado e referências conectadas.");
     }
 
     static int EnsureSystemObject<T>(string goName, StringBuilder log) where T : Component
@@ -788,8 +919,8 @@ public static class SolengardSetup
 
         if (player < 0 || enemy < 0) return;
 
-        // Enemies physically collide with player; contact damage via OnCollisionStay2D.
-        // Player mass=1000f prevents being pushed; enemy colliders must NOT be triggers.
+        // Enemy colliders are triggers at runtime (set in EnemyBase.Awake); damage via OnTriggerStay2D.
+        // IgnoreLayerCollision=false is kept so trigger queries still respect layer masks.
         Physics2D.IgnoreLayerCollision(player, enemy, false);
 
         // Obstacles: player collides (uses cover), enemies pass through freely.
@@ -1218,29 +1349,9 @@ public static class SolengardSetup
         return TryAssign<T>(propertyName, prefab, log);
     }
 
-    // Ensures enemy prefab colliders are solid (isTrigger=false) so OnCollisionStay2D
-    // fires for contact damage. Player mass=1000f prevents being pushed.
-    static int TrySetEnemyCollidersToSolid(StringBuilder log)
-    {
-        int changed = 0;
-        foreach (string path in ENEMY_PREFAB_PATHS)
-        {
-            var prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (prefabAsset == null) continue;
-
-            var go  = PrefabUtility.LoadPrefabContents(path);
-            var col = go.GetComponent<Collider2D>();
-            if (col != null && col.isTrigger)
-            {
-                col.isTrigger = false;
-                PrefabUtility.SaveAsPrefabAsset(go, path);
-                changed++;
-                log.AppendLine($"  {System.IO.Path.GetFileNameWithoutExtension(path)}: Collider2D → isTrigger=false");
-            }
-            PrefabUtility.UnloadPrefabContents(go);
-        }
-        return changed;
-    }
+    // Enemy colliders are set to isTrigger=true at runtime by EnemyBase.Awake().
+    // This function is kept as a no-op to avoid breaking the call site.
+    static int TrySetEnemyCollidersToSolid(StringBuilder log) => 0;
 
     static void AppendResult(StringBuilder sb, int total, StringBuilder log)
     {

@@ -74,51 +74,72 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
+    static Sprite _slashSprite;
+
     IEnumerator ProceduralSpinSlash()
     {
-        const int count = 4;
-        var fxObjs = new GameObject[count];
-        var fxSrs  = new SpriteRenderer[count];
-        var fxDirs = new Vector3[count];
-        var playerSr = GetComponent<SpriteRenderer>();
+        const int rays = 8;
+        var fxList = new System.Collections.Generic.List<GameObject>();
 
-        for (int i = 0; i < count; i++)
+        if (_slashSprite == null) _slashSprite = MakeSlashSprite();
+
+        for (int i = 0; i < rays; i++)
         {
-            float angle = i * 90f;
+            float angle = (360f / rays) * i;
             float rad   = angle * Mathf.Deg2Rad;
-            fxDirs[i]   = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f);
+            var   dir   = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
 
-            var fx = new GameObject("SpinFX");
-            fx.transform.position = transform.position;
-            fx.transform.rotation = Quaternion.Euler(0, 0, angle);
+            var fx = new GameObject("SlashRay");
+            fx.transform.SetParent(transform);
+            fx.transform.localPosition = dir * attackRange * 0.4f;
+            fx.transform.rotation      = Quaternion.Euler(0, 0, angle);
 
             var sr = fx.AddComponent<SpriteRenderer>();
-            sr.sprite       = playerSr?.sprite;
-            sr.color        = new Color(1f, 0.9f, 0.3f, 0.85f);
-            sr.sortingOrder = 40;
-            fx.transform.localScale = Vector3.one * 0.5f;
+            sr.sortingOrder = 50;
+            sr.color        = new Color(1f, 0.9f, 0.2f, 0.9f);
+            sr.sprite       = _slashSprite;
+            fx.transform.localScale = new Vector3(attackRange * 0.4f, 0.15f, 1f);
 
-            fxObjs[i] = fx;
-            fxSrs[i]  = sr;
+            fxList.Add(fx);
         }
 
-        float t = 0f;
-        while (t < slashDuration)
+        float t   = 0f;
+        float dur = slashDuration;
+        while (t < dur)
         {
             t += Time.deltaTime;
-            float ratio = t / slashDuration;
-            for (int i = 0; i < count; i++)
+            float p = t / dur;
+            foreach (var fx in fxList)
             {
-                if (fxObjs[i] == null) continue;
-                fxObjs[i].transform.position  = transform.position + fxDirs[i] * Mathf.Lerp(0f, attackRange * 0.6f, ratio);
-                fxObjs[i].transform.localScale = Vector3.one * Mathf.Lerp(0.5f, 1.1f, ratio);
-                fxSrs[i].color = new Color(1f, 0.9f, 0.3f, Mathf.Lerp(0.85f, 0f, ratio));
+                if (fx == null) continue;
+                fx.transform.localScale = new Vector3(
+                    attackRange * Mathf.Lerp(0.3f, 0.7f, p),
+                    Mathf.Lerp(0.2f, 0.05f, p), 1f);
+                var sr = fx.GetComponent<SpriteRenderer>();
+                if (sr) sr.color = new Color(1f, 0.9f, 0.2f, Mathf.Lerp(0.9f, 0f, p));
             }
             yield return null;
         }
 
-        for (int i = 0; i < count; i++)
-            if (fxObjs[i] != null) Destroy(fxObjs[i]);
+        foreach (var fx in fxList)
+            if (fx != null) Destroy(fx);
+    }
+
+    static Sprite MakeSlashSprite()
+    {
+        var tex = new Texture2D(16, 4);
+        for (int x = 0; x < 16; x++)
+        {
+            float t = (float)x / 16f;
+            float a = Mathf.Lerp(1f, 0f, t);
+            tex.SetPixel(x, 0, new Color(1f, 1f,  0.5f, a * 0.5f));
+            tex.SetPixel(x, 1, new Color(1f, 0.9f, 0.2f, a));
+            tex.SetPixel(x, 2, new Color(1f, 0.9f, 0.2f, a));
+            tex.SetPixel(x, 3, new Color(1f, 1f,  0.5f, a * 0.5f));
+        }
+        tex.Apply();
+        tex.filterMode = FilterMode.Point;
+        return Sprite.Create(tex, new Rect(0, 0, 16, 4), new Vector2(0f, 0.5f), 16f);
     }
 
     void TryLoadSlashPrefab()

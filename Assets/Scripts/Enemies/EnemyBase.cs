@@ -18,6 +18,9 @@ public class EnemyBase : MonoBehaviour
     [Header("Dano de Contato")]
     [SerializeField] float contactDamageInterval = 0.5f;
 
+    [Header("XP Drop")]
+    [SerializeField] int xpValue = 3;
+
     [Header("Referências")]
     // Deixe vazio para usar busca automática em Awake
     public Transform playerTransform;
@@ -28,7 +31,7 @@ public class EnemyBase : MonoBehaviour
     public static event System.Action OnEnemyDied;
     [HideInInspector] public string poolTag;
 
-    public const float CHARACTER_WORLD_SCALE = 2f;
+    public const float CHARACTER_WORLD_SCALE = 0.8f;
 
     protected float currentHealth;
     protected Rigidbody2D rb;
@@ -188,6 +191,7 @@ public class EnemyBase : MonoBehaviour
         if (anim != null) anim.SetState(CharacterAnimator.State.Death);
 
         GameManager.Instance?.IncrementKill();
+        XPDrop.SpawnAt(transform.position, xpValue);
         OnDie();
         OnDeathCallback?.Invoke();
         OnEnemyDied?.Invoke();

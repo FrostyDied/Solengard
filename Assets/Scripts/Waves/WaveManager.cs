@@ -22,7 +22,7 @@ public class WaveManager : MonoBehaviour
     public List<Transform> spawnPoints = new();
 
     [Header("Spawn contínuo")]
-    [SerializeField] float spawnInterval       = 1.5f;
+    [SerializeField] float spawnInterval       = 0.5f;
     [SerializeField] float minimumWaveDuration = 60f;
 
     [Header("Spawn dinâmico")]
@@ -101,21 +101,23 @@ public class WaveManager : MonoBehaviour
 
     // Spawna continuamente enquanto a wave está ativa,
     // respeitando o limite de inimigos na tela.
+    // Wave 1 = 20, wave 2 = 28, wave 3 = 36, ... (+8 por wave)
+    int   GetMaxEnemies()    => 20 + (currentWave - 1) * 8;
+    float GetSpawnInterval() => Mathf.Max(0.2f, 0.5f - (currentWave - 1) * 0.03f);
+
     IEnumerator SpawnLoop()
     {
         isSpawning = true;
 
         while (isSpawning)
         {
-            int maxOnScreen = dynamicDifficulty != null ? dynamicDifficulty.MaxEnemiesOnScreen : 20;
-
-            if (enemiesAlive < maxOnScreen)
+            if (enemiesAlive < GetMaxEnemies())
             {
                 SpawnEnemy();
                 enemiesAlive++;
             }
 
-            yield return new WaitForSeconds(spawnInterval);
+            yield return new WaitForSeconds(GetSpawnInterval());
         }
     }
 

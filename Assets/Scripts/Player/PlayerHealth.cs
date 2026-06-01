@@ -115,6 +115,9 @@ public class PlayerHealth : MonoBehaviour
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
+    // Alias em português usado pelo sistema de level-up
+    public void Curar(float amount) => Heal(amount);
+
     // Restaura vida sem ultrapassar o máximo
     public void Heal(float amount)
     {
