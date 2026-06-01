@@ -794,7 +794,7 @@ public static class SolengardSetup
         bgRT.offsetMin = Vector2.zero;
         bgRT.offsetMax = Vector2.zero;
         var bgImg = bgGO.AddComponent<Image>();
-        bgImg.color = new Color(0f, 0f, 0f, 0.92f);
+        bgImg.color = new Color(0f, 0f, 0f, 0.97f);
 
         // Separator — gold horizontal line
         var sepGO = new GameObject("Separador");
@@ -804,8 +804,8 @@ public static class SolengardSetup
         sepRT.anchorMin        = new Vector2(0.5f, 0.5f);
         sepRT.anchorMax        = new Vector2(0.5f, 0.5f);
         sepRT.pivot            = new Vector2(0.5f, 0.5f);
-        sepRT.sizeDelta        = new Vector2(400f, 2f);
-        sepRT.anchoredPosition = new Vector2(0f, 60f);
+        sepRT.sizeDelta        = new Vector2(500f, 3f);
+        sepRT.anchoredPosition = new Vector2(0f, 80f);
         var sepImg = sepGO.AddComponent<Image>();
         sepImg.color = new Color(0.78f, 0.65f, 0.20f, 0f);
 
@@ -817,15 +817,15 @@ public static class SolengardSetup
         nomeRT.anchorMin        = new Vector2(0.5f, 0.5f);
         nomeRT.anchorMax        = new Vector2(0.5f, 0.5f);
         nomeRT.pivot            = new Vector2(0.5f, 0.5f);
-        nomeRT.sizeDelta        = new Vector2(700f, 60f);
-        nomeRT.anchoredPosition = new Vector2(0f, 30f);
+        nomeRT.sizeDelta        = new Vector2(600f, 70f);
+        nomeRT.anchoredPosition = new Vector2(0f, 120f);
         var nomeTMP = nomeGO.AddComponent<TextMeshProUGUI>();
         nomeTMP.text             = "";
         nomeTMP.alignment        = TextAlignmentOptions.Center;
-        nomeTMP.fontSize         = 28f;
+        nomeTMP.fontSize         = 36f;
         nomeTMP.fontStyle        = FontStyles.Bold;
         nomeTMP.color            = new Color(0.78f, 0.65f, 0.20f, 1f);
-        nomeTMP.characterSpacing = 8f;
+        nomeTMP.characterSpacing = 12f;
 
         // TextoLore
         var loreGO = new GameObject("TextoLore");
@@ -835,15 +835,15 @@ public static class SolengardSetup
         loreRT.anchorMin        = new Vector2(0.5f, 0.5f);
         loreRT.anchorMax        = new Vector2(0.5f, 0.5f);
         loreRT.pivot            = new Vector2(0.5f, 0.5f);
-        loreRT.sizeDelta        = new Vector2(500f, 300f);
-        loreRT.anchoredPosition = new Vector2(0f, -60f);
+        loreRT.sizeDelta        = new Vector2(580f, 300f);
+        loreRT.anchoredPosition = new Vector2(0f, -20f);
         var loreTMP = loreGO.AddComponent<TextMeshProUGUI>();
         loreTMP.text        = "";
         loreTMP.alignment   = TextAlignmentOptions.Center;
-        loreTMP.fontSize    = 16f;
+        loreTMP.fontSize    = 18f;
         loreTMP.fontStyle   = FontStyles.Italic;
         loreTMP.color       = new Color(0.85f, 0.83f, 0.88f, 1f);
-        loreTMP.lineSpacing = 6f;
+        loreTMP.lineSpacing = 8f;
 
         // Instrucao
         var instrGO = new GameObject("Instrucao");
@@ -854,11 +854,11 @@ public static class SolengardSetup
         instrRT.anchorMax        = new Vector2(0.5f, 0.5f);
         instrRT.pivot            = new Vector2(0.5f, 0.5f);
         instrRT.sizeDelta        = new Vector2(400f, 40f);
-        instrRT.anchoredPosition = new Vector2(0f, -180f);
+        instrRT.anchoredPosition = new Vector2(0f, -200f);
         var instrTMP = instrGO.AddComponent<TextMeshProUGUI>();
         instrTMP.text      = "";
         instrTMP.alignment = TextAlignmentOptions.Center;
-        instrTMP.fontSize  = 13f;
+        instrTMP.fontSize  = 15f;
         instrTMP.color     = new Color(0.60f, 0.58f, 0.65f, 1f);
 
         // ── Wire fields via SerializedObject ──────────────────────────────────────

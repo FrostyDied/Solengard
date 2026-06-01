@@ -111,16 +111,16 @@ public class GameManager : MonoBehaviour
 
         // Sem MainMenu separada: iniciar automaticamente ao entrar na GameScene
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "GameScene")
-            Invoke(nameof(AutoStart), 1.5f);
+            Invoke(nameof(AutoStart), 0.3f);
     }
 
     void AutoStart()
     {
-        StartCoroutine(FadeFromBlack(() => StartGame()));
-        // SafetyTimeScale é iniciada dentro de StartGame(), após a lore começar,
-        // para que o timeout conte a partir do momento em que timeScale é zerado.
+        StartCoroutine(SafetyTimeScale());
+        StartGame(); // lore aparece imediatamente; fade revela o jogo após a lore
     }
 
+    // Fade de preto para transparente — usado DEPOIS da lore para revelar o jogo
     IEnumerator FadeFromBlack(System.Action onComplete)
     {
         var overlay = new GameObject("FadeOverlay");
@@ -133,7 +133,7 @@ public class GameManager : MonoBehaviour
         rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
         rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
 
-        yield return new WaitForSecondsRealtime(0.5f);
+        yield return new WaitForSecondsRealtime(0.1f);
 
         float t = 0f;
         while (t < 1f)
@@ -209,29 +209,29 @@ public class GameManager : MonoBehaviour
         if (loreUI != null && config != null)
         {
             Debug.Log("[GameManager] Iniciando coroutine ShowLore");
-            StartCoroutine(SafetyTimeScale());
             StartCoroutine(loreUI.ShowLore(config, () =>
             {
-                Debug.Log("[GameManager] Lore callback — verificando sessao");
+                Debug.Log("[GameManager] Lore callback — fade de entrada e verificando sessao");
                 BiomeSystem.Instance?.SetBiome(BiomeSystem.Biome.Veremoth);
                 if (sessaoAtiva)
-                    RestoreSession(sessaoData);
+                    StartCoroutine(FadeFromBlack(() => RestoreSession(sessaoData)));
                 else
-                {
-                    proceduralArena?.InitializeRun();
-                    waveManager.StartWaves();
-                }
+                    StartCoroutine(FadeFromBlack(() =>
+                    {
+                        proceduralArena?.InitializeRun();
+                        waveManager.StartWaves();
+                    }));
             }));
         }
         else
         {
             Debug.LogWarning($"[GameManager] FALLBACK — loreUI={loreUI != null} config={config != null}");
-            if (sessaoAtiva) RestoreSession(sessaoData);
-            else
+            if (sessaoAtiva) StartCoroutine(FadeFromBlack(() => RestoreSession(sessaoData)));
+            else StartCoroutine(FadeFromBlack(() =>
             {
                 proceduralArena?.InitializeRun();
                 waveManager.StartWaves();
-            }
+            }));
         }
     }
 
