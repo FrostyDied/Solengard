@@ -835,15 +835,15 @@ public static class SolengardSetup
         loreRT.anchorMin        = new Vector2(0.5f, 0.5f);
         loreRT.anchorMax        = new Vector2(0.5f, 0.5f);
         loreRT.pivot            = new Vector2(0.5f, 0.5f);
-        loreRT.sizeDelta        = new Vector2(700f, 300f);
+        loreRT.sizeDelta        = new Vector2(680f, 300f);
         loreRT.anchoredPosition = new Vector2(0f, 0f);
         var loreTMP = loreGO.AddComponent<TextMeshProUGUI>();
         loreTMP.text        = "";
         loreTMP.alignment   = TextAlignmentOptions.Center;
-        loreTMP.fontSize    = 24f;
-        loreTMP.fontStyle   = FontStyles.Italic;
+        loreTMP.fontSize    = 32f;
+        loreTMP.fontStyle   = FontStyles.Normal;
         loreTMP.color       = new Color(0.85f, 0.83f, 0.88f, 1f);
-        loreTMP.lineSpacing = 10f;
+        loreTMP.lineSpacing = 12f;
 
         // Instrucao
         var instrGO = new GameObject("Instrucao");
