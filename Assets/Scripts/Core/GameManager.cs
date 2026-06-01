@@ -89,13 +89,18 @@ public class GameManager : MonoBehaviour
         WaveManager.OnWaveCompleted     -= HandleWaveCompleted;
     }
 
-    // Refreshes scene-bound references after reload — serialized fields point to destroyed instances
+    // Refreshes scene-bound references after reload and triggers AutoStart on restarts.
+    // Initial load is handled by Start(); reloads (RestartRun) are handled here.
     void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
     {
         if (waveManager == null)
             waveManager = Object.FindFirstObjectByType<WaveManager>();
         if (runRewardSystem == null)
             runRewardSystem = Object.FindFirstObjectByType<RunRewardSystem>();
+
+        // Restart path: Start() won't run again because GameManager is DontDestroyOnLoad
+        if (scene.name == "GameScene" && !_gameStarted && currentState == GameState.MainMenu)
+            AutoStart();
     }
 
     void Start()
@@ -109,19 +114,17 @@ public class GameManager : MonoBehaviour
             OnSessionFound?.Invoke(session);
         }
 
-        // Sem MainMenu separada: iniciar automaticamente ao entrar na GameScene
+        // Initial load path
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "GameScene")
-            Invoke(nameof(AutoStart), 0.3f);
+            AutoStart();
     }
 
     void AutoStart()
     {
         if (Camera.main != null) Camera.main.backgroundColor = Color.black;
         StartCoroutine(SafetyTimeScale());
-        Invoke(nameof(StartGameDirect), 0.2f);
+        StartGame();
     }
-
-    void StartGameDirect() => StartGame();
 
     // Fade de preto para transparente — chamado APÓS lore para revelar o jogo (sortingOrder 997, abaixo da lore 999)
     IEnumerator FadeFromBlack(System.Action onComplete)
@@ -170,69 +173,50 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
-        Debug.Log("[GameManager] StartGame iniciado, _gameStarted=" + _gameStarted);
-        if (_gameStarted) { Debug.LogWarning("[GameManager] StartGame já foi chamado — ignorando duplicata"); return; }
+        if (_gameStarted) { Debug.LogWarning("[GameManager] StartGame duplicata ignorada"); return; }
         _gameStarted = true;
         if (currentState != GameState.MainMenu && currentState != GameState.GameOver) return;
 
-        Application.targetFrameRate      = 60;
-        QualitySettings.vSyncCount       = 0;
-        Screen.sleepTimeout              = SleepTimeout.NeverSleep;
-        Physics2D.velocityIterations     = 4;
-        Physics2D.positionIterations     = 2;
-        Time.fixedDeltaTime              = 0.02f;
+        Application.targetFrameRate  = 60;
+        QualitySettings.vSyncCount   = 0;
+        Screen.sleepTimeout          = SleepTimeout.NeverSleep;
+        Physics2D.velocityIterations = 4;
+        Physics2D.positionIterations = 2;
+        Time.fixedDeltaTime          = 0.02f;
 
-        // Captura sessão SEM restaurar agora — lore vem primeiro sempre
         bool sessaoAtiva = RunSessionManager.Instance != null && RunSessionManager.Instance.HasActiveSession();
         RunSessionData sessaoData = sessaoAtiva ? RunSessionManager.Instance.LoadSession() : default;
         if (sessaoAtiva)
-            Debug.Log($"[GameManager] Sessao ativa detectada — wave={sessaoData.currentWave}, sera restaurada apos lore");
+            Debug.Log($"[GameManager] Sessao ativa — wave={sessaoData.currentWave}, restaurada apos lore");
 
         currentRunData = new RunData { causeOfDeath = "inimigo" };
         runStartTime   = Time.time;
         runTimer       = 0f;
 
         SetState(GameState.Playing);
-        Debug.Log("[GameManager] Estado setado para Playing");
 
-        if (waveManager == null)
-        {
-            Debug.LogWarning("[GameManager] WaveManager não atribuído no Inspector.");
-            return;
-        }
+        if (waveManager == null) { Debug.LogWarning("[GameManager] WaveManager nao atribuido."); return; }
 
-        var loreUI = Object.FindFirstObjectByType<LoreScreenUI>(FindObjectsInactive.Include);
-        Debug.Log($"[GameManager] loreUI={loreUI != null} (obj={loreUI?.gameObject.name})");
+        // Canvas do LoreScreenUI agora sempre ativo — não precisa de FindObjectsInactive
+        var loreUI = Object.FindFirstObjectByType<LoreScreenUI>();
+        var config  = BiomeSystem.Instance?.GetConfig(1);
+        Debug.Log($"[GameManager] StartGame loreUI={loreUI != null} config={config != null} sessao={sessaoAtiva}");
 
-        var config = BiomeSystem.Instance?.GetConfig(1);
-        Debug.Log($"[GameManager] config={config != null} BiomeSystem={BiomeSystem.Instance != null}");
+        System.Action afterLore = sessaoAtiva
+            ? (System.Action)(() => StartCoroutine(FadeFromBlack(() => RestoreSession(sessaoData))))
+            : ()          => StartCoroutine(FadeFromBlack(() =>
+              {
+                  proceduralArena?.InitializeRun();
+                  BiomeSystem.Instance?.SetBiome(BiomeSystem.Biome.Veremoth);
+                  waveManager.StartWaves();
+              }));
 
         if (loreUI != null && config != null)
-        {
-            Debug.Log("[GameManager] Iniciando coroutine ShowLore");
-            StartCoroutine(loreUI.ShowLore(config, () =>
-            {
-                Debug.Log("[GameManager] Lore callback — fade de entrada e verificando sessao");
-                BiomeSystem.Instance?.SetBiome(BiomeSystem.Biome.Veremoth);
-                if (sessaoAtiva)
-                    StartCoroutine(FadeFromBlack(() => RestoreSession(sessaoData)));
-                else
-                    StartCoroutine(FadeFromBlack(() =>
-                    {
-                        proceduralArena?.InitializeRun();
-                        waveManager.StartWaves();
-                    }));
-            }));
-        }
+            StartCoroutine(loreUI.ShowLore(config, afterLore));
         else
         {
-            Debug.LogWarning($"[GameManager] FALLBACK — loreUI={loreUI != null} config={config != null}");
-            if (sessaoAtiva) StartCoroutine(FadeFromBlack(() => RestoreSession(sessaoData)));
-            else StartCoroutine(FadeFromBlack(() =>
-            {
-                proceduralArena?.InitializeRun();
-                waveManager.StartWaves();
-            }));
+            Debug.LogWarning($"[GameManager] Sem lore — fallback direto. loreUI={loreUI != null} config={config != null}");
+            afterLore();
         }
     }
 

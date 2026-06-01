@@ -201,7 +201,7 @@ public static class SolengardSetup
             if (cam != null)
             {
                 cam.clearFlags      = CameraClearFlags.SolidColor;
-                cam.backgroundColor = new Color(0.08f, 0.07f, 0.10f);
+                cam.backgroundColor = Color.black; // preto para não ter flash antes do fade
             }
         }
 
