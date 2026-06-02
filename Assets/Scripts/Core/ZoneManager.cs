@@ -358,6 +358,9 @@ public class ZoneManager : MonoBehaviour
             var anim = bossGO.GetComponent<CharacterAnimator>();
             if (anim != null) anim.ForceState(CharacterAnimator.State.Walk);
 
+            if (bossGO.GetComponent<BossAttack>() == null)
+                bossGO.AddComponent<BossAttack>();
+
             _bossInstances.Add(bossGO);
         }
 
