@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ZoneManager : MonoBehaviour
 {
@@ -79,6 +81,8 @@ public class ZoneManager : MonoBehaviour
     bool             _bossSpawnStarted  = false;
     Coroutine        _spawnCoroutine;
     Coroutine        _quotaTimerCoroutine;
+    GameObject       _fadeOverlay;
+    GameObject       _victoryTextGO;
 
     void Awake()
     {
@@ -159,8 +163,6 @@ public class ZoneManager : MonoBehaviour
 
                     if (BossTimeRemaining <= 0f)
                     {
-                        if (_spawnCoroutine      != null) StopCoroutine(_spawnCoroutine);
-                        if (_quotaTimerCoroutine != null) StopCoroutine(_quotaTimerCoroutine);
                         ClearEnemies();
                         OnGameOver?.Invoke($"Tempo esgotado na {zone.nome}");
                         IsRunning = false;
@@ -179,8 +181,6 @@ public class ZoneManager : MonoBehaviour
                 yield return null;
             }
 
-            if (_spawnCoroutine      != null) StopCoroutine(_spawnCoroutine);
-            if (_quotaTimerCoroutine != null) StopCoroutine(_quotaTimerCoroutine);
             ClearEnemies();
             OnZoneCompleted?.Invoke(CurrentZone);
 
@@ -188,7 +188,8 @@ public class ZoneManager : MonoBehaviour
             if (ph != null) ph.Curar(ph.MaxHealth);
             XPSystem.Instance?.ResetLevel();
 
-            yield return new WaitForSeconds(3f);
+            yield return StartCoroutine(ZoneTransition(CurrentZone));
+
             CurrentZone++;
 
             if (CurrentZone < zones.Length)
@@ -201,6 +202,7 @@ public class ZoneManager : MonoBehaviour
                     StartCoroutine(loreUI.ShowLore(nextConfig, () => loreDone = true));
                     yield return new WaitUntil(() => loreDone);
                 }
+                yield return StartCoroutine(FadeIn());
             }
         }
 
@@ -213,6 +215,12 @@ public class ZoneManager : MonoBehaviour
     {
         while (true)
         {
+            if (BossActive)
+            {
+                yield return new WaitForSeconds(0.5f);
+                continue;
+            }
+
             if (_player == null) FindPlayer();
 
             if (!_heartDropped && ZoneTimeRemaining <= 300f && _player != null)
@@ -282,10 +290,7 @@ public class ZoneManager : MonoBehaviour
         BossActive        = true;
         BossTimeRemaining = zone.bossTimeLimit;
 
-        if (_spawnCoroutine      != null) StopCoroutine(_spawnCoroutine);
-        if (_quotaTimerCoroutine != null) StopCoroutine(_quotaTimerCoroutine);
         ClearEnemies();
-        _bossInstances.Clear();
 
         yield return new WaitForSeconds(2f);
 
@@ -392,20 +397,131 @@ public class ZoneManager : MonoBehaviour
 
     void ClearEnemies()
     {
+        if (_spawnCoroutine      != null) { StopCoroutine(_spawnCoroutine);      _spawnCoroutine      = null; }
+        if (_quotaTimerCoroutine != null) { StopCoroutine(_quotaTimerCoroutine); _quotaTimerCoroutine = null; }
+
         foreach (var e in _activeEnemies) if (e != null) Destroy(e);
         _activeEnemies.Clear();
 
         foreach (var b in _bossInstances) if (b != null) Destroy(b);
         _bossInstances.Clear();
 
-        var projectiles = GameObject.FindGameObjectsWithTag("EnemyProjectile");
-        foreach (var p in projectiles) Destroy(p);
+        foreach (var p in GameObject.FindGameObjectsWithTag("EnemyProjectile")) Destroy(p);
+
+        foreach (var x in FindObjectsByType<XPDrop>(FindObjectsSortMode.None))   Destroy(x.gameObject);
+        foreach (var h in FindObjectsByType<HeartDrop>(FindObjectsSortMode.None)) Destroy(h.gameObject);
 
         BossActive         = false;
+        _bossSpawnStarted  = false;
         _allBossesDefeated = false;
+        _spawnBudget       = 0;
 
-        Debug.Log("[Zone] Limpeza completa — inimigos, bosses e projéteis destruídos");
+        Debug.Log("[Zone] Limpeza completa — inimigos, bosses, projéteis, XP e corações destruídos");
     }
+
+    // ── Transição cinematográfica entre zonas ────────────────────────────────────
+
+    IEnumerator ZoneTransition(int completedZone)
+    {
+        yield return StartCoroutine(FadeOut());
+        ShowZoneVictoryText(completedZone);
+        yield return new WaitForSecondsRealtime(1.5f);
+        HideZoneVictoryText();
+        yield return new WaitForSecondsRealtime(0.5f);
+    }
+
+    IEnumerator FadeOut()
+    {
+        _fadeOverlay = CreateFadeOverlay();
+        var img = _fadeOverlay.GetComponent<Image>();
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.unscaledDeltaTime * 1.5f;
+            img.color = new Color(0f, 0f, 0f, Mathf.Lerp(0f, 1f, t));
+            yield return null;
+        }
+        img.color = new Color(0f, 0f, 0f, 1f);
+    }
+
+    IEnumerator FadeIn()
+    {
+        if (_fadeOverlay == null) yield break;
+        var img = _fadeOverlay.GetComponent<Image>();
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.unscaledDeltaTime * 1.2f;
+            img.color = new Color(0f, 0f, 0f, Mathf.Lerp(1f, 0f, t));
+            yield return null;
+        }
+        Destroy(_fadeOverlay);
+        _fadeOverlay = null;
+    }
+
+    GameObject CreateFadeOverlay()
+    {
+        var go     = new GameObject("ZoneFadeOverlay");
+        var canvas = go.AddComponent<Canvas>();
+        canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 998;
+        var img  = go.AddComponent<Image>();
+        img.color = new Color(0f, 0f, 0f, 0f);
+        var rect = img.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        return go;
+    }
+
+    void ShowZoneVictoryText(int zoneIndex)
+    {
+        var go     = new GameObject("ZoneVictoryText");
+        var canvas = go.AddComponent<Canvas>();
+        canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 999;
+
+        var txt = go.AddComponent<TMPro.TextMeshProUGUI>();
+        string[] zoneNames =
+        {
+            "FLORESTA DE VEREMOTH — CONQUISTADA",
+            "CAVERNAS DE KHORDUUM — CONQUISTADAS",
+            "CEMITÉRIO DE VALDROSS — CONQUISTADO",
+            "PÂNTANO DE GORVETH — CONQUISTADO",
+            "CAMPO DE ARKENFALL — CONQUISTADO",
+        };
+        txt.text      = zoneIndex < zoneNames.Length ? zoneNames[zoneIndex] : "ZONA CONQUISTADA";
+        txt.fontSize  = 28f;
+        txt.color     = new Color(0.78f, 0.65f, 0.20f);
+        txt.alignment = TMPro.TextAlignmentOptions.Center;
+        txt.fontStyle = TMPro.FontStyles.Bold;
+
+        var rect = txt.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.1f, 0.45f);
+        rect.anchorMax = new Vector2(0.9f, 0.55f);
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        txt.DOFade(0f, 0f).SetUpdate(true);
+        txt.DOFade(1f, 0.4f).SetUpdate(true);
+
+        _victoryTextGO = go;
+    }
+
+    void HideZoneVictoryText()
+    {
+        if (_victoryTextGO == null) return;
+        var txt = _victoryTextGO.GetComponent<TMPro.TextMeshProUGUI>();
+        if (txt != null)
+            txt.DOFade(0f, 0.3f).SetUpdate(true)
+               .OnComplete(() => { if (_victoryTextGO != null) Destroy(_victoryTextGO); });
+        else
+            Destroy(_victoryTextGO);
+        _victoryTextGO = null;
+    }
+
+    // ── Utilitários ──────────────────────────────────────────────────────────────
 
     public void RestoreToZone(int zone)
     {
