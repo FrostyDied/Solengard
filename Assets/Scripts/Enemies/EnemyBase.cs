@@ -118,7 +118,7 @@ public class EnemyBase : MonoBehaviour
         MoveTowardsPlayer();
     }
 
-    void FindPlayer()
+    protected void FindPlayer()
     {
         if (PlayerController.Instance != null)
             playerTransform = PlayerController.Instance.transform;
@@ -129,7 +129,7 @@ public class EnemyBase : MonoBehaviour
         }
     }
 
-    void MoveTowardsPlayer()
+    protected virtual void MoveTowardsPlayer()
     {
         if (playerTransform == null) { FindPlayer(); return; }
 
@@ -167,7 +167,7 @@ public class EnemyBase : MonoBehaviour
         }
     }
 
-    Vector2 ComputeSeparation()
+    protected Vector2 ComputeSeparation()
     {
         Vector2 sep    = Vector2.zero;
         var     nearby = Physics2D.OverlapCircleAll(rb.position, separationRadius);

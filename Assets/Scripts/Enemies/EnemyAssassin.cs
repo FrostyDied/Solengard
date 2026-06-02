@@ -1,59 +1,60 @@
-using System.Collections;
 using UnityEngine;
 
-// Assassino. Alta velocidade, teleporta perto do player e fica invulnerável brevemente.
+// Assassino. Alta velocidade, dash veloz ao entrar no range de ataque.
 public class EnemyAssassin : EnemyBase
 {
     [Header("Assassin")]
-    public float teleportInterval    = 5f;
-    public float postTeleportIFrames = 0.5f;
+    [SerializeField] float dashRange    = 3.0f;
+    [SerializeField] float dashSpeed    = 12f;
+    [SerializeField] float dashCooldown = 2.5f;
 
-    bool isPostTeleportInvincible;
+    float _dashTimer = 0f;
 
     protected override void Awake()
     {
-        maxHealth         = 20f;
-        moveSpeed         = 4f;
-        damage            = 12f;
-        separationStrength = 0f;   // ignora multidão — sempre carrega direto no player
-        separationRadius  = 0f;
+        maxHealth          = 20f;
+        moveSpeed          = 4f;
+        damage             = 12f;
+        separationStrength = 0.3f;  // deriva lateral suficiente para cruzar a fronteira de dano
+        separationRadius   = 1.0f;  // afasta de outros Assassins próximos
+        stoppingDistance   = 0.3f;  // penetra mais fundo antes de parar
         base.Awake();
     }
 
     protected override void OnEnable()
     {
         base.OnEnable();
-        isPostTeleportInvincible = false;
-        StartCoroutine(TeleportRoutine());
+        _dashTimer = 0f;
     }
 
-    protected override void OnDisable()
+    protected override void MoveTowardsPlayer()
     {
-        base.OnDisable();
-        isPostTeleportInvincible = false;
-        StopAllCoroutines();
-    }
+        if (playerTransform == null) { FindPlayer(); return; }
 
-    protected override bool CanTakeDamage() => !isPostTeleportInvincible;
+        float   dist     = Vector2.Distance(rb.position, (Vector2)playerTransform.position);
+        Vector2 toPlayer = ((Vector2)playerTransform.position - rb.position).normalized;
 
-    IEnumerator TeleportRoutine()
-    {
-        yield return new WaitForSeconds(teleportInterval * 0.5f);
-        while (true)
+        _dashTimer -= Time.fixedDeltaTime;
+
+        // Dash: dispara quando dentro do range e cooldown zerado — atravessa a fronteira de dano
+        if (dist <= dashRange && _dashTimer <= 0f)
         {
-            yield return new WaitForSeconds(teleportInterval);
-            if (playerTransform != null)
-                yield return StartCoroutine(Teleport());
+            rb.linearVelocity = toPlayer * dashSpeed;
+            _dashTimer = dashCooldown;
+            return;
         }
-    }
 
-    IEnumerator Teleport()
-    {
-        Vector2 offset = Random.insideUnitCircle.normalized * 1.5f;
-        transform.position = (Vector2)playerTransform.position + offset;
+        if (dist <= stoppingDistance)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
 
-        isPostTeleportInvincible = true;
-        yield return new WaitForSeconds(postTeleportIFrames);
-        isPostTeleportInvincible = false;
+        Vector2 separation = ComputeSeparation();
+        float   speed      = dist < stoppingDistance * 3f
+                             ? moveSpeed * (dist / (stoppingDistance * 3f))
+                             : moveSpeed;
+
+        rb.linearVelocity = (toPlayer + separation * separationStrength).normalized * speed;
     }
 }
