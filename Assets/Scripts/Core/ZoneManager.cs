@@ -134,6 +134,7 @@ public class ZoneManager : MonoBehaviour
             _currentMinute     = 1;
 
             BiomeSystem.Instance?.SetBiome(zone.biome);
+            WorldChunkManager.Instance?.SetBiome(CurrentZone);
             OnZoneStarted?.Invoke(CurrentZone);
             Debug.Log($"[Zone] Iniciando zona {CurrentZone + 1}: {zone.nome}");
 

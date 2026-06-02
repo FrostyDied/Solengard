@@ -290,7 +290,11 @@ public static class SolengardSetup
         CreateSceneSystem<TemporaryPowerSystem>     ("TemporaryPowerSystem");
         CreateSceneSystem<SimpleArena>              ("SimpleArena");
         CreateSceneSystem<PropSpawner>              ("PropSpawner");
+        CreateSceneSystem<WorldChunkManager>        ("WorldChunkManager");
         CreateSceneSystem<WaveBoostSystem>          ("WaveBoostSystem");
+
+        // WorldChunkManager substitui PropSpawner — desativar para evitar duplicação
+        { var old = Object.FindFirstObjectByType<PropSpawner>(); if (old != null) old.gameObject.SetActive(false); }
         CreateSceneSystem<AtmosphereController>     ("AtmosphereController");
         CreateSceneSystem<XPSystem>                 ("XPSystem");
         CreateSceneSystem<BiomeSystem>              ("BiomeSystem");
@@ -996,7 +1000,8 @@ public static class SolengardSetup
         total += EnsureSystemObject<DynamicDifficultySystem> ("DynamicDifficultySystem",  log);
         total += EnsureSystemObject<TemporaryPowerSystem>    ("TemporaryPowerSystem",      log);
         total += EnsureSystemObject<PropSpawner>             ("PropSpawner",               log);
-        total += EnsureSystemObject<WaveBoostSystem>         ("WaveBoostSystem",           log);
+        total += EnsureSystemObject<WorldChunkManager>      ("WorldChunkManager",         log);
+        total += EnsureSystemObject<WaveBoostSystem>        ("WaveBoostSystem",           log);
         total += EnsureSystemObject<AtmosphereController>    ("AtmosphereController",      log);
         total += EnsureSystemObject<XPSystem>                ("XPSystem",                  log);
         total += EnsureSystemObject<BiomeSystem>             ("BiomeSystem",               log);
@@ -2020,5 +2025,277 @@ public static class SolengardSetup
             new EditorBuildSettingsScene(GAME_SCENE_PATH,      true),
         };
         Debug.Log("[SolengardSetup] Build Settings → MainMenu[0], GameScene[1]");
+    }
+
+    // ── Rich Environment ─────────────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Setup Rich Environment")]
+    static void SetupRichEnvironment()
+    {
+        if (!ValidateScene(out var scene)) return;
+        SetupRichPrefabs();
+        SetupWorldChunkManager();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorUtility.DisplayDialog("Solengard — Rich Environment",
+            "Prefabs ricos criados e WorldChunkManager configurado.", "OK");
+    }
+
+    [MenuItem("Solengard/Setup Rich Environment", validate = true)]
+    static bool ValidateSetupRichEnvironment() =>
+        !string.IsNullOrEmpty(EditorSceneManager.GetActiveScene().name);
+
+    static void SetupRichPrefabs()
+    {
+        string richDir = "Assets/Prefabs/Environment/Rich";
+        if (!AssetDatabase.IsValidFolder(richDir))
+            AssetDatabase.CreateFolder("Assets/Prefabs/Environment", "Rich");
+
+        // VEREMOTH — Season2_Forest
+        CreateRichPrefab(richDir + "/Veremoth_Tree.prefab",
+            new[]{ "Assets/Art/Environment/Season2_Forest/Trees/PNG/Assets_separately" },
+            new[]{ "Broken_tree","Willow","Burned_tree","Curved_tree",
+                   "Tree1","Tree2","Tree3","Tree4","Tree5",
+                   "Tree6","Tree7","Tree8","Moss_tree" },
+            new[]{ "_shadow","_no_shadow","Snow","Christmas","Palm","Light_balls",
+                   "Living","Autumn","Blue","Flower","Fruit","Luminous","Mega",
+                   "Swirl","White","Ent","Idol" },
+            true, 0.35f);
+
+        CreateRichPrefab(richDir + "/Veremoth_Bush.prefab",
+            new[]{ "Assets/Art/Environment/Season2_Forest/Bushes/PNG/Assets" },
+            new[]{ "Bush1","Bush2","Bush3","Bush4","Bush5","Bush6",
+                   "Bush7","Bush8","Bush_simple" },
+            new[]{ "_shadow","Snow","Cactus","Autumn" },
+            false, 0f);
+
+        CreateRichPrefab(richDir + "/Veremoth_Mushroom.prefab",
+            new[]{ "Assets/Art/Environment/Season2_Forest/Objects/PNG/Assets" },
+            new[]{ "mushroom","Mushroom","Chanterelle","Fern" },
+            new[]{ "_shadow","Snow" },
+            false, 0f);
+
+        CreateRichPrefab(richDir + "/Veremoth_Rock.prefab",
+            new[]{ "Assets/Art/Environment/Season2_Forest/Tileset/PNG/Objects_separated" },
+            new[]{ "stone","rock","Stone","Rock" },
+            new[]{ "_shadow","_grass","_ground","Snow","Water" },
+            true, 0.3f);
+
+        CreateRichPrefab(richDir + "/Veremoth_Ruin.prefab",
+            new[]{ "Assets/Art/Environment/Season2_Forest/Tileset/PNG/Objects_separated" },
+            new[]{ "Ruin","ruin" },
+            new[]{ "_shadow","_grass","_ground","Snow","Water" },
+            true, 0.4f);
+
+        // KHORDUUM — Season5_Cave
+        CreateRichPrefab(richDir + "/Khorduum_Crystal.prefab",
+            new[]{ "Assets/Art/Environment/Season5_Cave/Crystals/PNG/Assets" },
+            new[]{ "crystal","Crystal" },
+            new[]{ "_shadow","_grass","_ground","_dark","_light" },
+            false, 0f);
+
+        CreateRichPrefab(richDir + "/Khorduum_Stone.prefab",
+            new[]{ "Assets/Art/Environment/Season5_Cave/Objects/PNG/Objects_separately" },
+            new[]{ "rock","Rock","stalagmite","stone","Stone" },
+            new[]{ "_shadow","_dark","_light","_grass","_ground" },
+            true, 0.35f);
+
+        CreateRichPrefab(richDir + "/Khorduum_Mushroom.prefab",
+            new[]{ "Assets/Art/Environment/Season5_Cave/Objects/PNG/Objects_separately" },
+            new[]{ "mushroom","Mushroom" },
+            new[]{ "_shadow","_dark","_light" },
+            false, 0f);
+
+        CreateRichPrefab(richDir + "/Khorduum_Object.prefab",
+            new[]{ "Assets/Art/Environment/Season5_Cave/Objects/PNG/Objects_separately" },
+            new[]{ "cocoon","web","skeleton","statue","magic_circle",
+                   "spider","centipede","Bonefire" },
+            new[]{ "_shadow","_dark","_light" },
+            false, 0f);
+
+        // VALDROSS — Season6_Undead
+        CreateRichPrefab(richDir + "/Valdross_Grave.prefab",
+            new[]{ "Assets/Art/Environment/Season6_Undead/Objects/PNG/Objects_separately" },
+            new[]{ "Grave","grave","coffin","Scull_door","excavated" },
+            new[]{ "_shadow2","_shadow3" },
+            true, 0.3f);
+
+        CreateRichPrefab(richDir + "/Valdross_Bones.prefab",
+            new[]{ "Assets/Art/Environment/Season6_Undead/Objects/PNG/Objects_separately" },
+            new[]{ "Bones","bone_","skull","Pile_sculls","Dead_arm" },
+            new[]{ "_shadow2","_shadow3" },
+            false, 0f);
+
+        CreateRichPrefab(richDir + "/Valdross_Tree.prefab",
+            new[]{ "Assets/Art/Environment/Season6_Undead/Objects/PNG/Objects_separately" },
+            new[]{ "Dead_tree","Broken_tree","monster_tree","Thorn_plant",
+                   "undead_plant","Plant_shadow1" },
+            new[]{ "_shadow2","_shadow3" },
+            true, 0.3f);
+
+        CreateRichPrefab(richDir + "/Valdross_Object.prefab",
+            new[]{ "Assets/Art/Environment/Season6_Undead/Objects/PNG/Objects_separately" },
+            new[]{ "web_rock","web_tree","Crystal_shadow1","mushroom1_1",
+                   "mushroom2_1","Lich" },
+            new[]{ "_shadow2","_shadow3" },
+            false, 0f);
+
+        // GORVETH — Season4_Swamp
+        CreateRichPrefab(richDir + "/Gorveth_Tree.prefab",
+            new[]{ "Assets/Art/Environment/Season4_Swamp/Objects/PNG/Assets" },
+            new[]{ "Sculls_tree","Curved_tree","Tree1","Tree2",
+                   "Tree3","Tree4","Broken_tree","Tree-fern" },
+            new[]{ "_shadow","_grass","_ground","Water" },
+            true, 0.35f);
+
+        CreateRichPrefab(richDir + "/Gorveth_Plant.prefab",
+            new[]{ "Assets/Art/Environment/Season4_Swamp/Objects/PNG/Assets" },
+            new[]{ "Predator_plant","Fren_flower","Fern","Grass_pink",
+                   "Grass_white","Reeds","Moss" },
+            new[]{ "_shadow","_grass","_ground","Water" },
+            false, 0f);
+
+        CreateRichPrefab(richDir + "/Gorveth_Object.prefab",
+            new[]{ "Assets/Art/Environment/Season4_Swamp/Objects/PNG/Assets" },
+            new[]{ "Totem","Witch_totem","Stick_skulls","Statue",
+                   "Cauldron_element1","Cauldron_element2","Cauldron_element3","House" },
+            new[]{ "_shadow","_grass","_ground","Water" },
+            true, 0.25f);
+
+        CreateRichPrefab(richDir + "/Gorveth_Mushroom.prefab",
+            new[]{ "Assets/Art/Environment/Season4_Swamp/Objects/PNG/Assets" },
+            new[]{ "Mushroom_black","Mushroom_gray","Mushroom_red",
+                   "Musgroom1","Musgroom2","Musgroom3","Musgroom4" },
+            new[]{ "_shadow","_grass","_ground","Water" },
+            false, 0f);
+
+        // ARKENFALL — Season3_Grassland + Season6_Undead
+        CreateRichPrefab(richDir + "/Arkenfall_Rock.prefab",
+            new[]{ "Assets/Art/Environment/Season3_Grassland/Rocks/PNG/Objects_separately" },
+            new[]{ "Rock1_","Rock2_","Rock3_","Rock4_",
+                   "Rock5_","Rock6_","Rock7_","Rock8_" },
+            new[]{ "_no_shadow","Snow","Water","_grass","_ground" },
+            true, 0.35f);
+
+        CreateRichPrefab(richDir + "/Arkenfall_Ruin.prefab",
+            new[]{ "Assets/Art/Environment/Season3_Grassland/Ruins/PNG/Assets" },
+            new[]{ "Brown_ruins","Brown-gray_ruins","Blue-gray_ruins",
+                   "Sand_ruins","Yellow_ruins" },
+            new[]{ "Snow","Water" },
+            true, 0.4f);
+
+        CreateRichPrefab(richDir + "/Arkenfall_Bones.prefab",
+            new[]{ "Assets/Art/Environment/Season6_Undead/Objects/PNG/Objects_separately" },
+            new[]{ "Bones_shadow2","bone_monster","Dead_arm_shadow2",
+                   "skull_chasm","Pile_sculls" },
+            new[]{ "_shadow3" },
+            false, 0f);
+
+        CreateRichPrefab(richDir + "/Arkenfall_Tree.prefab",
+            new[]{ "Assets/Art/Environment/Season6_Undead/Objects/PNG/Objects_separately" },
+            new[]{ "Tree_shadow2","Broken_tree_shadow2","Dead_tree_shadow2" },
+            new[]{ "_shadow3" },
+            false, 0f);
+
+        AssetDatabase.Refresh();
+        Debug.Log("[RichEnv] Todos os prefabs ricos criados!");
+    }
+
+    static void CreateRichPrefab(string prefabPath, string[] searchFolders,
+        string[] includeKeywords, string[] excludeKeywords,
+        bool hasCollider, float colRadius)
+    {
+        var sprites = new List<Sprite>();
+        var guids   = AssetDatabase.FindAssets("t:Sprite", searchFolders);
+
+        foreach (var g in guids)
+        {
+            var    path      = AssetDatabase.GUIDToAssetPath(g);
+            string nameLower = System.IO.Path.GetFileNameWithoutExtension(path).ToLower();
+
+            bool excluded = false;
+            foreach (var ex in excludeKeywords)
+                if (nameLower.Contains(ex.ToLower())) { excluded = true; break; }
+            if (excluded) continue;
+
+            bool included = false;
+            foreach (var inc in includeKeywords)
+                if (nameLower.Contains(inc.ToLower())) { included = true; break; }
+            if (!included) continue;
+
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (sprite != null) sprites.Add(sprite);
+        }
+
+        if (sprites.Count == 0)
+        {
+            Debug.LogWarning($"[RichEnv] Nenhum sprite encontrado para {prefabPath}");
+            return;
+        }
+
+        var go = new GameObject(System.IO.Path.GetFileNameWithoutExtension(prefabPath));
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = sprites[0];
+        var ep = go.AddComponent<EnvironmentProp>();
+        ep.sprites        = sprites;
+        ep.hasCollider    = hasCollider;
+        ep.colliderRadius = colRadius;
+
+        PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
+        Object.DestroyImmediate(go);
+        Debug.Log($"[RichEnv] {System.IO.Path.GetFileNameWithoutExtension(prefabPath)}: {sprites.Count} sprites");
+    }
+
+    static void SetupWorldChunkManager()
+    {
+        var wcm = Object.FindFirstObjectByType<WorldChunkManager>(FindObjectsInactive.Include);
+        if (wcm == null) { Debug.LogError("[Setup] WorldChunkManager não encontrado na cena"); return; }
+
+        string[][] biomePaths = new string[][]
+        {
+            new[]{ "Assets/Prefabs/Environment/Rich/Veremoth_Tree.prefab",
+                   "Assets/Prefabs/Environment/Rich/Veremoth_Bush.prefab",
+                   "Assets/Prefabs/Environment/Rich/Veremoth_Mushroom.prefab",
+                   "Assets/Prefabs/Environment/Rich/Veremoth_Rock.prefab",
+                   "Assets/Prefabs/Environment/Rich/Veremoth_Ruin.prefab" },
+            new[]{ "Assets/Prefabs/Environment/Rich/Khorduum_Crystal.prefab",
+                   "Assets/Prefabs/Environment/Rich/Khorduum_Stone.prefab",
+                   "Assets/Prefabs/Environment/Rich/Khorduum_Mushroom.prefab",
+                   "Assets/Prefabs/Environment/Rich/Khorduum_Object.prefab" },
+            new[]{ "Assets/Prefabs/Environment/Rich/Valdross_Grave.prefab",
+                   "Assets/Prefabs/Environment/Rich/Valdross_Bones.prefab",
+                   "Assets/Prefabs/Environment/Rich/Valdross_Tree.prefab",
+                   "Assets/Prefabs/Environment/Rich/Valdross_Object.prefab" },
+            new[]{ "Assets/Prefabs/Environment/Rich/Gorveth_Tree.prefab",
+                   "Assets/Prefabs/Environment/Rich/Gorveth_Plant.prefab",
+                   "Assets/Prefabs/Environment/Rich/Gorveth_Object.prefab",
+                   "Assets/Prefabs/Environment/Rich/Gorveth_Mushroom.prefab" },
+            new[]{ "Assets/Prefabs/Environment/Rich/Arkenfall_Rock.prefab",
+                   "Assets/Prefabs/Environment/Rich/Arkenfall_Ruin.prefab",
+                   "Assets/Prefabs/Environment/Rich/Arkenfall_Bones.prefab",
+                   "Assets/Prefabs/Environment/Rich/Arkenfall_Tree.prefab" },
+        };
+
+        var so = new SerializedObject(wcm);
+        so.Update();
+        var bioArr = so.FindProperty("biomeProps");
+        bioArr.arraySize = 5;
+
+        for (int b = 0; b < 5; b++)
+        {
+            var listProp = bioArr.GetArrayElementAtIndex(b).FindPropertyRelative("prefabs");
+            var paths    = biomePaths[b];
+            listProp.arraySize = paths.Length;
+            int found = 0;
+            for (int i = 0; i < paths.Length; i++)
+            {
+                var go = AssetDatabase.LoadAssetAtPath<GameObject>(paths[i]);
+                listProp.GetArrayElementAtIndex(i).objectReferenceValue = go;
+                if (go != null) found++;
+            }
+            Debug.Log($"[Setup] Bioma {b}: {found}/{paths.Length} prefabs");
+        }
+
+        so.ApplyModifiedPropertiesWithoutUndo();
+        Debug.Log("[Setup] WorldChunkManager configurado para todos os 5 biomas");
     }
 }
