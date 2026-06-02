@@ -356,20 +356,6 @@ public class ZoneManager : MonoBehaviour
                 };
             }
 
-            // ── Logs de diagnóstico de boss ───────────────────────────────────────
-            Debug.Log($"[Boss Z{CurrentZone+1}] '{bossGO.name}' instanciado");
-            Debug.Log($"[Boss Z{CurrentZone+1}] Posição: {pos}, Player: {(_player?.position ?? Vector3.zero)}");
-            Debug.Log($"[Boss Z{CurrentZone+1}] Scale após ×3: {bossGO.transform.localScale}");
-
-            var sr = bossGO.GetComponentInChildren<SpriteRenderer>();
-            Debug.Log($"[Boss Z{CurrentZone+1}] SpriteRenderer: {(sr != null ? "encontrado" : "NULL")}");
-            if (sr != null)
-                Debug.Log($"[Boss Z{CurrentZone+1}] Sprite: {(sr.sprite != null ? sr.sprite.name : "NULL")}, enabled={sr.enabled}, color={sr.color}");
-
-            Debug.Log($"[Boss Z{CurrentZone+1}] EnemyBase: {(eb != null ? $"HP={eb.maxHealth}" : "NULL")}");
-            Debug.Log($"[Boss Z{CurrentZone+1}] GameObject ativo: {bossGO.activeInHierarchy}");
-            // ─────────────────────────────────────────────────────────────────────
-
             _bossInstances.Add(bossGO);
         }
 

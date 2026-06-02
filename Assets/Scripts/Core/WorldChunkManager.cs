@@ -41,8 +41,6 @@ public class WorldChunkManager : MonoBehaviour
             var p = GameObject.FindGameObjectWithTag("Player");
             if (p != null) _player = p.transform;
         }
-        Debug.Log($"[Chunks] Start() - player={_player != null}, biomeProps[0]={biomeProps[0]?.prefabs?.Count ?? 0} prefabs");
-        Debug.Log($"[Chunks] Chamando UpdateChunks()");
         UpdateChunks();
     }
 
@@ -82,8 +80,6 @@ public class WorldChunkManager : MonoBehaviour
         for (int x = -GRID_RADIUS; x <= GRID_RADIUS; x++)
             for (int y = -GRID_RADIUS; y <= GRID_RADIUS; y++)
                 needed.Add(center + new Vector2Int(x, y));
-        Debug.Log($"[Chunks] UpdateChunks: center={center}, needed={needed.Count}, active={_active.Count}");
-
         var remove = new List<Vector2Int>();
         foreach (var kv in _active)
             if (!needed.Contains(kv.Key)) remove.Add(kv.Key);
