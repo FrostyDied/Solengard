@@ -52,15 +52,16 @@ public class EnemyBase : MonoBehaviour
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        rb.freezeRotation  = true;
-        rb.interpolation   = RigidbodyInterpolation2D.Interpolate;
-        currentHealth      = maxHealth;
+        rb.isKinematic            = false;
+        rb.gravityScale           = 0f;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
+        rb.interpolation          = RigidbodyInterpolation2D.Interpolate;
+        rb.constraints            = RigidbodyConstraints2D.FreezeRotation;
+        currentHealth             = maxHealth;
 
         _sr = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
         if (_sr == null) Debug.LogError($"[EnemyBase] SpriteRenderer não encontrado em '{gameObject.name}' nem em filhos.");
 
-        // Trigger-only: enemies detect contact via OnTriggerStay2D but don't push the player physically.
-        // Check both the root and children — many prefabs have the collider on a child GameObject.
         var col = GetComponent<Collider2D>() ?? GetComponentInChildren<Collider2D>();
         if (col != null) col.isTrigger = true;
 
@@ -79,7 +80,7 @@ public class EnemyBase : MonoBehaviour
     protected virtual void OnEnable()
     {
         currentHealth  = maxHealth;
-        _contactTimer  = contactDamageInterval; // ready to deal damage immediately on first contact
+        _contactTimer  = 0f; // começa em zero → primeiro dano é imediato ao entrar no range
         isDead         = false;
 
         // Reset animator and sprite color so pool-reused enemies start clean
@@ -109,6 +110,7 @@ public class EnemyBase : MonoBehaviour
             _findPlayerTimer -= Time.deltaTime;
             if (_findPlayerTimer <= 0f) { FindPlayer(); _findPlayerTimer = 0.5f; }
         }
+        CheckContactDamage();
     }
 
     protected virtual void FixedUpdate()
@@ -180,15 +182,17 @@ public class EnemyBase : MonoBehaviour
         return sep;
     }
 
-    void OnTriggerStay2D(Collider2D col)
+    void CheckContactDamage()
     {
-        if (!col.CompareTag("Player")) return;
-        _contactTimer += Time.fixedDeltaTime;
-        if (_contactTimer < contactDamageInterval) return;
-        _contactTimer = 0f;
+        if (playerTransform == null) return;
+        float dist = Vector2.Distance(transform.position, playerTransform.position);
+        if (dist >= stoppingDistance) return;
+        _contactTimer -= Time.deltaTime;
+        if (_contactTimer > 0f) return;
+        _contactTimer = contactDamageInterval;
         NotifyDeathCause();
-        Debug.Log($"[Enemy] {name} causando dano ao player");
-        col.GetComponent<PlayerHealth>()?.TakeDamage(damage);
+        Debug.Log($"[Enemy] {name} causou {damage} dano por distância");
+        playerTransform.GetComponent<PlayerHealth>()?.TakeDamage(damage);
     }
 
     protected virtual void NotifyDeathCause() { }

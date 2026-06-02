@@ -56,8 +56,7 @@ public class PlayerController : MonoBehaviour
     void Update()      => InputManagement();
     void FixedUpdate()
     {
-        Vector2 next = (Vector2)transform.position + MoveDir * moveSpeed * Time.fixedDeltaTime;
-        _rb.MovePosition(next);
+        _rb.position += MoveDir * moveSpeed * Time.fixedDeltaTime;
     }
 
     void InputManagement()
