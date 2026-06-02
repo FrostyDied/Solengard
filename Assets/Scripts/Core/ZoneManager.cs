@@ -28,7 +28,7 @@ public class ZoneManager : MonoBehaviour
         new ZoneConfig {
             nome="Floresta de Veremoth",   biome=BiomeSystem.Biome.Veremoth,
             hpMultiplier=1f,  speedMultiplier=1f,  damageMultiplier=1f,
-            spawnMax=40,  spawnInterval=0.50f, bossSpawnAt=30f, enemyIndices=new int[]{0,1} },
+            spawnMax=40,  spawnInterval=0.50f, enemyIndices=new int[]{0,1} },
         new ZoneConfig {
             nome="Cavernas de Khorduum",   biome=BiomeSystem.Biome.Khorduum,
             hpMultiplier=1.8f, speedMultiplier=1.2f, damageMultiplier=1.5f,
