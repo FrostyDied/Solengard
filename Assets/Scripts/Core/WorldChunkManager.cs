@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+[DefaultExecutionOrder(100)]
 public class WorldChunkManager : MonoBehaviour
 {
     public static WorldChunkManager Instance { get; private set; }
@@ -40,12 +41,26 @@ public class WorldChunkManager : MonoBehaviour
             var p = GameObject.FindGameObjectWithTag("Player");
             if (p != null) _player = p.transform;
         }
+        Debug.Log($"[Chunks] Start() - player={_player != null}, biomeProps[0]={biomeProps[0]?.prefabs?.Count ?? 0} prefabs");
+        Debug.Log($"[Chunks] Chamando UpdateChunks()");
         UpdateChunks();
     }
 
     void Update()
     {
-        if (_player == null) return;
+        if (_player == null)
+        {
+            if (PlayerController.Instance != null)
+                _player = PlayerController.Instance.transform;
+            else
+            {
+                var p = GameObject.FindGameObjectWithTag("Player");
+                if (p != null) _player = p.transform;
+            }
+            if (_player != null) UpdateChunks();
+            return;
+        }
+
         var c = ToChunk(_player.position);
         if (c != _lastChunk) { _lastChunk = c; UpdateChunks(); }
     }
@@ -67,6 +82,7 @@ public class WorldChunkManager : MonoBehaviour
         for (int x = -GRID_RADIUS; x <= GRID_RADIUS; x++)
             for (int y = -GRID_RADIUS; y <= GRID_RADIUS; y++)
                 needed.Add(center + new Vector2Int(x, y));
+        Debug.Log($"[Chunks] UpdateChunks: center={center}, needed={needed.Count}, active={_active.Count}");
 
         var remove = new List<Vector2Int>();
         foreach (var kv in _active)

@@ -8,6 +8,7 @@ public class ChunkInstance : MonoBehaviour
     public void Populate(Vector2Int gridPos, int biome,
         List<GameObject> prefabs, int count, float size)
     {
+        Debug.Log($"[Chunk] Populate: biome={biome}, prefabs={prefabs?.Count ?? 0}, count={count}");
         Clear();
         if (prefabs == null || prefabs.Count == 0) return;
 

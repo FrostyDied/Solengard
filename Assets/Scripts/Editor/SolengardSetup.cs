@@ -2296,6 +2296,9 @@ public static class SolengardSetup
         }
 
         so.ApplyModifiedPropertiesWithoutUndo();
+        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+        Debug.Log("[Setup] Cena marcada como suja — salve com Ctrl+S antes de Play");
         Debug.Log("[Setup] WorldChunkManager configurado para todos os 5 biomas");
     }
 }
