@@ -87,6 +87,7 @@ public class EnemyArcher : EnemyBase
         sr.sortingOrder = 10;
 
         template.SetActive(false);
+        try { template.tag = ProjectileTag; } catch { }
         DontDestroyOnLoad(template);
 
         ObjectPoolManager.Instance.RegisterPool(ProjectileTag, template, 30);

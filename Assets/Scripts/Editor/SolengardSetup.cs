@@ -24,14 +24,77 @@ public static class SolengardSetup
     const string PLAYER_LEVEL1_PREFAB    = "Assets/Prefabs/Characters/Player_Level1.prefab";
     static readonly string[] ENEMY_PREFAB_PATHS =
     {
-        "Assets/Prefabs/Enemies/EnemySlime.prefab",     // [0] Wave 1
-        "Assets/Prefabs/Enemies/EnemyZumbi.prefab",     // [1] Wave 1
-        "Assets/Prefabs/Enemies/EnemyArcher.prefab",    // [2] Wave 2
-        "Assets/Prefabs/Enemies/EnemyOrc.prefab",       // [3] Wave 3
-        "Assets/Prefabs/Enemies/EnemyMage.prefab",      // [4] Wave 4
-        "Assets/Prefabs/Enemies/EnemyAssassin.prefab",  // [5] Wave 4
-        "Assets/Prefabs/Enemies/EnemyGolem.prefab",     // [6] Wave 5
+        "Assets/Prefabs/Enemies/EnemySlime.prefab",     // [0]
+        "Assets/Prefabs/Enemies/EnemyZumbi.prefab",     // [1]
+        "Assets/Prefabs/Enemies/EnemyArcher.prefab",    // [2]
+        "Assets/Prefabs/Enemies/EnemyOrc.prefab",       // [3]
+        "Assets/Prefabs/Enemies/EnemyMage.prefab",      // [4]
+        "Assets/Prefabs/Enemies/EnemyAssassin.prefab",  // [5]
+        "Assets/Prefabs/Enemies/EnemyGolem.prefab",     // [6]
         "Assets/Prefabs/Enemies/EnemyBoss.prefab",      // [7] reservado
+    };
+
+    // Inimigos e bosses por zona — usados por TryAddEnemyPrefabsToZoneManager
+    static readonly string[][] ZONE_ENEMY_PATHS =
+    {
+        // Zona 0 — Veremoth (Floresta)
+        new[] {
+            "Assets/Prefabs/Enemies/EnemySlime.prefab",
+            "Assets/Prefabs/Enemies/EnemySlime2.prefab",
+            "Assets/Prefabs/Enemies/EnemyZumbi.prefab",
+            "Assets/Prefabs/Enemies/EnemyZumbi2.prefab",
+            "Assets/Prefabs/Enemies/EnemyGoblin.prefab",
+        },
+        // Zona 1 — Khorduum (Caverna)
+        new[] {
+            "Assets/Prefabs/Enemies/EnemySlime3.prefab",
+            "Assets/Prefabs/Enemies/EnemyZumbi3.prefab",
+            "Assets/Prefabs/Enemies/EnemyOrcHeavy.prefab",
+            "Assets/Prefabs/Enemies/EnemyOrcHeavy2.prefab",
+            "Assets/Prefabs/Enemies/EnemyGoblin2.prefab",
+        },
+        // Zona 2 — Valdross (Cemitério)
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyArcher.prefab",
+            "Assets/Prefabs/Enemies/EnemyArcher2.prefab",
+            "Assets/Prefabs/Enemies/EnemyMage.prefab",
+            "Assets/Prefabs/Enemies/EnemyMage2.prefab",
+            "Assets/Prefabs/Enemies/EnemyGoblin3.prefab",
+        },
+        // Zona 3 — Gorveth (Pântano)
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyArcher3.prefab",
+            "Assets/Prefabs/Enemies/EnemyOrc.prefab",
+            "Assets/Prefabs/Enemies/EnemyOrc2.prefab",
+            "Assets/Prefabs/Enemies/EnemyOrcHeavy3.prefab",
+            "Assets/Prefabs/Enemies/EnemyMage3.prefab",
+        },
+        // Zona 4 — Arkenfall (Campo de Batalha)
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyDarkElf2.prefab",
+        },
+    };
+
+    static readonly string[][] ZONE_BOSS_PATHS =
+    {
+        // Zona 0 — Veremoth
+        new[] { "Assets/Prefabs/Enemies/EnemyGolem.prefab" },
+        // Zona 1 — Khorduum
+        new[] { "Assets/Prefabs/Enemies/BossCaveman.prefab" },
+        // Zona 2 — Valdross
+        new[] { "Assets/Prefabs/Enemies/BossGiantGoblin.prefab" },
+        // Zona 3 — Gorveth (DarkElf amplificado ×8 HP, ×2.5 scale)
+        new[] { "Assets/Prefabs/Enemies/EnemyDarkElf.prefab" },
+        // Zona 4 — Arkenfall (3 bosses simultâneos)
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
     };
 
     // ── Setup Scene ──────────────────────────────────────────────────────────────
@@ -338,10 +401,17 @@ public static class SolengardSetup
         if (zmCheck != null)
         {
             var zmSO      = new SerializedObject(zmCheck);
-            var bossProp  = zmSO.FindProperty("bossPrefab");
-            string bossName = bossProp?.objectReferenceValue != null
-                ? bossProp.objectReferenceValue.name : "NULL";
-            Debug.Log($"[Setup] ZoneManager configurado com {zmCheck.enemyPrefabs.Count} prefabs, bossPrefab={bossName}");
+            var zonesProp = zmSO.FindProperty("zones");
+            if (zonesProp != null)
+            {
+                for (int z = 0; z < zonesProp.arraySize; z++)
+                {
+                    var zp = zonesProp.GetArrayElementAtIndex(z);
+                    var ep = zp.FindPropertyRelative("enemyPrefabs");
+                    var bp = zp.FindPropertyRelative("bossPrefabs");
+                    Debug.Log($"[Setup] Zona {z + 1}: {ep?.arraySize ?? 0} inimigos, {bp?.arraySize ?? 0} boss(es)");
+                }
+            }
         }
 
         // 7. Collapse Undo + save scene
@@ -1473,43 +1543,61 @@ public static class SolengardSetup
         var zm = Object.FindFirstObjectByType<ZoneManager>(FindObjectsInactive.Include);
         if (zm == null) return 0;
 
-        var so  = new SerializedObject(zm);
-        var arr = so.FindProperty("enemyPrefabs");
-        if (arr == null) return 0;
+        var so         = new SerializedObject(zm);
+        var zonesProp  = so.FindProperty("zones");
+        if (zonesProp == null || zonesProp.arraySize == 0) return 0;
 
-        var loaded = new List<GameObject>();
-        foreach (string path in ENEMY_PREFAB_PATHS)
+        int totalAssigned = 0;
+        int zoneCount = Mathf.Min(zonesProp.arraySize, ZONE_ENEMY_PATHS.Length);
+
+        for (int z = 0; z < zoneCount; z++)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (prefab != null) loaded.Add(prefab);
-            else Debug.LogWarning($"[SolengardSetup] ZoneManager prefab não encontrado: {path}");
-        }
+            var zoneProp = zonesProp.GetArrayElementAtIndex(z);
 
-        if (loaded.Count == 0) return 0;
-
-        arr.ClearArray();
-        for (int i = 0; i < loaded.Count; i++)
-        {
-            arr.InsertArrayElementAtIndex(i);
-            arr.GetArrayElementAtIndex(i).objectReferenceValue = loaded[i];
-        }
-        so.ApplyModifiedProperties();
-
-        log.AppendLine($"  ZoneManager.enemyPrefabs → {loaded.Count} prefabs (reordenados)");
-
-        var bossProp = so.FindProperty("bossPrefab");
-        if (bossProp != null && bossProp.objectReferenceValue == null)
-        {
-            var golem = AssetDatabase.LoadAssetAtPath<GameObject>(ENEMY_PREFAB_PATHS[6]);
-            if (golem != null)
+            // Preencher enemyPrefabs da zona
+            var epProp = zoneProp.FindPropertyRelative("enemyPrefabs");
+            if (epProp != null)
             {
-                bossProp.objectReferenceValue = golem;
-                so.ApplyModifiedProperties();
-                log.AppendLine("  ZoneManager.bossPrefab → EnemyGolem");
+                epProp.ClearArray();
+                foreach (string path in ZONE_ENEMY_PATHS[z])
+                {
+                    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                    if (prefab == null)
+                    {
+                        Debug.LogWarning($"[SolengardSetup] Prefab não encontrado: {path}");
+                        continue;
+                    }
+                    epProp.InsertArrayElementAtIndex(epProp.arraySize);
+                    epProp.GetArrayElementAtIndex(epProp.arraySize - 1).objectReferenceValue = prefab;
+                }
             }
+
+            // Preencher bossPrefabs da zona
+            var bpProp = zoneProp.FindPropertyRelative("bossPrefabs");
+            if (bpProp != null)
+            {
+                bpProp.ClearArray();
+                foreach (string path in ZONE_BOSS_PATHS[z])
+                {
+                    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                    if (prefab == null)
+                    {
+                        Debug.LogWarning($"[SolengardSetup] Boss prefab não encontrado: {path}");
+                        continue;
+                    }
+                    bpProp.InsertArrayElementAtIndex(bpProp.arraySize);
+                    bpProp.GetArrayElementAtIndex(bpProp.arraySize - 1).objectReferenceValue = prefab;
+                }
+            }
+
+            int ep = epProp?.arraySize ?? 0;
+            int bp = bpProp?.arraySize ?? 0;
+            log.AppendLine($"  Zona {z + 1}: {ep} inimigos, {bp} boss(es)");
+            totalAssigned += ep + bp;
         }
 
-        return 1;
+        so.ApplyModifiedProperties();
+        return totalAssigned > 0 ? 1 : 0;
     }
 
     static void CreateGameOverUI(Scene scene)
@@ -1793,11 +1881,8 @@ public static class SolengardSetup
         sb.AppendLine("• GameManager → proceduralArena");
         sb.AppendLine("  (arrastar o GameObject ProceduralArenaSystem da hierarquia)");
         sb.AppendLine();
-        sb.AppendLine("• ZoneManager → bossPrefab");
-        sb.AppendLine("  (EnemyGolem.prefab — atribuído automaticamente pelo Setup)");
-        sb.AppendLine();
-        sb.AppendLine("• ZoneManager → enemyPrefabs");
-        sb.AppendLine("  (preenchido automaticamente pelo Setup — verificar ordem 0-6)");
+        sb.AppendLine("• ZoneManager → zones[].enemyPrefabs e bossPrefabs");
+        sb.AppendLine("  (preenchidos automaticamente pelo Setup — 5 zonas com inimigos e bosses distintos)");
         sb.AppendLine();
         sb.AppendLine("• ObjectPoolManager.pools[0].prefab");
         sb.AppendLine("  (atribuir Slime.prefab ao criar Assets/Prefabs/Enemies/Slime.prefab)");

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ZoneManager : MonoBehaviour
@@ -19,7 +20,9 @@ public class ZoneManager : MonoBehaviour
         public float damageMultiplier = 1f;
         public int   spawnMax         = 40;
         public float spawnInterval    = 0.5f;
-        public int[] enemyIndices;
+
+        [HideInInspector] public List<GameObject> enemyPrefabs = new();
+        [HideInInspector] public List<GameObject> bossPrefabs  = new();
     }
 
     [Header("Configuração das 5 zonas")]
@@ -28,23 +31,23 @@ public class ZoneManager : MonoBehaviour
         new ZoneConfig {
             nome="Floresta de Veremoth",   biome=BiomeSystem.Biome.Veremoth,
             hpMultiplier=1f,  speedMultiplier=1f,  damageMultiplier=1f,
-            spawnMax=40,  spawnInterval=0.50f, enemyIndices=new int[]{0,1} },
+            spawnMax=40,  spawnInterval=0.50f },
         new ZoneConfig {
             nome="Cavernas de Khorduum",   biome=BiomeSystem.Biome.Khorduum,
             hpMultiplier=1.8f, speedMultiplier=1.2f, damageMultiplier=1.5f,
-            spawnMax=55,  spawnInterval=0.40f, enemyIndices=new int[]{0,1,2} },
+            spawnMax=55,  spawnInterval=0.40f },
         new ZoneConfig {
             nome="Cemitério de Valdross",  biome=BiomeSystem.Biome.Valdross,
             hpMultiplier=2.8f, speedMultiplier=1.4f, damageMultiplier=2f,
-            spawnMax=65,  spawnInterval=0.35f, enemyIndices=new int[]{1,2,3} },
+            spawnMax=65,  spawnInterval=0.35f },
         new ZoneConfig {
             nome="Pântano de Gorveth",     biome=BiomeSystem.Biome.Gorveth,
             hpMultiplier=4f,  speedMultiplier=1.6f, damageMultiplier=2.8f,
-            spawnMax=75,  spawnInterval=0.30f, enemyIndices=new int[]{2,3,4,5} },
+            spawnMax=75,  spawnInterval=0.30f },
         new ZoneConfig {
             nome="Campo de Arkenfall",     biome=BiomeSystem.Biome.Arkenfall,
             hpMultiplier=6f,  speedMultiplier=1.8f, damageMultiplier=3.5f,
-            spawnMax=85,  spawnInterval=0.25f, enemyIndices=new int[]{3,4,5,6} },
+            spawnMax=85,  spawnInterval=0.25f },
     };
 
     public int   CurrentZone       { get; private set; } = 0;
@@ -61,23 +64,18 @@ public class ZoneManager : MonoBehaviour
     public static event System.Action<string> OnGameOver;
     public static event System.Action         OnAllZonesCompleted;
 
-    [Header("Prefabs de inimigos (índices usados nos enemyIndices das zonas)")]
-    public List<GameObject> enemyPrefabs = new();
-
-    [Header("Prefab do boss (EnemyGolem amplificado)")]
-    [SerializeField] GameObject bossPrefab;
-
     [Header("Modo de teste — 0 = desativado")]
     [SerializeField] float testBossSpawnAt = 0f;
 
     readonly int[] _quotaPerMinute = { 30, 50, 80, 110, 140, 170, 200, 240 };
-    int   _currentMinute       = 0;
-    int   _spawnBudget         = 0;
-    bool  _heartDropped        = false;
+    int   _currentMinute    = 0;
+    int   _spawnBudget      = 0;
+    bool  _heartDropped     = false;
 
     Transform        _player;
-    List<GameObject> _activeEnemies = new();
-    GameObject       _bossInstance;
+    List<GameObject> _activeEnemies     = new();
+    List<GameObject> _bossInstances     = new();
+    bool             _allBossesDefeated = false;
     Coroutine        _spawnCoroutine;
     Coroutine        _quotaTimerCoroutine;
 
@@ -122,11 +120,12 @@ public class ZoneManager : MonoBehaviour
         while (CurrentZone < zones.Length)
         {
             var zone = zones[CurrentZone];
-            ZoneTimeRemaining = zone.durationSeconds;
-            BossActive        = false;
-            _heartDropped     = false;
-            _spawnBudget      = _quotaPerMinute[0];
-            _currentMinute    = 1;
+            ZoneTimeRemaining  = zone.durationSeconds;
+            BossActive         = false;
+            _heartDropped      = false;
+            _allBossesDefeated = false;
+            _spawnBudget       = _quotaPerMinute[0];
+            _currentMinute     = 1;
 
             BiomeSystem.Instance?.SetBiome(zone.biome);
             OnZoneStarted?.Invoke(CurrentZone);
@@ -156,17 +155,17 @@ public class ZoneManager : MonoBehaviour
                     {
                         if (_spawnCoroutine      != null) StopCoroutine(_spawnCoroutine);
                         if (_quotaTimerCoroutine != null) StopCoroutine(_quotaTimerCoroutine);
+                        ClearEnemies();
                         OnGameOver?.Invoke($"Tempo esgotado na {zone.nome}");
                         IsRunning = false;
                         yield break;
                     }
 
-                    if (_bossInstance == null)
+                    if (_allBossesDefeated)
                     {
-                        BossActive   = false;
-                        zoneCleared  = true;
-                        OnBossDefeated?.Invoke();
-                        Debug.Log($"[Zone] Boss derrotado! Zona {CurrentZone + 1} completa.");
+                        BossActive         = false;
+                        _allBossesDefeated = false;
+                        zoneCleared        = true;
                     }
                 }
 
@@ -219,7 +218,7 @@ public class ZoneManager : MonoBehaviour
             int activeCount = _activeEnemies.Count;
             int safetyLimit = zone.spawnMax * 3;
 
-            if (_spawnBudget > 0 && activeCount < safetyLimit && _player != null && zone.enemyIndices.Length > 0)
+            if (_spawnBudget > 0 && activeCount < safetyLimit && _player != null && zone.enemyPrefabs.Count > 0)
             {
                 SpawnEnemy(zone);
                 _spawnBudget--;
@@ -246,9 +245,9 @@ public class ZoneManager : MonoBehaviour
 
     void SpawnEnemy(ZoneConfig zone)
     {
-        int idx = zone.enemyIndices[Random.Range(0, zone.enemyIndices.Length)];
-        if (idx >= enemyPrefabs.Count) idx = 0;
-        var prefab = enemyPrefabs[idx];
+        if (zone.enemyPrefabs == null || zone.enemyPrefabs.Count == 0) return;
+
+        var prefab = zone.enemyPrefabs[Random.Range(0, zone.enemyPrefabs.Count)];
         if (prefab == null) return;
 
         var enemy = Instantiate(prefab, GetSpawnPosition(), Quaternion.identity);
@@ -266,44 +265,74 @@ public class ZoneManager : MonoBehaviour
 
     IEnumerator SpawnBoss(ZoneConfig zone)
     {
-        // 1. Encontrar prefab ANTES de setar BossActive — evita zona concluída falsamente
-        var bossToUse = bossPrefab;
-        if (bossToUse == null)
+        var validBosses = zone.bossPrefabs?.Where(b => b != null).ToList() ?? new List<GameObject>();
+        if (validBosses.Count == 0)
         {
-            int bossIdx = Mathf.Min(6, enemyPrefabs.Count - 1);
-            if (enemyPrefabs.Count > 0) bossToUse = enemyPrefabs[bossIdx];
-        }
-        if (bossToUse == null)
-        {
-            Debug.LogError("[Zone] Nenhum prefab de boss encontrado — boss cancelado");
-            yield break; // BossActive permanece false, zona continua normalmente
+            Debug.LogError($"[Zone] {zone.nome}: nenhum boss prefab configurado");
+            yield break;
         }
 
-        // 2. Só agora confirmar boss ativo
         BossActive        = true;
         BossTimeRemaining = zone.bossTimeLimit;
 
         if (_spawnCoroutine      != null) StopCoroutine(_spawnCoroutine);
         if (_quotaTimerCoroutine != null) StopCoroutine(_quotaTimerCoroutine);
         ClearEnemies();
+        _bossInstances.Clear();
 
         yield return new WaitForSeconds(2f);
 
-        _bossInstance = Instantiate(bossToUse, GetSpawnPosition(), Quaternion.identity);
-
-        var eb = _bossInstance.GetComponent<EnemyBase>();
-        if (eb != null)
+        float angleStep = validBosses.Count > 1 ? 360f / validBosses.Count : 0f;
+        for (int i = 0; i < validBosses.Count; i++)
         {
-            eb.maxHealth *= 5f;
-            eb.InitializeHealth();
-            eb.moveSpeed *= 1.5f;
-            _bossInstance.transform.localScale *= 3f;
+            Vector3 pos;
+            if (validBosses.Count > 1)
+            {
+                float   angle  = i * angleStep * Mathf.Deg2Rad;
+                Vector3 offset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * 5f;
+                pos = (_player != null ? _player.position : Vector3.zero) + offset;
+            }
+            else
+            {
+                pos = GetSpawnPosition();
+            }
 
-            eb.OnDeathCallback = () => { _bossInstance = null; KillCount++; };
+            var bossGO = Instantiate(validBosses[i], pos, Quaternion.identity);
+            var eb     = bossGO.GetComponent<EnemyBase>();
+            if (eb != null)
+            {
+                if (zone.biome == BiomeSystem.Biome.Gorveth)
+                {
+                    eb.maxHealth *= 8f;
+                    eb.moveSpeed *= 2f;
+                    bossGO.transform.localScale *= 2.5f;
+                }
+                else
+                {
+                    eb.maxHealth *= 5f;
+                    eb.moveSpeed *= 1.5f;
+                    bossGO.transform.localScale *= 3f;
+                }
+                eb.InitializeHealth();
+
+                var bossRef = bossGO;
+                eb.OnDeathCallback = () =>
+                {
+                    _bossInstances.Remove(bossRef);
+                    KillCount++;
+                    if (_bossInstances.Count == 0)
+                    {
+                        _allBossesDefeated = true;
+                        OnBossDefeated?.Invoke();
+                        Debug.Log("[Zone] Todos os bosses derrotados!");
+                    }
+                };
+            }
+            _bossInstances.Add(bossGO);
         }
 
         OnBossSpawned?.Invoke();
-        Debug.Log($"[Zone] BOSS spawnado! {zone.bossTimeLimit}s para derrotá-lo!");
+        Debug.Log($"[Zone] {validBosses.Count} boss(es) spawnados em {zone.nome}! {zone.bossTimeLimit}s para derrotá-los!");
 
         yield return new WaitForSeconds(1f);
         _spawnCoroutine      = StartCoroutine(SpawnLoop(zone));
@@ -337,16 +366,21 @@ public class ZoneManager : MonoBehaviour
         }
     }
 
-    int CountActive()
-    {
-        _activeEnemies.RemoveAll(e => e == null);
-        return _activeEnemies.Count;
-    }
-
     void ClearEnemies()
     {
         foreach (var e in _activeEnemies) if (e != null) Destroy(e);
         _activeEnemies.Clear();
+
+        foreach (var b in _bossInstances) if (b != null) Destroy(b);
+        _bossInstances.Clear();
+
+        var projectiles = GameObject.FindGameObjectsWithTag("EnemyProjectile");
+        foreach (var p in projectiles) Destroy(p);
+
+        BossActive         = false;
+        _allBossesDefeated = false;
+
+        Debug.Log("[Zone] Limpeza completa — inimigos, bosses e projéteis destruídos");
     }
 
     public void RestoreToZone(int zone)
