@@ -166,14 +166,14 @@ public class ZoneManager : MonoBehaviour
                         IsRunning = false;
                         yield break;
                     }
+                }
 
-                    if (_allBossesDefeated)
-                    {
-                        Debug.Log($"[Zone] _allBossesDefeated=true detectado, zoneCleared=true");
-                        BossActive         = false;
-                        _allBossesDefeated = false;
-                        zoneCleared        = true;
-                    }
+                if (_allBossesDefeated)
+                {
+                    Debug.Log("[Zone] _allBossesDefeated=true detectado — avançando para próxima zona");
+                    BossActive         = false;
+                    _allBossesDefeated = false;
+                    zoneCleared        = true;
                 }
 
                 yield return null;
