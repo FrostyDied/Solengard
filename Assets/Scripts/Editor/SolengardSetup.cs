@@ -333,6 +333,17 @@ public static class SolengardSetup
         log.AppendLine("\n── Setup Pools & Upgrades ───────────");
         RunSetupPoolsAndUpgrades(log);
 
+        // Log de confirmação do ZoneManager após setup completo
+        var zmCheck = Object.FindFirstObjectByType<ZoneManager>(FindObjectsInactive.Include);
+        if (zmCheck != null)
+        {
+            var zmSO      = new SerializedObject(zmCheck);
+            var bossProp  = zmSO.FindProperty("bossPrefab");
+            string bossName = bossProp?.objectReferenceValue != null
+                ? bossProp.objectReferenceValue.name : "NULL";
+            Debug.Log($"[Setup] ZoneManager configurado com {zmCheck.enemyPrefabs.Count} prefabs, bossPrefab={bossName}");
+        }
+
         // 7. Collapse Undo + save scene
         Undo.CollapseUndoOperations(undoGroup);
         EditorSceneManager.MarkSceneDirty(scene);

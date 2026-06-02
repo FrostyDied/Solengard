@@ -306,7 +306,8 @@ public class ZoneManager : MonoBehaviour
         Debug.Log($"[Zone] BOSS spawnado! {zone.bossTimeLimit}s para derrotá-lo!");
 
         yield return new WaitForSeconds(1f);
-        _spawnCoroutine = StartCoroutine(SpawnLoop(zone));
+        _spawnCoroutine      = StartCoroutine(SpawnLoop(zone));
+        _quotaTimerCoroutine = StartCoroutine(QuotaTimer());
     }
 
     Vector3 GetSpawnPosition()
