@@ -2076,8 +2076,8 @@ public static class SolengardSetup
 
         CreateRichPrefab(richDir + "/Veremoth_Rock.prefab",
             new[]{ "Assets/Art/Environment/Season2_Forest/Tileset/PNG/Objects_separated" },
-            new[]{ "stone","rock","Stone","Rock" },
-            new[]{ "_shadow","_grass","_ground","Snow","Water" },
+            new[]{ "Beige_stone","Brown_stone","Light_stone" },
+            new[]{ "_shadow","Snow","Water" },
             true, 0.3f);
 
         CreateRichPrefab(richDir + "/Veremoth_Ruin.prefab",
@@ -2094,22 +2094,22 @@ public static class SolengardSetup
             false, 0f);
 
         CreateRichPrefab(richDir + "/Khorduum_Stone.prefab",
-            new[]{ "Assets/Art/Environment/Season5_Cave/Objects/PNG/Objects_separately" },
-            new[]{ "rock","Rock","stalagmite","stone","Stone" },
+            new[]{ "Assets/Art/Environment/Season5_Cave/Objects/PNG/Objects_separately",
+                   "Assets/Art/Environment/Season5_Cave/Tileset/PNG/Objects_separately" },
+            new[]{ "stone","Stone","stalagmite" },
             new[]{ "_shadow","_dark","_light","_grass","_ground" },
             true, 0.35f);
 
         CreateRichPrefab(richDir + "/Khorduum_Mushroom.prefab",
             new[]{ "Assets/Art/Environment/Season5_Cave/Objects/PNG/Objects_separately" },
             new[]{ "mushroom","Mushroom" },
-            new[]{ "_shadow","_dark","_light" },
+            new[]{ "_dark_shadow" },
             false, 0f);
 
         CreateRichPrefab(richDir + "/Khorduum_Object.prefab",
             new[]{ "Assets/Art/Environment/Season5_Cave/Objects/PNG/Objects_separately" },
-            new[]{ "cocoon","web","skeleton","statue","magic_circle",
-                   "spider","centipede","Bonefire" },
-            new[]{ "_shadow","_dark","_light" },
+            new[]{ "web","cocoon","magic","spider","bone","Bonefire","caveman","centipede" },
+            new[]{ "_dark_shadow" },
             false, 0f);
 
         // VALDROSS — Season6_Undead
@@ -2156,8 +2156,7 @@ public static class SolengardSetup
 
         CreateRichPrefab(richDir + "/Gorveth_Object.prefab",
             new[]{ "Assets/Art/Environment/Season4_Swamp/Objects/PNG/Assets" },
-            new[]{ "Totem","Witch_totem","Stick_skulls","Statue",
-                   "Cauldron_element1","Cauldron_element2","Cauldron_element3","House" },
+            new[]{ "Bones","Cauldron","Stick","Totem","totem","Witch","House","Statue" },
             new[]{ "_shadow","_grass","_ground","Water" },
             true, 0.25f);
 
@@ -2192,7 +2191,8 @@ public static class SolengardSetup
 
         CreateRichPrefab(richDir + "/Arkenfall_Tree.prefab",
             new[]{ "Assets/Art/Environment/Season6_Undead/Objects/PNG/Objects_separately" },
-            new[]{ "Tree_shadow2","Broken_tree_shadow2","Dead_tree_shadow2" },
+            new[]{ "Tree_shadow2","Broken_tree_shadow2","Dead_tree_shadow2",
+                   "monster_tree","web_tree" },
             new[]{ "_shadow3" },
             false, 0f);
 
