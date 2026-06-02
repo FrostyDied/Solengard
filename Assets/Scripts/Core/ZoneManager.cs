@@ -289,7 +289,7 @@ public class ZoneManager : MonoBehaviour
             if (validBosses.Count > 1)
             {
                 float   angle  = i * angleStep * Mathf.Deg2Rad;
-                Vector3 offset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * 5f;
+                Vector3 offset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * 8f;
                 pos = (_player != null ? _player.position : Vector3.zero) + offset;
             }
             else
