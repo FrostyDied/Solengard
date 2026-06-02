@@ -1204,9 +1204,9 @@ public static class SolengardSetup
 
         if (player < 0 || enemy < 0) return;
 
-        // Enemy colliders are triggers at runtime (set in EnemyBase.Awake); damage via OnTriggerStay2D.
-        // IgnoreLayerCollision=false is kept so trigger queries still respect layer masks.
-        Physics2D.IgnoreLayerCollision(player, enemy, false);
+        // Player is kinematic; enemy colliders are triggers — no physical response regardless.
+        // Ignoring this pair removes any residual stacking/repulsion near the player.
+        Physics2D.IgnoreLayerCollision(player, enemy, true);
 
         // Enemy-enemy: ignore physical collision — separation is handled via ComputeSeparation() in code.
         // Prevents enemies from forming a ring around the player due to mutual physics repulsion.

@@ -187,6 +187,7 @@ public class EnemyBase : MonoBehaviour
         if (_contactTimer < contactDamageInterval) return;
         _contactTimer = 0f;
         NotifyDeathCause();
+        Debug.Log($"[Enemy] {name} causando dano ao player");
         col.GetComponent<PlayerHealth>()?.TakeDamage(damage);
     }
 
