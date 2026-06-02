@@ -25,14 +25,14 @@ public class DifficultyAdaptiveSystem : MonoBehaviour
     void OnEnable()
     {
         PlayerHealth.OnPlayerDied      += HandlePlayerDied;
-        WaveManager.OnWaveCompleted    += HandleWaveCompleted;
+        ZoneManager.OnZoneCompleted    += HandleWaveCompleted;
         GameManager.OnGameStateChanged += HandleGameStateChanged;
     }
 
     void OnDisable()
     {
         PlayerHealth.OnPlayerDied      -= HandlePlayerDied;
-        WaveManager.OnWaveCompleted    -= HandleWaveCompleted;
+        ZoneManager.OnZoneCompleted    -= HandleWaveCompleted;
         GameManager.OnGameStateChanged -= HandleGameStateChanged;
     }
 

@@ -31,7 +31,7 @@ public class EnemyBase : MonoBehaviour
     // Deixe vazio para usar busca automática em Awake
     public Transform playerTransform;
 
-    // Atribuído pelo WaveManager para ser notificado quando este inimigo morrer
+    // Atribuído pelo ZoneManager para ser notificado quando este inimigo morrer
     public System.Action OnDeathCallback;
 
     public static event System.Action OnEnemyDied;

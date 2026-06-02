@@ -665,7 +665,6 @@ public static class SolengardSetup
     static int RunSetupScene(GameConfig gameConfig, PlayerData playerData, StringBuilder log)
     {
         int total = 0;
-        total += TryAssign<WaveManager>("gameConfig",     gameConfig,  log);
         total += TryAssign<DiamondSystem>("playerData",   playerData,  log);
         total += TryAssign<ScoreSystem>("playerData",     playerData,  log);
         total += TryAssign<SeasonPassSystem>("playerData", playerData, log);
@@ -698,8 +697,6 @@ public static class SolengardSetup
         total += TryAssignLayerMask<PlayerAttack>("enemyLayerMask", "Enemy", log, warns);
 
         // New systems — cross-component wiring
-        total += TryAssignComponent<WaveManager,           WaveTimerSystem>         ("waveTimerSystem",    log);
-        total += TryAssignComponent<WaveManager,           DynamicDifficultySystem> ("dynamicDifficulty",  log);
         total += TryAssignComponent<GameManager,           RunRewardSystem>          ("runRewardSystem",    log);
         total += TryAssignComponent<RunRewardSystem,       WaveTimerSystem>          ("waveTimerSystem",    log);
 
@@ -1254,7 +1251,6 @@ public static class SolengardSetup
 
         total += TryAddSlimePool(slimePrefab, log);
         total += TryAddEnemyPools(log);
-        total += TryAddEnemyPrefabs(log);
         total += TryAddEnemyPrefabsToZoneManager(log);
         total += TryPopulateUpgrades(log);
         total += TryPopulateSeasonRewards(log);
@@ -1329,38 +1325,8 @@ public static class SolengardSetup
         return added;
     }
 
-    static int TryAddEnemyPrefabs(StringBuilder log)
-    {
-        var wm = Object.FindFirstObjectByType<WaveManager>(FindObjectsInactive.Include);
-        if (wm == null) { Debug.LogWarning("[SolengardSetup] WaveManager não encontrado."); return 0; }
-
-        var so  = new SerializedObject(wm);
-        var arr = so.FindProperty("enemyPrefabs");
-        if (arr == null) return 0;
-
-        var loaded = new List<GameObject>();
-        foreach (string path in ENEMY_PREFAB_PATHS)
-        {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (prefab != null) loaded.Add(prefab);
-            else Debug.LogWarning($"[SolengardSetup] Enemy prefab não encontrado: {path}");
-        }
-
-        if (loaded.Count == 0) return 0;
-
-        // Sempre limpa e reordena para garantir que os índices batem com _waveUnlocks
-        arr.ClearArray();
-        for (int i = 0; i < loaded.Count; i++)
-        {
-            arr.InsertArrayElementAtIndex(i);
-            arr.GetArrayElementAtIndex(i).objectReferenceValue = loaded[i];
-        }
-        so.ApplyModifiedProperties();
-
-        log.AppendLine($"  WaveManager.enemyPrefabs → {loaded.Count} prefabs (reordenados)");
-        Debug.Log($"[SolengardSetup] {loaded.Count} enemy prefabs atribuídos ao WaveManager.enemyPrefabs na ordem correta.");
-        return 1;
-    }
+    static int TryAddEnemyPrefabs(StringBuilder log) =>
+        TryAddEnemyPrefabsToZoneManager(log);
 
     static int TryPopulateUpgrades(StringBuilder log)
     {
@@ -1829,7 +1795,7 @@ public static class SolengardSetup
         sb.AppendLine("• GameOverScreen — execute 'Layout GameScene' para criar e conectar automaticamente");
         sb.AppendLine();
         sb.AppendLine("• WaveWarningUI → banner + CanvasGroup + TextMeshProUGUI");
-        sb.AppendLine("  (criar banner de aviso na hierarquia da GameScene)");
+        sb.AppendLine("  (banner de aviso de zone — conectar na hierarquia da GameScene)");
     }
 
     // ── Helpers — Create MainMenu Scene ──────────────────────────────────────────

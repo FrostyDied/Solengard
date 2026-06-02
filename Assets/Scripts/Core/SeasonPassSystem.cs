@@ -51,14 +51,14 @@ public class SeasonPassSystem : MonoBehaviour
 
     void OnEnable()
     {
-        EnemyBase.OnEnemyDied       += AoInimigoMorrer;
-        WaveManager.OnWaveCompleted += AoWaveConcluida;
+        EnemyBase.OnEnemyDied         += AoInimigoMorrer;
+        ZoneManager.OnZoneCompleted   += AoWaveConcluida;
     }
 
     void OnDisable()
     {
-        EnemyBase.OnEnemyDied       -= AoInimigoMorrer;
-        WaveManager.OnWaveCompleted -= AoWaveConcluida;
+        EnemyBase.OnEnemyDied         -= AoInimigoMorrer;
+        ZoneManager.OnZoneCompleted   -= AoWaveConcluida;
     }
 
     void AoInimigoMorrer()      => AddSeasonXP(1);

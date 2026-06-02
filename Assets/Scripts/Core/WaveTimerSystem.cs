@@ -13,8 +13,8 @@ public class WaveTimerSystem : MonoBehaviour
     bool     isRunning;
     Coroutine timerCoroutine;
 
-    void OnEnable()  => WaveManager.OnWaveCompleted += OnWaveCompleted;
-    void OnDisable() => WaveManager.OnWaveCompleted -= OnWaveCompleted;
+    void OnEnable()  => ZoneManager.OnZoneCompleted += OnWaveCompleted;
+    void OnDisable() => ZoneManager.OnZoneCompleted -= OnWaveCompleted;
 
     void OnWaveCompleted(int _) => StopTimer();
 

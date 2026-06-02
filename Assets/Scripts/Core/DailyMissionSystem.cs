@@ -48,7 +48,7 @@ public class DailyMissionSystem : MonoBehaviour
     void OnEnable()
     {
         EnemyBase.OnEnemyDied           += AoInimigoMorrer;
-        WaveManager.OnWaveCompleted     += AoWaveConcluida;
+        ZoneManager.OnZoneCompleted     += AoWaveConcluida;
         DiamondSystem.OnDiamondsChanged += AoColetarDiamantes;
         PlayerHealth.OnHealthChanged    += AoHealthChanged;
     }
@@ -56,7 +56,7 @@ public class DailyMissionSystem : MonoBehaviour
     void OnDisable()
     {
         EnemyBase.OnEnemyDied           -= AoInimigoMorrer;
-        WaveManager.OnWaveCompleted     -= AoWaveConcluida;
+        ZoneManager.OnZoneCompleted     -= AoWaveConcluida;
         DiamondSystem.OnDiamondsChanged -= AoColetarDiamantes;
         PlayerHealth.OnHealthChanged    -= AoHealthChanged;
     }

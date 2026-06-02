@@ -61,7 +61,7 @@ public class ZoneManager : MonoBehaviour
     public static event System.Action<string> OnGameOver;
     public static event System.Action         OnAllZonesCompleted;
 
-    [Header("Prefabs de inimigos (mesma ordem do WaveManager)")]
+    [Header("Prefabs de inimigos (índices usados nos enemyIndices das zonas)")]
     public List<GameObject> enemyPrefabs = new();
 
     [Header("Prefab do boss (EnemyGolem amplificado)")]

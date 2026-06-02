@@ -77,20 +77,18 @@ public class GameManager : MonoBehaviour
 
     void OnEnable()
     {
-        SceneManager.sceneLoaded         += OnSceneLoaded;
-        WaveManager.OnAllWavesCompleted  += HandleAllWavesCompleted;
-        WaveManager.OnWaveCompleted      += HandleWaveCompleted;
-        ZoneManager.OnGameOver           += HandleZoneGameOver;
-        ZoneManager.OnAllZonesCompleted  += HandleZoneVictory;
+        SceneManager.sceneLoaded        += OnSceneLoaded;
+        ZoneManager.OnZoneCompleted     += HandleZoneCompleted;
+        ZoneManager.OnGameOver          += HandleZoneGameOver;
+        ZoneManager.OnAllZonesCompleted += HandleZoneVictory;
     }
 
     void OnDisable()
     {
-        SceneManager.sceneLoaded         -= OnSceneLoaded;
-        WaveManager.OnAllWavesCompleted  -= HandleAllWavesCompleted;
-        WaveManager.OnWaveCompleted      -= HandleWaveCompleted;
-        ZoneManager.OnGameOver           -= HandleZoneGameOver;
-        ZoneManager.OnAllZonesCompleted  -= HandleZoneVictory;
+        SceneManager.sceneLoaded        -= OnSceneLoaded;
+        ZoneManager.OnZoneCompleted     -= HandleZoneCompleted;
+        ZoneManager.OnGameOver          -= HandleZoneGameOver;
+        ZoneManager.OnAllZonesCompleted -= HandleZoneVictory;
     }
 
     // Refreshes scene-bound references after reload and triggers AutoStart on restarts.
@@ -322,26 +320,12 @@ public class GameManager : MonoBehaviour
         SetState(GameState.Victory);
     }
 
-    void HandleAllWavesCompleted()
+    void HandleZoneCompleted(int zone)
     {
-        if (currentState != GameState.Playing) return;
-
-        currentRunData.waveReached    = currentRunData.wavesCompleted;
-        currentRunData.timeSurvived   = runTimer;
-        currentRunData.causeOfDeath   = "vitória";
-
-        RunSessionManager.Instance?.ClearSession();
-        runRewardSystem?.CalculateAndDeliverReward(currentRunData);
-
-        SetState(GameState.Victory);
+        currentRunData.wavesCompleted = zone + 1;
     }
 
-    void HandleWaveCompleted(int wave)
-    {
-        currentRunData.wavesCompleted = wave;
-    }
-
-    // ── API pública de tracking (chamada diretamente por EnemyBase e WaveManager) ─
+    // ── API pública de tracking (chamada diretamente por EnemyBase) ─────────────
 
     public void IncrementKill()
     {

@@ -90,7 +90,7 @@ public static class SolengardDebug
         int fixed_ = 0;
 
         fixed_ += FixSystem<GameManager>          ("GameManager",           log);
-        fixed_ += FixSystem<WaveManager>          ("WaveManager",           log);
+        fixed_ += FixSystem<ZoneManager>           ("ZoneManager",           log);
         fixed_ += FixSystem<ObjectPoolManager>    ("ObjectPoolManager",     log);
         fixed_ += FixSystem<UpgradeSystem>        ("UpgradeSystem",         log);
         fixed_ += FixSystem<DiamondSystem>        ("DiamondSystem",         log);

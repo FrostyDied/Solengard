@@ -18,8 +18,8 @@ public class WaveWarningUI : MonoBehaviour
         banner?.SetActive(false);
     }
 
-    void OnEnable()  => WaveManager.OnWaveCompleted += HandleWaveCompleted;
-    void OnDisable() => WaveManager.OnWaveCompleted -= HandleWaveCompleted;
+    void OnEnable()  => ZoneManager.OnZoneCompleted += HandleWaveCompleted;
+    void OnDisable() => ZoneManager.OnZoneCompleted -= HandleWaveCompleted;
 
     void HandleWaveCompleted(int completedWave)
     {

@@ -34,8 +34,8 @@ public class UpgradeSystem : MonoBehaviour
     [Header("Pool de Upgrades disponíveis")]
     public List<UpgradeOption> poolDeUpgrades = new();
 
-    void OnEnable()  => WaveManager.OnWaveCompleted += AoFimDeWave;
-    void OnDisable() => WaveManager.OnWaveCompleted -= AoFimDeWave;
+    void OnEnable()  => ZoneManager.OnZoneCompleted += AoFimDeWave;
+    void OnDisable() => ZoneManager.OnZoneCompleted -= AoFimDeWave;
 
     void Start()
     {

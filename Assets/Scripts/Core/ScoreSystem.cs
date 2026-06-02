@@ -26,14 +26,14 @@ public class ScoreSystem : MonoBehaviour
     {
         GameManager.OnGameStateChanged += AoMudarEstado;
         EnemyBase.OnEnemyDied          += RegistrarKill;
-        WaveManager.OnWaveCompleted    += AoWaveConcluida;
+        ZoneManager.OnZoneCompleted    += AoWaveConcluida;
     }
 
     void OnDisable()
     {
         GameManager.OnGameStateChanged -= AoMudarEstado;
         EnemyBase.OnEnemyDied          -= RegistrarKill;
-        WaveManager.OnWaveCompleted    -= AoWaveConcluida;
+        ZoneManager.OnZoneCompleted    -= AoWaveConcluida;
     }
 
     void AoWaveConcluida(int wave) => RegistrarWaveConcluida();

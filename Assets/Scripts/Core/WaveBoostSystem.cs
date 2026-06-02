@@ -30,8 +30,8 @@ public class WaveBoostSystem : MonoBehaviour
         if (boostsDisponiveis.Count == 0) CriarBoostsPadrao();
     }
 
-    void OnEnable()  => WaveManager.OnWaveCompleted += AoCompletarWave;
-    void OnDisable() => WaveManager.OnWaveCompleted -= AoCompletarWave;
+    void OnEnable()  => ZoneManager.OnZoneCompleted += AoCompletarWave;
+    void OnDisable() => ZoneManager.OnZoneCompleted -= AoCompletarWave;
 
     void AoCompletarWave(int wave)
     {

@@ -45,7 +45,7 @@ public class ProceduralArenaSystem : MonoBehaviour
     [Header("Modificadores de wave disponíveis")]
     public List<WaveModifier> modificadoresDisponiveis = new();
 
-    // Modificador ativo para a run atual — lido pelo WaveManager e sistemas de inimigos
+    // Modificador ativo para a run atual — lido pelo ZoneManager e sistemas de inimigos
     public WaveModifier ModificadorAtivo { get; private set; }
 
     List<GameObject> obstaculosSpawnados = new();
