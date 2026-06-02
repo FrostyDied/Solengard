@@ -23,6 +23,13 @@ public class XPSystem : MonoBehaviour
         Instance = this;
     }
 
+    public void ResetLevel()
+    {
+        CurrentXP    = 0;
+        CurrentLevel = 1;
+        Debug.Log("[XP] Level resetado para nova zona");
+    }
+
     public void AddXP(int amount)
     {
         CurrentXP += amount;

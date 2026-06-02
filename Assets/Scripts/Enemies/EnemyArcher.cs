@@ -94,7 +94,7 @@ public class EnemyArcher : EnemyBase
 
     static Sprite MakeArrowSprite()
     {
-        int w = 12, h = 4;
+        int w = 11, h = 4;
         var tex   = new Texture2D(w, h);
         var clear = new Color(0f, 0f, 0f, 0f);
         for (int x = 0; x < w; x++)
@@ -102,9 +102,9 @@ public class EnemyArcher : EnemyBase
                 tex.SetPixel(x, y, clear);
 
         var c = new Color(1f, 0.95f, 0.7f);
-        for (int x = 0; x < 10; x++) { tex.SetPixel(x, 1, c); tex.SetPixel(x, 2, c); }
-        tex.SetPixel(10, 0, c); tex.SetPixel(10, 1, c); tex.SetPixel(10, 2, c); tex.SetPixel(10, 3, c);
-        tex.SetPixel(11, 1, c); tex.SetPixel(11, 2, c);
+        for (int x = 0; x < 9; x++) { tex.SetPixel(x, 1, c); tex.SetPixel(x, 2, c); }
+        tex.SetPixel(9,  0, c); tex.SetPixel(9,  1, c); tex.SetPixel(9,  2, c); tex.SetPixel(9,  3, c);
+        tex.SetPixel(10, 1, c); tex.SetPixel(10, 2, c);
 
         tex.Apply();
         tex.filterMode = FilterMode.Point;

@@ -77,16 +77,20 @@ public class GameManager : MonoBehaviour
 
     void OnEnable()
     {
-        SceneManager.sceneLoaded        += OnSceneLoaded;
-        WaveManager.OnAllWavesCompleted += HandleAllWavesCompleted;
-        WaveManager.OnWaveCompleted     += HandleWaveCompleted;
+        SceneManager.sceneLoaded         += OnSceneLoaded;
+        WaveManager.OnAllWavesCompleted  += HandleAllWavesCompleted;
+        WaveManager.OnWaveCompleted      += HandleWaveCompleted;
+        ZoneManager.OnGameOver           += HandleZoneGameOver;
+        ZoneManager.OnAllZonesCompleted  += HandleZoneVictory;
     }
 
     void OnDisable()
     {
-        SceneManager.sceneLoaded        -= OnSceneLoaded;
-        WaveManager.OnAllWavesCompleted -= HandleAllWavesCompleted;
-        WaveManager.OnWaveCompleted     -= HandleWaveCompleted;
+        SceneManager.sceneLoaded         -= OnSceneLoaded;
+        WaveManager.OnAllWavesCompleted  -= HandleAllWavesCompleted;
+        WaveManager.OnWaveCompleted      -= HandleWaveCompleted;
+        ZoneManager.OnGameOver           -= HandleZoneGameOver;
+        ZoneManager.OnAllZonesCompleted  -= HandleZoneVictory;
     }
 
     // Refreshes scene-bound references after reload and triggers AutoStart on restarts.
@@ -159,7 +163,7 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogWarning("[GameManager] timeScale estava 0 após 15s — forçando para 1 (lore travada?)");
             Time.timeScale = 1f;
-            WaveManager.Instance?.StartWaves();
+            ZoneManager.Instance?.StartZones();
         }
     }
 
@@ -195,7 +199,7 @@ public class GameManager : MonoBehaviour
 
         SetState(GameState.Playing);
 
-        if (waveManager == null) { Debug.LogWarning("[GameManager] WaveManager nao atribuido."); return; }
+        if (waveManager == null) Debug.LogWarning("[GameManager] WaveManager nao atribuido.");
 
         // Canvas do LoreScreenUI agora sempre ativo — não precisa de FindObjectsInactive
         var loreUI = Object.FindFirstObjectByType<LoreScreenUI>();
@@ -207,8 +211,7 @@ public class GameManager : MonoBehaviour
             : ()          => StartCoroutine(FadeFromBlack(() =>
               {
                   proceduralArena?.InitializeRun();
-                  BiomeSystem.Instance?.SetBiome(BiomeSystem.Biome.Veremoth);
-                  waveManager.StartWaves();
+                  ZoneManager.Instance?.StartZones();
               }));
 
         if (loreUI != null && config != null)
@@ -274,7 +277,9 @@ public class GameManager : MonoBehaviour
 
         Time.timeScale = 0f; // garante pausa mesmo se já estava Paused
 
-        currentRunData.waveReached  = waveManager != null ? waveManager.CurrentWave : currentRunData.wavesCompleted;
+        currentRunData.waveReached  = ZoneManager.Instance != null
+            ? ZoneManager.Instance.CurrentZone + 1
+            : (waveManager != null ? waveManager.CurrentWave : currentRunData.wavesCompleted);
         currentRunData.timeSurvived = runTimer;
 
         Debug.Log($"[GameOver] kills={currentRunData.totalKills} wave={currentRunData.waveReached} time={RunTimeSeconds:F1} runRewardSystem={runRewardSystem != null}");
@@ -306,6 +311,23 @@ public class GameManager : MonoBehaviour
     }
 
     // ── Handlers privados ───────────────────────────────────────────────────────
+
+    void HandleZoneGameOver(string motivo)
+    {
+        if (currentState != GameState.Playing && currentState != GameState.Paused) return;
+        currentRunData.causeOfDeath = motivo;
+        TriggerGameOver();
+    }
+
+    void HandleZoneVictory()
+    {
+        if (currentState != GameState.Playing) return;
+        currentRunData.causeOfDeath = "vitória";
+        currentRunData.timeSurvived = runTimer;
+        RunSessionManager.Instance?.ClearSession();
+        runRewardSystem?.CalculateAndDeliverReward(currentRunData);
+        SetState(GameState.Victory);
+    }
 
     void HandleAllWavesCompleted()
     {

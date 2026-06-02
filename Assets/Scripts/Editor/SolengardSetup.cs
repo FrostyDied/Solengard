@@ -232,6 +232,7 @@ public static class SolengardSetup
         CreateSceneSystem<XPSystem>                 ("XPSystem");
         CreateSceneSystem<BiomeSystem>              ("BiomeSystem");
         CreateSceneSystem<VFXManager>               ("VFXManager");
+        CreateSceneSystem<ZoneManager>              ("ZoneManager");
 
         // EventSystem — required for UI clicks; module depends on Input System setting
         {
@@ -248,6 +249,7 @@ public static class SolengardSetup
 
         CreateLevelUpUIInScene(scene);
         CreateLoreScreenUI(scene);
+        CreateGameOverUI(scene);
 
         // 5. Player — destroy any lingering Player-tagged objects before creating a fresh one
         foreach (var go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -915,6 +917,7 @@ public static class SolengardSetup
         total += EnsureSystemObject<XPSystem>                ("XPSystem",                  log);
         total += EnsureSystemObject<BiomeSystem>             ("BiomeSystem",               log);
         total += EnsureSystemObject<VFXManager>              ("VFXManager",                log);
+        total += EnsureSystemObject<ZoneManager>             ("ZoneManager",               log);
 
         return total;
     }
@@ -1253,6 +1256,7 @@ public static class SolengardSetup
         total += TryAddSlimePool(slimePrefab, log);
         total += TryAddEnemyPools(log);
         total += TryAddEnemyPrefabs(log);
+        total += TryAddEnemyPrefabsToZoneManager(log);
         total += TryPopulateUpgrades(log);
         total += TryPopulateSeasonRewards(log);
         total += TryPopulateObstaclePositions(log);
@@ -1479,6 +1483,140 @@ public static class SolengardSetup
 
         log.AppendLine($"  ProceduralArenaSystem.posicoesObstaculoCandidatas → {pos.Length} posições adicionadas");
         return 1;
+    }
+
+    static int TryAddEnemyPrefabsToZoneManager(StringBuilder log)
+    {
+        var zm = Object.FindFirstObjectByType<ZoneManager>(FindObjectsInactive.Include);
+        if (zm == null) return 0;
+
+        var so  = new SerializedObject(zm);
+        var arr = so.FindProperty("enemyPrefabs");
+        if (arr == null) return 0;
+
+        var loaded = new List<GameObject>();
+        foreach (string path in ENEMY_PREFAB_PATHS)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab != null) loaded.Add(prefab);
+            else Debug.LogWarning($"[SolengardSetup] ZoneManager prefab não encontrado: {path}");
+        }
+
+        if (loaded.Count == 0) return 0;
+
+        arr.ClearArray();
+        for (int i = 0; i < loaded.Count; i++)
+        {
+            arr.InsertArrayElementAtIndex(i);
+            arr.GetArrayElementAtIndex(i).objectReferenceValue = loaded[i];
+        }
+        so.ApplyModifiedProperties();
+
+        log.AppendLine($"  ZoneManager.enemyPrefabs → {loaded.Count} prefabs (reordenados)");
+        return 1;
+    }
+
+    static void CreateGameOverUI(Scene scene)
+    {
+        var canvasGO = new GameObject("GameOverCanvas");
+        Undo.RegisterCreatedObjectUndo(canvasGO, "Rebuild GameScene");
+        SceneManager.MoveGameObjectToScene(canvasGO, scene);
+
+        var canvas = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 300;
+
+        var scaler = canvasGO.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1080f, 1920f);
+        scaler.matchWidthOrHeight  = 0.5f;
+        canvasGO.AddComponent<GraphicRaycaster>();
+
+        var goUI = canvasGO.AddComponent<GameOverUI>();
+        var cg   = canvasGO.AddComponent<CanvasGroup>();
+
+        // Fundo escuro semi-transparente
+        var bgGO = new GameObject("Background");
+        Undo.RegisterCreatedObjectUndo(bgGO, "Rebuild GameScene");
+        bgGO.transform.SetParent(canvasGO.transform, false);
+        var bgRT = bgGO.AddComponent<RectTransform>();
+        bgRT.anchorMin = Vector2.zero; bgRT.anchorMax = Vector2.one;
+        bgRT.offsetMin = Vector2.zero; bgRT.offsetMax = Vector2.zero;
+        bgGO.AddComponent<Image>().color = new Color(0.05f, 0.01f, 0.01f, 0.93f);
+
+        // Título vermelho-escarlate
+        var titleGO = new GameObject("Titulo");
+        Undo.RegisterCreatedObjectUndo(titleGO, "Rebuild GameScene");
+        titleGO.transform.SetParent(canvasGO.transform, false);
+        var titleRT = titleGO.AddComponent<RectTransform>();
+        titleRT.anchorMin = new Vector2(0.5f, 0.5f); titleRT.anchorMax = new Vector2(0.5f, 0.5f);
+        titleRT.pivot = new Vector2(0.5f, 0.5f);
+        titleRT.sizeDelta = new Vector2(700f, 100f);
+        titleRT.anchoredPosition = new Vector2(0f, 250f);
+        var titleTMP = titleGO.AddComponent<TextMeshProUGUI>();
+        titleTMP.text      = "VOCÊ CAIU";
+        titleTMP.alignment = TextAlignmentOptions.Center;
+        titleTMP.fontSize  = 64f;
+        titleTMP.fontStyle = FontStyles.Bold;
+        titleTMP.color     = new Color(0.85f, 0.10f, 0.10f);
+
+        // Subtítulo (motivo do game over)
+        var subGO = new GameObject("Subtitulo");
+        Undo.RegisterCreatedObjectUndo(subGO, "Rebuild GameScene");
+        subGO.transform.SetParent(canvasGO.transform, false);
+        var subRT = subGO.AddComponent<RectTransform>();
+        subRT.anchorMin = new Vector2(0.5f, 0.5f); subRT.anchorMax = new Vector2(0.5f, 0.5f);
+        subRT.pivot = new Vector2(0.5f, 0.5f);
+        subRT.sizeDelta = new Vector2(700f, 60f);
+        subRT.anchoredPosition = new Vector2(0f, 160f);
+        var subTMP = subGO.AddComponent<TextMeshProUGUI>();
+        subTMP.text      = "";
+        subTMP.alignment = TextAlignmentOptions.Center;
+        subTMP.fontSize  = 28f;
+        subTMP.color     = new Color(0.75f, 0.65f, 0.65f);
+
+        // Stats — zona, kills, score (dourado)
+        var statsGO = new GameObject("Stats");
+        Undo.RegisterCreatedObjectUndo(statsGO, "Rebuild GameScene");
+        statsGO.transform.SetParent(canvasGO.transform, false);
+        var statsRT = statsGO.AddComponent<RectTransform>();
+        statsRT.anchorMin = new Vector2(0.5f, 0.5f); statsRT.anchorMax = new Vector2(0.5f, 0.5f);
+        statsRT.pivot = new Vector2(0.5f, 0.5f);
+        statsRT.sizeDelta = new Vector2(700f, 50f);
+        statsRT.anchoredPosition = new Vector2(0f, 50f);
+        var statsTMP = statsGO.AddComponent<TextMeshProUGUI>();
+        statsTMP.text      = "";
+        statsTMP.alignment = TextAlignmentOptions.Center;
+        statsTMP.fontSize  = 26f;
+        statsTMP.color     = new Color(0.85f, 0.75f, 0.40f);
+
+        // Botão Tentar Novamente
+        var (restartGO, restartBtn) = NewButton(canvasGO.transform, "BotaoReiniciar", "TENTAR NOVAMENTE");
+        var restartRT = RT(restartGO);
+        restartRT.anchorMin = new Vector2(0.5f, 0.5f); restartRT.anchorMax = new Vector2(0.5f, 0.5f);
+        restartRT.pivot     = new Vector2(0.5f, 0.5f);
+        restartRT.sizeDelta = new Vector2(480f, 90f);
+        restartRT.anchoredPosition = new Vector2(0f, -100f);
+
+        // Botão Menu Principal
+        var (menuGO, menuBtn) = NewButton(canvasGO.transform, "BotaoMenu", "MENU PRINCIPAL");
+        var menuRT = RT(menuGO);
+        menuRT.anchorMin = new Vector2(0.5f, 0.5f); menuRT.anchorMax = new Vector2(0.5f, 0.5f);
+        menuRT.pivot     = new Vector2(0.5f, 0.5f);
+        menuRT.sizeDelta = new Vector2(480f, 90f);
+        menuRT.anchoredPosition = new Vector2(0f, -220f);
+
+        var so = new SerializedObject(goUI);
+        so.FindProperty("canvasGroup").objectReferenceValue   = cg;
+        so.FindProperty("titulotexto").objectReferenceValue   = titleTMP;
+        so.FindProperty("subtitulo").objectReferenceValue     = subTMP;
+        so.FindProperty("statsTexto").objectReferenceValue    = statsTMP;
+        so.FindProperty("restartButton").objectReferenceValue = restartBtn;
+        so.FindProperty("mainMenuButton").objectReferenceValue = menuBtn;
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        canvasGO.SetActive(false);
+        Debug.Log("[SolengardSetup] GameOverUI criada (sortingOrder=300).");
     }
 
     // ── Helpers — Setup menus ─────────────────────────────────────────────────────

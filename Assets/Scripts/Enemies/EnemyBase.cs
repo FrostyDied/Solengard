@@ -37,6 +37,10 @@ public class EnemyBase : MonoBehaviour
     public static event System.Action OnEnemyDied;
     [HideInInspector] public string poolTag;
 
+    public static float GlobalHPMult     = 1f;
+    public static float GlobalSpeedMult  = 1f;
+    public static float GlobalDamageMult = 1f;
+
     public const float CHARACTER_WORLD_SCALE = 1.0f;
 
     protected float currentHealth;
@@ -102,7 +106,11 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual void Start()
     {
-        moveSpeed *= 1.2f; // horda 20% mais rápida globalmente
+        moveSpeed    *= 1.2f;
+        maxHealth    *= GlobalHPMult;
+        currentHealth = maxHealth;
+        moveSpeed    *= GlobalSpeedMult;
+        damage       *= GlobalDamageMult;
     }
 
     protected virtual void Update()
