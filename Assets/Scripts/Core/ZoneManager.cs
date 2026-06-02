@@ -169,6 +169,7 @@ public class ZoneManager : MonoBehaviour
 
                     if (_allBossesDefeated)
                     {
+                        Debug.Log($"[Zone] _allBossesDefeated=true detectado, zoneCleared=true");
                         BossActive         = false;
                         _allBossesDefeated = false;
                         zoneCleared        = true;
@@ -326,8 +327,10 @@ public class ZoneManager : MonoBehaviour
                 {
                     _bossInstances.Remove(bossRef);
                     KillCount++;
+                    Debug.Log($"[Boss] Morreu. Restantes: {_bossInstances.Count}");
                     if (_bossInstances.Count == 0)
                     {
+                        Debug.Log("[Boss] Todos derrotados — _allBossesDefeated = true");
                         _allBossesDefeated = true;
                         OnBossDefeated?.Invoke();
                         Debug.Log("[Zone] Todos os bosses derrotados!");
