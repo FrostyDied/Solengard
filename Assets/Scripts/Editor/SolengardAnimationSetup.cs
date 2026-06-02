@@ -12,6 +12,16 @@ public static class SolengardAnimationSetup
         public string spriteFolder;
     }
 
+    struct BossEntry
+    {
+        public string prefabPath;
+        public string idleFolder;
+        public string walkFolder;
+        public string attackFolder;
+        public string hurtFolder;
+        public string deathFolder;
+    }
+
     static readonly Entry[] _entries =
     {
         // ── Players ─────────────────────────────────────────────────────────────────
@@ -79,6 +89,36 @@ public static class SolengardAnimationSetup
         new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyOrcHeavy.prefab",  spriteFolder = "Assets/Art/Characters/Enemies/Orc/PNG/Orc1/Without_shadow" },
         new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyOrcHeavy2.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Orc/PNG/Orc2/Without_shadow" },
         new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyOrcHeavy3.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Orc/PNG/Orc3/Without_shadow" },
+    };
+
+    const string BOSS_ROOT = "Assets/Art/Characters/Enemies/Boss";
+
+    static readonly BossEntry[] _bossEntries =
+    {
+        new BossEntry {
+            prefabPath   = "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            idleFolder   = BOSS_ROOT + "/Caveman Boss/PNG/PNG Sequences/Front - Idle",
+            walkFolder   = BOSS_ROOT + "/Caveman Boss/PNG/PNG Sequences/Front - Walking",
+            attackFolder = BOSS_ROOT + "/Caveman Boss/PNG/PNG Sequences/Front - Attacking",
+            hurtFolder   = BOSS_ROOT + "/Caveman Boss/PNG/PNG Sequences/Front - Hurt",
+            deathFolder  = BOSS_ROOT + "/Caveman Boss/PNG/PNG Sequences/Dying",
+        },
+        new BossEntry {
+            prefabPath   = "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            idleFolder   = BOSS_ROOT + "/Giant Goblin/PNG/PNG Sequences/Front - Idle",
+            walkFolder   = BOSS_ROOT + "/Giant Goblin/PNG/PNG Sequences/Front - Walking",
+            attackFolder = BOSS_ROOT + "/Giant Goblin/PNG/PNG Sequences/Front - Attacking",
+            hurtFolder   = BOSS_ROOT + "/Giant Goblin/PNG/PNG Sequences/Front - Hurt",
+            deathFolder  = BOSS_ROOT + "/Giant Goblin/PNG/PNG Sequences/Dying",
+        },
+        new BossEntry {
+            prefabPath   = "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+            idleFolder   = BOSS_ROOT + "/Viking Leader/PNG/PNG Sequences/Front - Idle",
+            walkFolder   = BOSS_ROOT + "/Viking Leader/PNG/PNG Sequences/Front - Walking",
+            attackFolder = BOSS_ROOT + "/Viking Leader/PNG/PNG Sequences/Front - Attacking",
+            hurtFolder   = BOSS_ROOT + "/Viking Leader/PNG/PNG Sequences/Front - Hurt",
+            deathFolder  = BOSS_ROOT + "/Viking Leader/PNG/PNG Sequences/Dying",
+        },
     };
 
     // ── Configuração de linha lateral ────────────────────────────────────────
@@ -158,6 +198,48 @@ public static class SolengardAnimationSetup
             }
         }
 
+        // ── Boss prefabs com PNGs individuais por pasta ──────────────────────────
+        foreach (var entry in _bossEntries)
+        {
+            var prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(entry.prefabPath);
+            if (prefabAsset == null)
+            {
+                Debug.LogWarning($"[AnimSetup] Boss prefab não encontrado: {entry.prefabPath}");
+                continue;
+            }
+
+            var idle   = LoadFramesFromFolder(entry.idleFolder);
+            var walk   = LoadFramesFromFolder(entry.walkFolder);
+            var attack = LoadFramesFromFolder(entry.attackFolder);
+            var hurt   = LoadFramesFromFolder(entry.hurtFolder);
+            var death  = LoadFramesFromFolder(entry.deathFolder);
+
+            string prefabName = Path.GetFileNameWithoutExtension(entry.prefabPath);
+            log.AppendLine($"  {prefabName} [boss]: idle={idle.Length} walk={walk.Length} attack={attack.Length} hurt={hurt.Length} death={death.Length}");
+            if (idle.Length == 0) noIdle.Add(prefabName);
+            if (walk.Length == 0) noWalk.Add(prefabName);
+
+            var contents = PrefabUtility.LoadPrefabContents(entry.prefabPath);
+            try
+            {
+                var anim = contents.GetComponent<CharacterAnimator>()
+                        ?? contents.AddComponent<CharacterAnimator>();
+                var so = new SerializedObject(anim);
+                SetSpriteArray(so, "idleFrames",   idle);
+                SetSpriteArray(so, "walkFrames",   walk);
+                SetSpriteArray(so, "attackFrames", attack);
+                SetSpriteArray(so, "hurtFrames",   hurt);
+                SetSpriteArray(so, "deathFrames",  death);
+                so.ApplyModifiedProperties();
+                PrefabUtility.SaveAsPrefabAsset(contents, entry.prefabPath);
+                configured++;
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(contents);
+            }
+        }
+
         Debug.Log($"[AnimSetup] Concluído.\n{log}");
 
         var sb = new System.Text.StringBuilder();
@@ -208,6 +290,20 @@ public static class SolengardAnimationSetup
 
         int idx = Mathf.Clamp(SIDE_ROW_INDEX, 0, rows.Count - 1);
         return rows[idx].OrderBy(s => s.rect.x).ToArray();
+    }
+
+    static Sprite[] LoadFramesFromFolder(string folder)
+    {
+        if (string.IsNullOrEmpty(folder) || !AssetDatabase.IsValidFolder(folder)) return new Sprite[0];
+        var guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folder });
+        var sprites = new List<Sprite>();
+        foreach (var guid in guids)
+        {
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            var sp = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().FirstOrDefault();
+            if (sp != null) sprites.Add(sp);
+        }
+        return sprites.OrderBy(s => s.texture.name).ToArray();
     }
 
     static void SetSpriteArray(SerializedObject so, string propName, Sprite[] sprites)

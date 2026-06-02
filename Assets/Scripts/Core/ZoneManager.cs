@@ -318,13 +318,13 @@ public class ZoneManager : MonoBehaviour
 
                 if (bossName.Contains("caveman") || bossName.Contains("goblin") || bossName.Contains("viking"))
                 {
-                    scaleMultiplier = 1.0f;
+                    scaleMultiplier = 0.5f;
                     hpMultiplier    = 6f;
                     eb.moveSpeed   *= 1.8f;
                 }
                 else if (bossName.Contains("darkelf"))
                 {
-                    scaleMultiplier = 2.5f;
+                    scaleMultiplier = 2.6f;
                     hpMultiplier    = 8f;
                     eb.moveSpeed   *= 2f;
                 }
@@ -354,6 +354,9 @@ public class ZoneManager : MonoBehaviour
                     }
                 };
             }
+
+            var anim = bossGO.GetComponent<CharacterAnimator>();
+            if (anim != null) anim.ForceState(CharacterAnimator.State.Walk);
 
             _bossInstances.Add(bossGO);
         }
