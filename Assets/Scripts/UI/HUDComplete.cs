@@ -113,12 +113,14 @@ public class HUDComplete : MonoBehaviour
 
     void AtualizarWaveSeMudou()
     {
-        WaveManager wm = GameManager.Instance?.waveManager;
-        if (wm == null || wm.CurrentWave == ultimaWaveExibida) return;
+        var zm = ZoneManager.Instance;
+        if (zm == null) return;
+        int zona = zm.CurrentZone + 1;
+        if (zona == ultimaWaveExibida) return;
 
-        ultimaWaveExibida = wm.CurrentWave;
-        if (textoWave != null) textoWave.text = $"Wave {wm.CurrentWave}/{wm.TotalWaves}";
-        ShowWaveStartBanner(wm.CurrentWave);
+        ultimaWaveExibida = zona;
+        if (textoWave != null) textoWave.text = $"Zona {zona}/5";
+        ShowWaveStartBanner(zona);
     }
 
     void AtualizarScore()

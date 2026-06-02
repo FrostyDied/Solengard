@@ -8,7 +8,6 @@ public class WaveWarningUI : MonoBehaviour
     [SerializeField] GameObject      banner;
     [SerializeField] TextMeshProUGUI bannerText;
     [SerializeField] CanvasGroup     canvasGroup;
-    [SerializeField] WaveManager     waveManager;
 
     static readonly Color ColorNormal = Color.white;
     static readonly Color ColorElite  = new Color(1f, 0.5f, 0f);
@@ -17,9 +16,6 @@ public class WaveWarningUI : MonoBehaviour
     void Awake()
     {
         banner?.SetActive(false);
-
-        if (waveManager == null)
-            waveManager = Object.FindFirstObjectByType<WaveManager>();
     }
 
     void OnEnable()  => WaveManager.OnWaveCompleted += HandleWaveCompleted;
@@ -27,11 +23,7 @@ public class WaveWarningUI : MonoBehaviour
 
     void HandleWaveCompleted(int completedWave)
     {
-        if (waveManager == null) return;
-
         int nextWave = completedWave + 1;
-        if (nextWave > waveManager.TotalWaves) return;
-
         StartCoroutine(ShowAfterDelay(0f, nextWave));
     }
 
@@ -91,9 +83,7 @@ public class WaveWarningUI : MonoBehaviour
 
     WaveType GetWaveType(int wave)
     {
-        if (waveManager == null)                return WaveType.Normal;
-        if (wave >= waveManager.TotalWaves)     return WaveType.Boss;
-        if (wave == 5 || wave == 8)             return WaveType.Elite;
+        if (wave == 5 || wave == 8) return WaveType.Elite;
         return WaveType.Normal;
     }
 }

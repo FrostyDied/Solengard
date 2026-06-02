@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour
     // ── Referências ─────────────────────────────────────────────────────────────
 
     [Header("Referências")]
-    public WaveManager waveManager;
+    [SerializeField] ZoneManager           zoneManager;
     [SerializeField] ProceduralArenaSystem proceduralArena;
     [SerializeField] RunRewardSystem       runRewardSystem;
 
@@ -97,8 +97,6 @@ public class GameManager : MonoBehaviour
     // Initial load is handled by Start(); reloads (RestartRun) are handled here.
     void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
     {
-        if (waveManager == null)
-            waveManager = Object.FindFirstObjectByType<WaveManager>();
         if (runRewardSystem == null)
             runRewardSystem = Object.FindFirstObjectByType<RunRewardSystem>();
 
@@ -199,8 +197,6 @@ public class GameManager : MonoBehaviour
 
         SetState(GameState.Playing);
 
-        if (waveManager == null) Debug.LogWarning("[GameManager] WaveManager nao atribuido.");
-
         // Canvas do LoreScreenUI agora sempre ativo — não precisa de FindObjectsInactive
         var loreUI = Object.FindFirstObjectByType<LoreScreenUI>();
         var config  = BiomeSystem.Instance?.GetConfig(1);
@@ -243,10 +239,7 @@ public class GameManager : MonoBehaviour
         var ph = Object.FindFirstObjectByType<PlayerHealth>();
         if (ph != null) ph.RestoreHealth(session.currentHealth, session.maxHealth);
 
-        if (waveManager != null)
-            waveManager.RestoreToWave(session.currentWave);
-        else
-            Debug.LogWarning("[GameManager] WaveManager nao encontrado para restaurar wave.");
+        ZoneManager.Instance?.RestoreToZone(session.currentWave - 1);
 
         RunSessionManager.Instance?.ClearSession();
         Debug.Log($"[GameManager] Sessao restaurada — wave={session.currentWave} kills={session.killCount} hp={session.currentHealth:F0}");
@@ -279,7 +272,7 @@ public class GameManager : MonoBehaviour
 
         currentRunData.waveReached  = ZoneManager.Instance != null
             ? ZoneManager.Instance.CurrentZone + 1
-            : (waveManager != null ? waveManager.CurrentWave : currentRunData.wavesCompleted);
+            : currentRunData.wavesCompleted;
         currentRunData.timeSurvived = runTimer;
 
         Debug.Log($"[GameOver] kills={currentRunData.totalKills} wave={currentRunData.waveReached} time={RunTimeSeconds:F1} runRewardSystem={runRewardSystem != null}");
@@ -333,7 +326,6 @@ public class GameManager : MonoBehaviour
     {
         if (currentState != GameState.Playing) return;
 
-        currentRunData.wavesCompleted = waveManager != null ? waveManager.TotalWaves : currentRunData.wavesCompleted;
         currentRunData.waveReached    = currentRunData.wavesCompleted;
         currentRunData.timeSurvived   = runTimer;
         currentRunData.causeOfDeath   = "vitória";

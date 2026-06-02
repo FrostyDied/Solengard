@@ -46,8 +46,8 @@ public class RunSessionManager : MonoBehaviour
         var session = new RunSessionData
         {
             isActive           = true,
-            currentWave        = GameManager.Instance.waveManager != null
-                                    ? GameManager.Instance.waveManager.CurrentWave
+            currentWave        = ZoneManager.Instance != null
+                                    ? ZoneManager.Instance.CurrentZone + 1
                                     : rd.waveReached,
             killCount          = rd.totalKills,
             timeElapsed        = GameManager.Instance.RunTimeSeconds,
