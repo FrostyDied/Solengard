@@ -292,8 +292,6 @@ public class ZoneManager : MonoBehaviour
         BossActive        = true;
         BossTimeRemaining = zone.bossTimeLimit;
 
-        ClearEnemies();
-
         yield return new WaitForSeconds(2f);
 
         float angleStep = validBosses.Count > 1 ? 360f / validBosses.Count : 0f;
@@ -320,9 +318,9 @@ public class ZoneManager : MonoBehaviour
 
                 if (bossName.Contains("caveman") || bossName.Contains("goblin") || bossName.Contains("viking"))
                 {
-                    scaleMultiplier = 1.5f;
-                    hpMultiplier    = 4f;
-                    eb.moveSpeed   *= 1.5f;
+                    scaleMultiplier = 1.0f;
+                    hpMultiplier    = 6f;
+                    eb.moveSpeed   *= 1.8f;
                 }
                 else if (bossName.Contains("darkelf"))
                 {
