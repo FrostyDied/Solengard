@@ -1,46 +1,57 @@
 using UnityEngine;
 
-// Assassino. Alta velocidade, dash veloz ao entrar no range de ataque.
 public class EnemyAssassin : EnemyBase
 {
-    [Header("Assassin")]
-    [SerializeField] float dashRange    = 3.0f;
-    [SerializeField] float dashSpeed    = 12f;
-    [SerializeField] float dashCooldown = 2.5f;
+    [Header("Dash")]
+    [SerializeField] float dashRange    = 4f;
+    [SerializeField] float dashSpeed    = 14f;
+    [SerializeField] float dashDuration = 0.2f;
+    [SerializeField] float dashCooldown = 2f;
 
-    float _dashTimer = 0f;
+    float _dashTimer    = 0f;
+    float _dashDuration = 0f;
+    bool  _dashing      = false;
 
     protected override void Awake()
     {
-        maxHealth          = 20f;
-        moveSpeed          = 4f;
-        damage             = 12f;
-        separationStrength = 0.3f;  // deriva lateral suficiente para cruzar a fronteira de dano
-        separationRadius   = 1.0f;  // afasta de outros Assassins próximos
-        stoppingDistance   = 0.3f;  // penetra mais fundo antes de parar
+        maxHealth        = 20f;
+        moveSpeed        = 3.5f;
+        contactDamage    = 12f;
+        stoppingDistance = 0.2f;
         base.Awake();
     }
 
     protected override void OnEnable()
     {
         base.OnEnable();
-        _dashTimer = 0f;
+        _dashTimer    = 0f;
+        _dashDuration = 0f;
+        _dashing      = false;
     }
 
     protected override void MoveTowardsPlayer()
     {
         if (playerTransform == null) { FindPlayer(); return; }
 
-        float   dist     = Vector2.Distance(rb.position, (Vector2)playerTransform.position);
-        Vector2 toPlayer = ((Vector2)playerTransform.position - rb.position).normalized;
+        float   dist = Vector2.Distance(rb.position, (Vector2)playerTransform.position);
+        Vector2 dir  = ((Vector2)playerTransform.position - rb.position).normalized;
+
+        if (_dashing)
+        {
+            _dashDuration -= Time.fixedDeltaTime;
+            rb.linearVelocity = dir * dashSpeed;
+            if (_dashDuration <= 0f) _dashing = false;
+            return;
+        }
 
         _dashTimer -= Time.fixedDeltaTime;
 
-        // Dash: dispara quando dentro do range e cooldown zerado — atravessa a fronteira de dano
         if (dist <= dashRange && _dashTimer <= 0f)
         {
-            rb.linearVelocity = toPlayer * dashSpeed;
-            _dashTimer = dashCooldown;
+            _dashing          = true;
+            _dashDuration     = dashDuration;
+            _dashTimer        = dashCooldown;
+            rb.linearVelocity = dir * dashSpeed;
             return;
         }
 
@@ -50,11 +61,6 @@ public class EnemyAssassin : EnemyBase
             return;
         }
 
-        Vector2 separation = ComputeSeparation();
-        float   speed      = dist < stoppingDistance * 3f
-                             ? moveSpeed * (dist / (stoppingDistance * 3f))
-                             : moveSpeed;
-
-        rb.linearVelocity = (toPlayer + separation * separationStrength).normalized * speed;
+        rb.linearVelocity = dir * moveSpeed;
     }
 }

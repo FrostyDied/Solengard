@@ -9,6 +9,8 @@ public class EnemyBase : MonoBehaviour
     public float maxHealth = 30f;
     public float moveSpeed = 1.2f;
     public float damage = 10f;
+    // Alias para subclasses que preferem o nome específico de contato
+    protected float contactDamage { get => damage; set => damage = value; }
 
     [Header("Movimento")]
     public float stoppingDistance   = 0.8f;
