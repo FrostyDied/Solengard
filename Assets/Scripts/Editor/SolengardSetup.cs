@@ -207,7 +207,7 @@ public static class SolengardSetup
 
         // 4. Create every system as a root GO (same order as RunCreateNewSystemObjects)
         CreateSceneSystem<GameManager>           ("GameManager");
-        CreateSceneSystem<WaveManager>           ("WaveManager");
+        CreateSceneSystem<ZoneManager>           ("ZoneManager");
         CreateSceneSystem<ObjectPoolManager>     ("ObjectPoolManager");
         CreateSceneSystem<UpgradeSystem>         ("UpgradeSystem");
         CreateSceneSystem<DiamondSystem>         ("DiamondSystem");
@@ -232,7 +232,6 @@ public static class SolengardSetup
         CreateSceneSystem<XPSystem>                 ("XPSystem");
         CreateSceneSystem<BiomeSystem>              ("BiomeSystem");
         CreateSceneSystem<VFXManager>               ("VFXManager");
-        CreateSceneSystem<ZoneManager>              ("ZoneManager");
 
         // EventSystem — required for UI clicks; module depends on Input System setting
         {
@@ -897,7 +896,7 @@ public static class SolengardSetup
         total += EnsureSystemObject<LocalizationManager>  ("LocalizationManager",   log);
 
         // ── Gameplay systems ──────────────────────────────────────────────────────
-        total += EnsureSystemObject<WaveManager>          ("WaveManager",           log);
+        total += EnsureSystemObject<ZoneManager>           ("ZoneManager",           log);
         total += EnsureSystemObject<ObjectPoolManager>    ("ObjectPoolManager",     log);
         total += EnsureSystemObject<UpgradeSystem>        ("UpgradeSystem",         log);
         total += EnsureSystemObject<ProceduralArenaSystem>("ProceduralArenaSystem", log);
@@ -1513,6 +1512,19 @@ public static class SolengardSetup
         so.ApplyModifiedProperties();
 
         log.AppendLine($"  ZoneManager.enemyPrefabs → {loaded.Count} prefabs (reordenados)");
+
+        var bossProp = so.FindProperty("bossPrefab");
+        if (bossProp != null && bossProp.objectReferenceValue == null)
+        {
+            var golem = AssetDatabase.LoadAssetAtPath<GameObject>(ENEMY_PREFAB_PATHS[6]);
+            if (golem != null)
+            {
+                bossProp.objectReferenceValue = golem;
+                so.ApplyModifiedProperties();
+                log.AppendLine("  ZoneManager.bossPrefab → EnemyGolem");
+            }
+        }
+
         return 1;
     }
 
@@ -1794,14 +1806,14 @@ public static class SolengardSetup
     {
         sb.AppendLine("─────────────────────────────────────");
         sb.AppendLine("Campos que requerem atribuição MANUAL no Inspector:");
-        sb.AppendLine("• GameManager → waveManager");
-        sb.AppendLine("  (arrastar o GameObject WaveManager da hierarquia)");
-        sb.AppendLine();
         sb.AppendLine("• GameManager → proceduralArena");
         sb.AppendLine("  (arrastar o GameObject ProceduralArenaSystem da hierarquia)");
         sb.AppendLine();
-        sb.AppendLine("• WaveManager → spawnPoints");
-        sb.AppendLine("  (arrastar Transforms de spawn ao redor da arena)");
+        sb.AppendLine("• ZoneManager → bossPrefab");
+        sb.AppendLine("  (EnemyGolem.prefab — atribuído automaticamente pelo Setup)");
+        sb.AppendLine();
+        sb.AppendLine("• ZoneManager → enemyPrefabs");
+        sb.AppendLine("  (preenchido automaticamente pelo Setup — verificar ordem 0-6)");
         sb.AppendLine();
         sb.AppendLine("• ObjectPoolManager.pools[0].prefab");
         sb.AppendLine("  (atribuir Slime.prefab ao criar Assets/Prefabs/Enemies/Slime.prefab)");
