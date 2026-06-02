@@ -126,6 +126,27 @@ public static class SolengardDebug
     static bool ValidateFixGameManager() =>
         !string.IsNullOrEmpty(SceneManager.GetActiveScene().name);
 
+    // ── Forçar próxima zona (Play Mode) ─────────────────────────────────────────
+
+    [MenuItem("Solengard/Debug/Forcar Proxima Zona")]
+    static void ForceNextZone()
+    {
+        var zm = Object.FindFirstObjectByType<ZoneManager>();
+        if (zm == null) { Debug.LogError("[Debug] ZoneManager não encontrado"); return; }
+
+        var field = typeof(ZoneManager).GetField("_allBossesDefeated",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (field != null)
+        {
+            field.SetValue(zm, true);
+            Debug.Log($"[Debug] Forçando avanço para próxima zona (zona atual: {zm.CurrentZone + 1})");
+        }
+        else
+        {
+            Debug.LogError("[Debug] Campo _allBossesDefeated não encontrado em ZoneManager");
+        }
+    }
+
     // Encontra o componente T na cena ativa; se estiver num GO com nome errado, move.
     static int FixSystem<T>(string expectedName, System.Text.StringBuilder log) where T : Component
     {
