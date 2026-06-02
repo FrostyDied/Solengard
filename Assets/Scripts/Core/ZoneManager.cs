@@ -76,6 +76,7 @@ public class ZoneManager : MonoBehaviour
     List<GameObject> _activeEnemies     = new();
     List<GameObject> _bossInstances     = new();
     bool             _allBossesDefeated = false;
+    bool             _bossSpawnStarted  = false;
     Coroutine        _spawnCoroutine;
     Coroutine        _quotaTimerCoroutine;
 
@@ -122,6 +123,7 @@ public class ZoneManager : MonoBehaviour
             var zone = zones[CurrentZone];
             ZoneTimeRemaining  = zone.durationSeconds;
             BossActive         = false;
+            _bossSpawnStarted  = false;
             _heartDropped      = false;
             _allBossesDefeated = false;
             _spawnBudget       = _quotaPerMinute[0];
@@ -144,8 +146,12 @@ public class ZoneManager : MonoBehaviour
             {
                 ZoneTimeRemaining -= Time.deltaTime;
 
-                if (!BossActive && ZoneTimeRemaining <= zone.durationSeconds - zone.bossSpawnAt)
+                if (!BossActive && !_bossSpawnStarted &&
+                    ZoneTimeRemaining <= zone.durationSeconds - zone.bossSpawnAt)
+                {
+                    _bossSpawnStarted = true;
                     StartCoroutine(SpawnBoss(zone));
+                }
 
                 if (BossActive)
                 {
