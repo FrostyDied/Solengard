@@ -15,6 +15,7 @@ public class EnemyArcher : EnemyBase
         maxHealth = 25f;
         moveSpeed = 1.0f;
         damage    = 6f;
+        minRange  = Random.Range(5f, 8f);
         base.Awake();
         EnsureProjectilePool();
     }
@@ -64,6 +65,7 @@ public class EnemyArcher : EnemyBase
         if (proj == null) return;
 
         proj.transform.position = transform.position;
+        proj.transform.rotation = Quaternion.FromToRotation(Vector3.right, dir);
         var ep = proj.GetComponent<EnemyProjectile>();
         if (ep != null) { ep.poolTag = ProjectileTag; ep.Launch(dir, damage); }
     }
@@ -79,9 +81,33 @@ public class EnemyArcher : EnemyBase
         var col = template.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
         col.radius    = 0.15f;
+
+        var sr = template.AddComponent<SpriteRenderer>();
+        sr.sprite       = MakeArrowSprite();
+        sr.sortingOrder = 10;
+
         template.SetActive(false);
         DontDestroyOnLoad(template);
 
         ObjectPoolManager.Instance.RegisterPool(ProjectileTag, template, 30);
+    }
+
+    static Sprite MakeArrowSprite()
+    {
+        int w = 12, h = 4;
+        var tex   = new Texture2D(w, h);
+        var clear = new Color(0f, 0f, 0f, 0f);
+        for (int x = 0; x < w; x++)
+            for (int y = 0; y < h; y++)
+                tex.SetPixel(x, y, clear);
+
+        var c = new Color(1f, 0.95f, 0.7f);
+        for (int x = 0; x < 10; x++) { tex.SetPixel(x, 1, c); tex.SetPixel(x, 2, c); }
+        tex.SetPixel(10, 0, c); tex.SetPixel(10, 1, c); tex.SetPixel(10, 2, c); tex.SetPixel(10, 3, c);
+        tex.SetPixel(11, 1, c); tex.SetPixel(11, 2, c);
+
+        tex.Apply();
+        tex.filterMode = FilterMode.Point;
+        return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0f, 0.5f), 16f);
     }
 }
