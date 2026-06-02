@@ -67,10 +67,16 @@ public class ZoneManager : MonoBehaviour
     [Header("Prefab do boss (EnemyGolem amplificado)")]
     [SerializeField] GameObject bossPrefab;
 
+    readonly int[] _quotaPerMinute = { 30, 50, 80, 110, 140, 170, 200, 240 };
+    int   _currentMinute       = 0;
+    int   _spawnBudget         = 0;
+    bool  _heartDropped        = false;
+
     Transform        _player;
     List<GameObject> _activeEnemies = new();
     GameObject       _bossInstance;
     Coroutine        _spawnCoroutine;
+    Coroutine        _quotaTimerCoroutine;
 
     void Awake()
     {
@@ -106,6 +112,9 @@ public class ZoneManager : MonoBehaviour
             var zone = zones[CurrentZone];
             ZoneTimeRemaining = zone.durationSeconds;
             BossActive        = false;
+            _heartDropped     = false;
+            _spawnBudget      = _quotaPerMinute[0];
+            _currentMinute    = 1;
 
             BiomeSystem.Instance?.SetBiome(zone.biome);
             OnZoneStarted?.Invoke(CurrentZone);
@@ -115,7 +124,8 @@ public class ZoneManager : MonoBehaviour
             EnemyBase.GlobalSpeedMult  = zone.speedMultiplier;
             EnemyBase.GlobalDamageMult = zone.damageMultiplier;
 
-            _spawnCoroutine = StartCoroutine(SpawnLoop(zone));
+            _quotaTimerCoroutine = StartCoroutine(QuotaTimer());
+            _spawnCoroutine      = StartCoroutine(SpawnLoop(zone));
 
             bool zoneCleared = false;
 
@@ -132,7 +142,8 @@ public class ZoneManager : MonoBehaviour
 
                     if (BossTimeRemaining <= 0f)
                     {
-                        if (_spawnCoroutine != null) StopCoroutine(_spawnCoroutine);
+                        if (_spawnCoroutine      != null) StopCoroutine(_spawnCoroutine);
+                        if (_quotaTimerCoroutine != null) StopCoroutine(_quotaTimerCoroutine);
                         OnGameOver?.Invoke($"Tempo esgotado na {zone.nome}");
                         IsRunning = false;
                         yield break;
@@ -150,7 +161,8 @@ public class ZoneManager : MonoBehaviour
                 yield return null;
             }
 
-            if (_spawnCoroutine != null) StopCoroutine(_spawnCoroutine);
+            if (_spawnCoroutine      != null) StopCoroutine(_spawnCoroutine);
+            if (_quotaTimerCoroutine != null) StopCoroutine(_quotaTimerCoroutine);
             ClearEnemies();
             OnZoneCompleted?.Invoke(CurrentZone);
 
@@ -185,14 +197,34 @@ public class ZoneManager : MonoBehaviour
         {
             if (_player == null) FindPlayer();
 
-            float progress = 1f - (ZoneTimeRemaining / zone.durationSeconds);
-            int   max      = Mathf.RoundToInt(zone.spawnMax * (1f + progress * 0.5f));
-            float interval = Mathf.Max(0.15f, zone.spawnInterval * (1f - progress * 0.3f));
+            if (!_heartDropped && ZoneTimeRemaining <= 300f && _player != null)
+            {
+                HeartDrop.SpawnAt(_player.position + (Vector3)(Random.insideUnitCircle * 5f));
+                _heartDropped = true;
+            }
 
-            if (_player != null && CountActive() < max && zone.enemyIndices.Length > 0)
+            if (_spawnBudget > 0 && _player != null && zone.enemyIndices.Length > 0)
+            {
                 SpawnEnemy(zone);
+                _spawnBudget--;
+            }
 
-            yield return new WaitForSeconds(interval);
+            yield return new WaitForSeconds(Mathf.Max(0.1f, zone.spawnInterval));
+        }
+    }
+
+    IEnumerator QuotaTimer()
+    {
+        while (_currentMinute < _quotaPerMinute.Length)
+        {
+            yield return new WaitForSeconds(60f);
+            if (_currentMinute < _quotaPerMinute.Length)
+            {
+                int quota = _quotaPerMinute[_currentMinute];
+                _spawnBudget += quota;
+                Debug.Log($"[Zone] Minuto {_currentMinute + 1}: +{quota} liberados. Budget: {_spawnBudget}");
+                _currentMinute++;
+            }
         }
     }
 

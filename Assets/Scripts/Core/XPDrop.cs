@@ -57,7 +57,7 @@ public class XPDrop : MonoBehaviour
         if (_sr != null)
         {
             float pulse = 0.7f + Mathf.Sin(Time.time * 6f) * 0.3f;
-            _sr.color = new Color(0.2f, 0.5f, 1f, pulse);
+            _sr.color = new Color(0.9f, 0.97f, 1f, pulse);
         }
 
         _timer -= Time.deltaTime;
@@ -86,7 +86,7 @@ public class XPDrop : MonoBehaviour
         rb.linearDamping          = 10f;
         rb.angularDamping         = 10f;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
-        go.transform.localScale   = Vector3.one * 0.85f;
+        go.transform.localScale   = Vector3.one * 0.80f;
 
         var drop = go.AddComponent<XPDrop>();
         drop.xpValue = xp;
@@ -102,9 +102,10 @@ public class XPDrop : MonoBehaviour
             for (int y = 0; y < h; y++)
                 tex.SetPixel(x, y, clear);
 
-        var blue     = new Color(0.3f,  0.55f, 1f);
-        var bright   = new Color(0.7f,  0.85f, 1f);
-        var darkBlue = new Color(0.15f, 0.3f,  0.8f);
+        var diamondBase    = new Color(0.75f, 0.90f, 1.00f);
+        var diamondDark    = new Color(0.40f, 0.65f, 0.90f);
+        var diamondBright  = new Color(0.95f, 0.98f, 1.00f);
+        var diamondReflect = new Color(1.00f, 1.00f, 1.00f);
 
         for (int y = 0; y < h; y++)
         {
@@ -114,14 +115,14 @@ public class XPDrop : MonoBehaviour
             for (int x = cx - hw; x <= cx + hw; x++)
             {
                 Color c = y > h * 0.5f
-                    ? Color.Lerp(blue, bright,   (y - h * 0.5f) / (h * 0.5f))
-                    : Color.Lerp(darkBlue, blue,  y / (h * 0.5f));
+                    ? Color.Lerp(diamondBase,  diamondBright, (y - h * 0.5f) / (h * 0.5f))
+                    : Color.Lerp(diamondDark,  diamondBase,    y / (h * 0.5f));
                 tex.SetPixel(x, y, c);
             }
         }
         if (w / 2 + 1 < w)
-            tex.SetPixel(w / 2 + 1, h * 2 / 3, new Color(1f, 1f, 1f, 0.8f));
-        tex.SetPixel(w / 2, h * 2 / 3, bright);
+            tex.SetPixel(w / 2 + 1, h * 2 / 3, diamondReflect);
+        tex.SetPixel(w / 2, h * 2 / 3, diamondBright);
 
         tex.Apply();
         tex.filterMode = FilterMode.Point;
