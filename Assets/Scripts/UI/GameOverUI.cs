@@ -36,7 +36,8 @@ public class GameOverUI : MonoBehaviour
         {
             int zona  = ZoneManager.Instance != null ? ZoneManager.Instance.CurrentZone + 1 : 1;
             int kills = ZoneManager.Instance != null ? ZoneManager.Instance.KillCount        : 0;
-            int score = ScoreSystem.Instance  != null ? ScoreSystem.Instance.ScoreAtual      : 0;
+            var sc    = Object.FindFirstObjectByType<ScoreSystem>();
+            int score = sc != null ? sc.ScoreAtual : 0;
             statsTexto.text = $"Zona {zona} — {kills} eliminados — {score} pts";
         }
 
