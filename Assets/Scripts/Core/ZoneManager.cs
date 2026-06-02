@@ -28,7 +28,7 @@ public class ZoneManager : MonoBehaviour
         new ZoneConfig {
             nome="Floresta de Veremoth",   biome=BiomeSystem.Biome.Veremoth,
             hpMultiplier=1f,  speedMultiplier=1f,  damageMultiplier=1f,
-            spawnMax=40,  spawnInterval=0.50f, enemyIndices=new int[]{0,1} },
+            spawnMax=40,  spawnInterval=0.50f, bossSpawnAt=30f, enemyIndices=new int[]{0,1} },
         new ZoneConfig {
             nome="Cavernas de Khorduum",   biome=BiomeSystem.Biome.Khorduum,
             hpMultiplier=1.8f, speedMultiplier=1.2f, damageMultiplier=1.5f,
@@ -67,6 +67,9 @@ public class ZoneManager : MonoBehaviour
     [Header("Prefab do boss (EnemyGolem amplificado)")]
     [SerializeField] GameObject bossPrefab;
 
+    [Header("Modo de teste — 0 = desativado")]
+    [SerializeField] float testBossSpawnAt = 0f;
+
     readonly int[] _quotaPerMinute = { 30, 50, 80, 110, 140, 170, 200, 240 };
     int   _currentMinute       = 0;
     int   _spawnBudget         = 0;
@@ -84,7 +87,16 @@ public class ZoneManager : MonoBehaviour
         Instance = this;
     }
 
-    void Start() => FindPlayer();
+    void Start()
+    {
+        FindPlayer();
+
+        if (testBossSpawnAt > 0f)
+            foreach (var z in zones) z.bossSpawnAt = testBossSpawnAt;
+
+        if (Camera.main == null)
+            Debug.LogWarning("[ZoneManager] Camera.main é null — verificar tag 'MainCamera' na câmera");
+    }
 
     void FindPlayer()
     {
@@ -203,13 +215,17 @@ public class ZoneManager : MonoBehaviour
                 _heartDropped = true;
             }
 
-            if (_spawnBudget > 0 && _player != null && zone.enemyIndices.Length > 0)
+            _activeEnemies.RemoveAll(e => e == null);
+            int activeCount = _activeEnemies.Count;
+            int safetyLimit = zone.spawnMax * 3;
+
+            if (_spawnBudget > 0 && activeCount < safetyLimit && _player != null && zone.enemyIndices.Length > 0)
             {
                 SpawnEnemy(zone);
                 _spawnBudget--;
             }
 
-            yield return new WaitForSeconds(Mathf.Max(0.1f, zone.spawnInterval));
+            yield return new WaitForSeconds(zone.spawnInterval);
         }
     }
 
@@ -217,12 +233,12 @@ public class ZoneManager : MonoBehaviour
     {
         while (_currentMinute < _quotaPerMinute.Length)
         {
-            yield return new WaitForSeconds(60f);
+            yield return new WaitForSeconds(30f);
             if (_currentMinute < _quotaPerMinute.Length)
             {
                 int quota = _quotaPerMinute[_currentMinute];
                 _spawnBudget += quota;
-                Debug.Log($"[Zone] Minuto {_currentMinute + 1}: +{quota} liberados. Budget: {_spawnBudget}");
+                Debug.Log($"[Zone] Intervalo {_currentMinute + 1}: +{quota} liberados. Budget: {_spawnBudget}");
                 _currentMinute++;
             }
         }
@@ -250,17 +266,28 @@ public class ZoneManager : MonoBehaviour
 
     IEnumerator SpawnBoss(ZoneConfig zone)
     {
+        // 1. Encontrar prefab ANTES de setar BossActive — evita zona concluída falsamente
+        var bossToUse = bossPrefab;
+        if (bossToUse == null)
+        {
+            int bossIdx = Mathf.Min(6, enemyPrefabs.Count - 1);
+            if (enemyPrefabs.Count > 0) bossToUse = enemyPrefabs[bossIdx];
+        }
+        if (bossToUse == null)
+        {
+            Debug.LogError("[Zone] Nenhum prefab de boss encontrado — boss cancelado");
+            yield break; // BossActive permanece false, zona continua normalmente
+        }
+
+        // 2. Só agora confirmar boss ativo
         BossActive        = true;
         BossTimeRemaining = zone.bossTimeLimit;
 
-        if (_spawnCoroutine != null) StopCoroutine(_spawnCoroutine);
+        if (_spawnCoroutine      != null) StopCoroutine(_spawnCoroutine);
+        if (_quotaTimerCoroutine != null) StopCoroutine(_quotaTimerCoroutine);
         ClearEnemies();
 
-        yield return new WaitForSeconds(1f);
-
-        var bossToUse = bossPrefab;
-        if (bossToUse == null && enemyPrefabs.Count > 6) bossToUse = enemyPrefabs[6];
-        if (bossToUse == null) yield break;
+        yield return new WaitForSeconds(2f);
 
         _bossInstance = Instantiate(bossToUse, GetSpawnPosition(), Quaternion.identity);
 
@@ -268,8 +295,8 @@ public class ZoneManager : MonoBehaviour
         if (eb != null)
         {
             eb.maxHealth *= 5f;
-            eb.moveSpeed *= 1.5f;
             eb.InitializeHealth();
+            eb.moveSpeed *= 1.5f;
             _bossInstance.transform.localScale *= 3f;
 
             eb.OnDeathCallback = () => { _bossInstance = null; KillCount++; };
@@ -278,23 +305,34 @@ public class ZoneManager : MonoBehaviour
         OnBossSpawned?.Invoke();
         Debug.Log($"[Zone] BOSS spawnado! {zone.bossTimeLimit}s para derrotá-lo!");
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         _spawnCoroutine = StartCoroutine(SpawnLoop(zone));
     }
 
     Vector3 GetSpawnPosition()
     {
+        if (_player == null) FindPlayer();
         if (_player == null) return Vector3.zero;
-        var   cam    = Camera.main;
-        Vector3 pos  = cam != null ? cam.transform.position : _player.position;
-        float camH   = cam != null ? cam.orthographicSize + 3f : 14f;
-        float camW   = cam != null ? camH * cam.aspect    + 3f : 20f;
+
+        Camera cam = Camera.main;
+        if (cam == null)
+        {
+            var cf = CameraFollow.Instance;
+            if (cf != null) cam = cf.GetComponent<Camera>();
+        }
+
+        Vector3 center = cam != null ? cam.transform.position : _player.position;
+        float camH     = cam != null ? cam.orthographicSize + 3f : 15f;
+        float camW     = cam != null ? camH * cam.aspect    + 3f : 22f;
+
+        float rx = Random.Range(-camW, camW);
+        float ry = Random.Range(-camH, camH);
         switch (Random.Range(0, 4))
         {
-            case 0:  return new Vector3(pos.x + Random.Range(-camW, camW), pos.y + camH, 0f);
-            case 1:  return new Vector3(pos.x + Random.Range(-camW, camW), pos.y - camH, 0f);
-            case 2:  return new Vector3(pos.x - camW, pos.y + Random.Range(-camH, camH), 0f);
-            default: return new Vector3(pos.x + camW,  pos.y + Random.Range(-camH, camH), 0f);
+            case 0:  return new Vector3(center.x + rx,    center.y + camH, 0f);
+            case 1:  return new Vector3(center.x + rx,    center.y - camH, 0f);
+            case 2:  return new Vector3(center.x - camW,  center.y + ry,   0f);
+            default: return new Vector3(center.x + camW,  center.y + ry,   0f);
         }
     }
 

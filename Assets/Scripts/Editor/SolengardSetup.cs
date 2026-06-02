@@ -803,7 +803,7 @@ public static class SolengardSetup
         sepRT.anchorMax        = new Vector2(0.5f, 0.5f);
         sepRT.pivot            = new Vector2(0.5f, 0.5f);
         sepRT.sizeDelta        = new Vector2(600f, 3f);
-        sepRT.anchoredPosition = new Vector2(0f, 150f);
+        sepRT.anchoredPosition = new Vector2(0f, 130f);
         var sepImg = sepGO.AddComponent<Image>();
         sepImg.color = new Color(0.78f, 0.65f, 0.20f, 0f);
 
@@ -816,7 +816,7 @@ public static class SolengardSetup
         nomeRT.anchorMax        = new Vector2(0.5f, 0.5f);
         nomeRT.pivot            = new Vector2(0.5f, 0.5f);
         nomeRT.sizeDelta        = new Vector2(700f, 80f);
-        nomeRT.anchoredPosition = new Vector2(0f, 200f);
+        nomeRT.anchoredPosition = new Vector2(0f, 180f);
         var nomeTMP = nomeGO.AddComponent<TextMeshProUGUI>();
         nomeTMP.text             = "";
         nomeTMP.alignment        = TextAlignmentOptions.Center;
@@ -833,8 +833,8 @@ public static class SolengardSetup
         loreRT.anchorMin        = new Vector2(0.5f, 0.5f);
         loreRT.anchorMax        = new Vector2(0.5f, 0.5f);
         loreRT.pivot            = new Vector2(0.5f, 0.5f);
-        loreRT.sizeDelta        = new Vector2(680f, 280f);
-        loreRT.anchoredPosition = new Vector2(0f, -60f);
+        loreRT.sizeDelta        = new Vector2(680f, 320f);
+        loreRT.anchoredPosition = new Vector2(0f, -80f);
         var loreTMP = loreGO.AddComponent<TextMeshProUGUI>();
         loreTMP.text        = "";
         loreTMP.alignment   = TextAlignmentOptions.Center;
@@ -842,7 +842,7 @@ public static class SolengardSetup
         loreTMP.fontStyle     = FontStyles.Normal;
         loreTMP.color         = new Color(0.85f, 0.83f, 0.88f, 1f);
         loreTMP.lineSpacing   = 12f;
-        loreTMP.overflowMode  = TMPro.TextOverflowModes.Overflow;
+        loreTMP.overflowMode  = TMPro.TextOverflowModes.Truncate;
 
         // Instrucao
         var instrGO = new GameObject("Instrucao");
@@ -853,7 +853,7 @@ public static class SolengardSetup
         instrRT.anchorMax        = new Vector2(0.5f, 0.5f);
         instrRT.pivot            = new Vector2(0.5f, 0.5f);
         instrRT.sizeDelta        = new Vector2(400f, 50f);
-        instrRT.anchoredPosition = new Vector2(0f, -220f);
+        instrRT.anchoredPosition = new Vector2(0f, -240f);
         var instrTMP = instrGO.AddComponent<TextMeshProUGUI>();
         instrTMP.text      = "";
         instrTMP.alignment = TextAlignmentOptions.Center;
@@ -870,6 +870,13 @@ public static class SolengardSetup
         so.FindProperty("instrucao").objectReferenceValue   = instrTMP;
         so.FindProperty("separador").objectReferenceValue   = sepImg;
         so.ApplyModifiedPropertiesWithoutUndo();
+
+        // Ordem de sibling garante nomeBioma na frente do textoLore
+        bgGO.transform.SetSiblingIndex(0);
+        sepGO.transform.SetSiblingIndex(1);
+        loreGO.transform.SetSiblingIndex(2);
+        nomeGO.transform.SetSiblingIndex(3);
+        instrGO.transform.SetSiblingIndex(4);
 
         // Canvas root stays active; only the panel is hidden by default
         panelGO.SetActive(false);
