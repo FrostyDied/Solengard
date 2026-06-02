@@ -175,7 +175,12 @@ public class GameManager : MonoBehaviour
     {
         if (_gameStarted) { Debug.LogWarning("[GameManager] StartGame duplicata ignorada"); return; }
         _gameStarted = true;
-        if (currentState != GameState.MainMenu && currentState != GameState.GameOver) return;
+
+        var prevState = currentState;
+        SetState(GameState.Playing); // seta Playing ANTES de qualquer return
+        Debug.Log($"[GameManager] StartGame — prevState={prevState} → Playing");
+
+        if (prevState != GameState.MainMenu && prevState != GameState.GameOver) return;
 
         Application.targetFrameRate  = 60;
         QualitySettings.vSyncCount   = 0;
@@ -192,8 +197,6 @@ public class GameManager : MonoBehaviour
         currentRunData = new RunData { causeOfDeath = "inimigo" };
         runStartTime   = Time.time;
         runTimer       = 0f;
-
-        SetState(GameState.Playing);
 
         // Canvas do LoreScreenUI agora sempre ativo — não precisa de FindObjectsInactive
         var loreUI = Object.FindFirstObjectByType<LoreScreenUI>();
