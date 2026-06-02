@@ -3,6 +3,15 @@ using System.Collections.Generic;
 
 public class ChunkInstance : MonoBehaviour
 {
+    static readonly Color[] BIOME_TINTS =
+    {
+        new Color(0.55f, 0.62f, 0.50f), // Veremoth — verde escuro sombrio
+        new Color(0.45f, 0.50f, 0.65f), // Khorduum — azul pedra escuro
+        new Color(0.55f, 0.52f, 0.58f), // Valdross — cinza roxo
+        new Color(0.48f, 0.58f, 0.45f), // Gorveth — verde pântano
+        new Color(0.62f, 0.52f, 0.45f), // Arkenfall — marrom ferrugem
+    };
+
     List<GameObject> _props = new();
 
     public void Populate(Vector2Int gridPos, int biome,
@@ -31,7 +40,11 @@ public class ChunkInstance : MonoBehaviour
             if (ep != null) ep.Initialize(seed + i * 1000);
 
             var sr = go.GetComponentInChildren<SpriteRenderer>();
-            if (sr != null) sr.sortingOrder = Mathf.RoundToInt(-pos.y * 10);
+            if (sr != null)
+            {
+                sr.color        = biome < BIOME_TINTS.Length ? BIOME_TINTS[biome] : Color.white;
+                sr.sortingOrder = Mathf.RoundToInt(-pos.y * 10);
+            }
 
             _props.Add(go);
         }

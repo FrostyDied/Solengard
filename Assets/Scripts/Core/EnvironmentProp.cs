@@ -22,8 +22,7 @@ public class EnvironmentProp : MonoBehaviour
         var sprite = sprites[rng.Next(sprites.Count)];
         if (sprite == null) return;
 
-        _sr.sprite       = sprite;
-        _sr.sortingOrder = Mathf.RoundToInt(-transform.position.y * 10);
+        _sr.sprite = sprite;
 
         if (hasCollider)
         {

@@ -155,6 +155,7 @@ public class ZoneManager : MonoBehaviour
                     ZoneTimeRemaining <= zone.durationSeconds - zone.bossSpawnAt)
                 {
                     _bossSpawnStarted = true;
+                    Debug.Log($"[Zone] SpawnBoss iniciado UMA VEZ. _bossSpawnStarted=true");
                     StartCoroutine(SpawnBoss(zone));
                 }
 
@@ -411,7 +412,6 @@ public class ZoneManager : MonoBehaviour
         foreach (var h in FindObjectsByType<HeartDrop>(FindObjectsSortMode.None)) Destroy(h.gameObject);
 
         BossActive         = false;
-        _bossSpawnStarted  = false;
         _allBossesDefeated = false;
         _spawnBudget       = 0;
 
