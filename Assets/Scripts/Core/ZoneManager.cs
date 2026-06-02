@@ -313,18 +313,30 @@ public class ZoneManager : MonoBehaviour
             var eb     = bossGO.GetComponent<EnemyBase>();
             if (eb != null)
             {
-                if (zone.biome == BiomeSystem.Biome.Gorveth)
+                string bossName = validBosses[i].name.ToLower();
+                float scaleMultiplier, hpMultiplier;
+
+                if (bossName.Contains("caveman") || bossName.Contains("goblin") || bossName.Contains("viking"))
                 {
-                    eb.maxHealth *= 8f;
-                    eb.moveSpeed *= 2f;
-                    bossGO.transform.localScale *= 2.5f;
+                    scaleMultiplier = 1.5f;
+                    hpMultiplier    = 4f;
+                    eb.moveSpeed   *= 1.5f;
                 }
-                else
+                else if (bossName.Contains("darkelf"))
                 {
-                    eb.maxHealth *= 5f;
-                    eb.moveSpeed *= 1.5f;
-                    bossGO.transform.localScale *= 3f;
+                    scaleMultiplier = 2.5f;
+                    hpMultiplier    = 8f;
+                    eb.moveSpeed   *= 2f;
                 }
+                else // EnemyGolem e outros
+                {
+                    scaleMultiplier = 3f;
+                    hpMultiplier    = 5f;
+                    eb.moveSpeed   *= 1.5f;
+                }
+
+                bossGO.transform.localScale *= scaleMultiplier;
+                eb.maxHealth               *= hpMultiplier;
                 eb.InitializeHealth();
 
                 var bossRef = bossGO;
