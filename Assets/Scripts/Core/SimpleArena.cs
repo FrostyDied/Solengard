@@ -296,10 +296,10 @@ public class SimpleArena : MonoBehaviour
 
     public SpriteRenderer GetFloorRenderer() => _floorRenderer;
 
-    public void SetBiomePalette(Color baseColor, Color accentColor, BiomePattern pattern, bool instant)
+    public void SetBiomePalette(Color baseColor, Color accentColor, Color highlightColor, Color shadowColor, BiomePattern pattern, bool instant)
     {
         if (_floorRenderer == null) return;
-        var spr = GenerateBiomeFloor(baseColor, accentColor, pattern);
+        var spr = GenerateBiomeFloor(baseColor, accentColor, highlightColor, shadowColor, pattern);
         _floorRenderer.sprite = spr;
         if (instant) _floorRenderer.color = Color.white;
         else         _floorRenderer.DOColor(Color.white, 3f);
@@ -307,7 +307,7 @@ public class SimpleArena : MonoBehaviour
 
     public enum BiomePattern { Forest, Cave, Cemetery, Swamp, Battlefield }
 
-    public Sprite GenerateBiomeFloor(Color baseColor, Color accentColor, BiomePattern pattern)
+    public Sprite GenerateBiomeFloor(Color baseColor, Color accentColor, Color highlightColor, Color shadowColor, BiomePattern pattern)
     {
         const int size = 256;
         var tex = new Texture2D(size, size);
@@ -318,32 +318,51 @@ public class SimpleArena : MonoBehaviour
             {
                 float fx = (float)x / size;
                 float fy = (float)y / size;
-                float n  = TileableNoise(fx, fy, 5f) * 0.6f
-                         + TileableNoise(fx, fy, 14f) * 0.4f;
 
-                Color c = Color.Lerp(baseColor, accentColor, n);
+                float macro  = TileableNoise(fx, fy, 3f);
+                float mid    = TileableNoise(fx, fy, 8f)  * 0.5f;
+                float micro  = TileableNoise(fx, fy, 20f) * 0.25f;
+                float height = macro * 0.5f + mid * 0.35f + micro * 0.15f;
+
+                Color c;
+                if (height > 0.65f)
+                    c = Color.Lerp(accentColor, highlightColor, (height - 0.65f) / 0.35f);
+                else if (height > 0.35f)
+                    c = Color.Lerp(baseColor, accentColor, (height - 0.35f) / 0.30f);
+                else
+                    c = Color.Lerp(shadowColor, baseColor, height / 0.35f);
+
+                // Sombra direcional: luz vinda de cima-esquerda
+                float shadowNoise    = TileableNoise(fx + 0.02f, fy - 0.02f, 3f);
+                float shadowStrength = Mathf.Clamp01(macro - shadowNoise) * 0.3f;
+                c = Color.Lerp(c, shadowColor, shadowStrength);
 
                 switch (pattern)
                 {
                     case BiomePattern.Forest:
+                        // Manchas de musgo/folhas claras
                         if (TileableNoise(fx, fy, 25f) > 0.82f)
-                            c = Color.Lerp(c, new Color(0.6f, 0.9f, 0.5f), 0.4f);
+                            c = Color.Lerp(c, highlightColor, 0.4f);
                         break;
                     case BiomePattern.Cave:
+                        // Veias minerais brilhantes
                         if (TileableNoise(fx, fy, 18f) > 0.80f)
-                            c = Color.Lerp(c, new Color(0.8f, 0.4f, 0.0f), 0.5f);
+                            c = Color.Lerp(c, highlightColor, 0.6f);
                         break;
                     case BiomePattern.Cemetery:
+                        // Rachaduras escuras no solo
                         if (TileableNoise(fx * 2f, fy * 2f, 8f) > 0.75f)
-                            c = Color.Lerp(c, new Color(0.05f, 0.08f, 0.04f), 0.6f);
+                            c = Color.Lerp(c, shadowColor, 0.7f);
                         break;
                     case BiomePattern.Swamp:
+                        // Poças oleosas e lama
                         float oily = TileableNoise(fx * 3f, fy * 3f, 6f);
-                        c = Color.Lerp(c, new Color(0.1f, 0.2f, 0.1f), oily * 0.5f);
+                        c = Color.Lerp(c, shadowColor, oily * 0.45f);
                         break;
                     case BiomePattern.Battlefield:
+                        // Marcas de queimado/sangue
                         if (TileableNoise(fx, fy, 10f) > 0.78f)
-                            c = Color.Lerp(c, new Color(0.05f, 0.02f, 0.00f), 0.7f);
+                            c = Color.Lerp(c, shadowColor, 0.75f);
                         break;
                 }
 
@@ -351,7 +370,7 @@ public class SimpleArena : MonoBehaviour
             }
         }
         tex.Apply();
-        tex.filterMode = FilterMode.Point;
+        tex.filterMode = FilterMode.Bilinear;
         tex.wrapMode   = TextureWrapMode.Repeat;
         return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 16f);
     }

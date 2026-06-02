@@ -21,6 +21,8 @@ public class BiomeSystem : MonoBehaviour
         public string              nome;
         public Color               corChao;
         public Color               corChaoAccent;
+        public Color               corChaoHighlight;
+        public Color               corChaoShadow;
         public SimpleArena.BiomePattern floorPattern;
         public Color               corNevoa;
         public float               densidadeNevoa;
@@ -32,11 +34,13 @@ public class BiomeSystem : MonoBehaviour
     {
         new BiomeConfig
         {
-            biome          = Biome.Veremoth,
-            nome           = "Floresta de Veremoth",
-            corChao        = new Color(0.10f, 0.12f, 0.10f),
-            corChaoAccent  = new Color(0.05f, 0.07f, 0.05f),
-            floorPattern   = SimpleArena.BiomePattern.Forest,
+            biome            = Biome.Veremoth,
+            nome             = "Floresta de Veremoth",
+            corChao          = new Color(0.22f, 0.35f, 0.18f),
+            corChaoAccent    = new Color(0.28f, 0.42f, 0.22f),
+            corChaoHighlight = new Color(0.35f, 0.52f, 0.28f),
+            corChaoShadow    = new Color(0.12f, 0.20f, 0.10f),
+            floorPattern     = SimpleArena.BiomePattern.Forest,
             corNevoa       = new Color(0.29f, 0.42f, 0.54f, 0.40f),
             densidadeNevoa = 0.35f,
             corAmbiente    = new Color(0.40f, 0.38f, 0.50f),
@@ -44,11 +48,13 @@ public class BiomeSystem : MonoBehaviour
         },
         new BiomeConfig
         {
-            biome          = Biome.Khorduum,
-            nome           = "Cavernas de Khorduum",
-            corChao        = new Color(0.05f, 0.07f, 0.09f),
-            corChaoAccent  = new Color(0.10f, 0.12f, 0.15f),
-            floorPattern   = SimpleArena.BiomePattern.Cave,
+            biome            = Biome.Khorduum,
+            nome             = "Cavernas de Khorduum",
+            corChao          = new Color(0.18f, 0.20f, 0.25f),
+            corChaoAccent    = new Color(0.25f, 0.28f, 0.35f),
+            corChaoHighlight = new Color(0.35f, 0.38f, 0.48f),
+            corChaoShadow    = new Color(0.08f, 0.09f, 0.12f),
+            floorPattern     = SimpleArena.BiomePattern.Cave,
             corNevoa       = new Color(0.80f, 0.40f, 0.00f, 0.25f),
             densidadeNevoa = 0.20f,
             corAmbiente    = new Color(0.25f, 0.22f, 0.30f),
@@ -56,11 +62,13 @@ public class BiomeSystem : MonoBehaviour
         },
         new BiomeConfig
         {
-            biome          = Biome.Valdross,
-            nome           = "Cemitério de Valdross",
-            corChao        = new Color(0.16f, 0.18f, 0.10f),
-            corChaoAccent  = new Color(0.10f, 0.12f, 0.05f),
-            floorPattern   = SimpleArena.BiomePattern.Cemetery,
+            biome            = Biome.Valdross,
+            nome             = "Cemitério de Valdross",
+            corChao          = new Color(0.20f, 0.22f, 0.18f),
+            corChaoAccent    = new Color(0.28f, 0.30f, 0.24f),
+            corChaoHighlight = new Color(0.38f, 0.40f, 0.32f),
+            corChaoShadow    = new Color(0.10f, 0.11f, 0.08f),
+            floorPattern     = SimpleArena.BiomePattern.Cemetery,
             corNevoa       = new Color(0.29f, 0.42f, 0.54f, 0.55f),
             densidadeNevoa = 0.55f,
             corAmbiente    = new Color(0.30f, 0.32f, 0.35f),
@@ -68,11 +76,13 @@ public class BiomeSystem : MonoBehaviour
         },
         new BiomeConfig
         {
-            biome          = Biome.Gorveth,
-            nome           = "Pântano de Gorveth",
-            corChao        = new Color(0.05f, 0.10f, 0.05f),
-            corChaoAccent  = new Color(0.04f, 0.08f, 0.04f),
-            floorPattern   = SimpleArena.BiomePattern.Swamp,
+            biome            = Biome.Gorveth,
+            nome             = "Pântano de Gorveth",
+            corChao          = new Color(0.15f, 0.22f, 0.14f),
+            corChaoAccent    = new Color(0.20f, 0.30f, 0.18f),
+            corChaoHighlight = new Color(0.28f, 0.40f, 0.24f),
+            corChaoShadow    = new Color(0.06f, 0.10f, 0.05f),
+            floorPattern     = SimpleArena.BiomePattern.Swamp,
             corNevoa       = new Color(0.20f, 0.45f, 0.25f, 0.60f),
             densidadeNevoa = 0.65f,
             corAmbiente    = new Color(0.20f, 0.28f, 0.22f),
@@ -80,11 +90,13 @@ public class BiomeSystem : MonoBehaviour
         },
         new BiomeConfig
         {
-            biome          = Biome.Arkenfall,
-            nome           = "Campo de Batalha de Arkenfall",
-            corChao        = new Color(0.24f, 0.10f, 0.00f),
-            corChaoAccent  = new Color(0.10f, 0.04f, 0.00f),
-            floorPattern   = SimpleArena.BiomePattern.Battlefield,
+            biome            = Biome.Arkenfall,
+            nome             = "Campo de Batalha de Arkenfall",
+            corChao          = new Color(0.30f, 0.20f, 0.12f),
+            corChaoAccent    = new Color(0.40f, 0.28f, 0.16f),
+            corChaoHighlight = new Color(0.52f, 0.38f, 0.22f),
+            corChaoShadow    = new Color(0.14f, 0.08f, 0.04f),
+            floorPattern     = SimpleArena.BiomePattern.Battlefield,
             corNevoa       = new Color(0.29f, 0.42f, 0.54f, 0.45f),
             densidadeNevoa = 0.50f,
             corAmbiente    = new Color(0.20f, 0.18f, 0.25f),
@@ -126,7 +138,7 @@ public class BiomeSystem : MonoBehaviour
 
         _atmosphere?.TransitionTo(config.corNevoa, config.densidadeNevoa, duration);
 
-        SimpleArena.Instance?.SetBiomePalette(config.corChao, config.corChaoAccent, config.floorPattern, instant);
+        SimpleArena.Instance?.SetBiomePalette(config.corChao, config.corChaoAccent, config.corChaoHighlight, config.corChaoShadow, config.floorPattern, instant);
 
         var targetBgColor = config.corAmbiente * 0.3f;
         targetBgColor.a   = 1f;
