@@ -116,6 +116,7 @@ public class ZoneManager : MonoBehaviour
 
     public void StartZones()
     {
+        Debug.Log($"[Zone] StartZones chamado. CurrentZone={CurrentZone}, IsRunning={IsRunning}");
         if (IsRunning) return;
         IsRunning   = true;
         CurrentZone = testStartZone > 0
@@ -138,6 +139,7 @@ public class ZoneManager : MonoBehaviour
             _allBossesDefeated = false;
             _spawnBudget       = _quotaPerMinute[0];
             _currentMinute     = 1;
+            Debug.Log($"[Zone] Zona {CurrentZone+1} iniciando. Budget inicial={_spawnBudget}");
 
             BiomeSystem.Instance?.SetBiome(zone.biome);
             WorldChunkManager.Instance?.SetBiome(CurrentZone);
@@ -221,6 +223,7 @@ public class ZoneManager : MonoBehaviour
 
     IEnumerator SpawnLoop(ZoneConfig zone)
     {
+        Debug.Log($"[Zone] SpawnLoop iniciado para zona {CurrentZone+1}. enemyPrefabs={zone.enemyPrefabs?.Count ?? 0} spawnMax={zone.spawnMax} interval={zone.spawnInterval}");
         while (true)
         {
             if (BossActive)
@@ -246,6 +249,10 @@ public class ZoneManager : MonoBehaviour
                 SpawnEnemy(zone);
                 _spawnBudget--;
             }
+            else if (_spawnBudget <= 0)
+            {
+                Debug.Log($"[Zone] Budget zerado — aguardando QuotaTimer. active={activeCount}");
+            }
 
             yield return new WaitForSeconds(zone.spawnInterval);
         }
@@ -260,6 +267,7 @@ public class ZoneManager : MonoBehaviour
             {
                 int quota = _quotaPerMinute[_currentMinute];
                 _spawnBudget += quota;
+                Debug.Log($"[Zone] QuotaTimer: +{quota} budget. Total={_spawnBudget}");
                 Debug.Log($"[Zone] Intervalo {_currentMinute + 1}: +{quota} liberados. Budget: {_spawnBudget}");
                 _currentMinute++;
             }
