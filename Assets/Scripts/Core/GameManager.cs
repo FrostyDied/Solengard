@@ -195,8 +195,22 @@ public class GameManager : MonoBehaviour
         Physics2D.positionIterations = 2;
         Time.fixedDeltaTime          = 0.02f;
 
-        bool sessaoAtiva = RunSessionManager.Instance != null && RunSessionManager.Instance.HasActiveSession();
-        RunSessionData sessaoData = sessaoAtiva ? RunSessionManager.Instance.LoadSession() : default;
+        RunSessionData? sessaoNullable = RunSessionManager.Instance?.GetSession();
+        bool sessaoAtiva = sessaoNullable.HasValue;
+        RunSessionData sessaoData = sessaoNullable ?? default;
+
+        if (sessaoAtiva && ZoneManager.Instance != null)
+        {
+            int zoneIdx = Mathf.Clamp(sessaoData.currentWave - 1, 0, 4);
+            var zone = ZoneManager.Instance.GetZone(zoneIdx);
+            if (zone == null || zone.enemyPrefabs == null || zone.enemyPrefabs.Count == 0)
+            {
+                Debug.LogWarning($"[GameManager] Sessão corrompida — zona {sessaoData.currentWave} sem inimigos. Iniciando do zero.");
+                RunSessionManager.Instance?.ClearSession();
+                sessaoAtiva = false;
+            }
+        }
+
         if (sessaoAtiva)
             Debug.Log($"[GameManager] Sessao ativa — wave={sessaoData.currentWave}, restaurada apos lore");
 

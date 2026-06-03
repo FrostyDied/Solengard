@@ -81,6 +81,19 @@ public class RunSessionManager : MonoBehaviour
         Debug.Log("[RunSessionManager] Sessao limpa.");
     }
 
+    public RunSessionData? GetSession()
+    {
+        if (!HasActiveSession()) return null;
+        var session = LoadSession();
+        if (session.currentWave < 0 || session.currentWave > 5)
+        {
+            Debug.LogWarning($"[Session] Sessão com wave inválida ({session.currentWave}) — descartada");
+            ClearSession();
+            return null;
+        }
+        return session;
+    }
+
     public bool HasActiveSession()
     {
         string json = PlayerPrefs.GetString(PREF_KEY, "");

@@ -12,6 +12,7 @@ public class GameOverUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI subtitulo;
     [SerializeField] TextMeshProUGUI statsTexto;
     [SerializeField] Button          restartButton;
+    [SerializeField] Button          novaRunButton;
     [SerializeField] Button          mainMenuButton;
 
     void Awake()
@@ -45,6 +46,14 @@ public class GameOverUI : MonoBehaviour
 
         restartButton?.onClick.AddListener(() =>
         {
+            Time.timeScale = 1f;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        });
+
+        novaRunButton?.onClick.AddListener(() =>
+        {
+            RunSessionManager.Instance?.ClearSession();
             Time.timeScale = 1f;
             UnityEngine.SceneManagement.SceneManager.LoadScene(
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);

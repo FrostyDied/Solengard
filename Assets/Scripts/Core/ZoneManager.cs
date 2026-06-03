@@ -555,6 +555,12 @@ public class ZoneManager : MonoBehaviour
 
     // ── Utilitários ──────────────────────────────────────────────────────────────
 
+    public ZoneConfig GetZone(int index)
+    {
+        if (zones == null || index < 0 || index >= zones.Length) return null;
+        return zones[index];
+    }
+
     public void RestoreToZone(int zone)
     {
         CurrentZone = Mathf.Clamp(zone, 0, zones.Length - 1);
