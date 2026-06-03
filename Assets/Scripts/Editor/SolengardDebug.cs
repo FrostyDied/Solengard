@@ -160,9 +160,15 @@ public static class SolengardDebug
     [MenuItem("Solengard/Debug/Log Posicoes")]
     static void LogPosicoes()
     {
-        var player = PlayerController.Instance;
+        if (!EditorApplication.isPlaying)
+        {
+            Debug.LogWarning("[Debug] Log Posições só funciona durante o Play Mode. Dê Play primeiro.");
+            return;
+        }
+
+        var player = Object.FindFirstObjectByType<PlayerController>();
         var camera = Camera.main;
-        var wcm    = WorldChunkManager.Instance;
+        var wcm    = Object.FindFirstObjectByType<WorldChunkManager>();
 
         var sb = new System.Text.StringBuilder();
         sb.AppendLine("=== DIAGNÓSTICO DE POSIÇÕES ===");
