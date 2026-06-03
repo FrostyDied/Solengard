@@ -55,7 +55,7 @@ public class ChunkInstance : MonoBehaviour
             if (sr != null)
             {
                 sr.color        = biome < BIOME_TINTS.Length ? BIOME_TINTS[biome] : Color.white;
-                sr.sortingOrder = Mathf.RoundToInt(-pos.y) + 200;
+                sr.sortingOrder = Mathf.RoundToInt(-pos.y * 0.1f) + 50;
             }
 
             _props.Add(go);

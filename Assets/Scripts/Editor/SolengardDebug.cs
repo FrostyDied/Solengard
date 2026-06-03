@@ -217,10 +217,15 @@ public static class SolengardDebug
                     bool visivel = false;
                     if (camera != null)
                     {
-                        float hw = camera.orthographicSize * camera.aspect + 20f;
-                        float hh = camera.orthographicSize + 20f;
-                        visivel = Mathf.Abs(chunk.transform.position.x - camera.transform.position.x) < hw &&
-                                  Mathf.Abs(chunk.transform.position.y - camera.transform.position.y) < hh;
+                        float hw        = camera.orthographicSize * camera.aspect;
+                        float hh        = camera.orthographicSize;
+                        float chunkHalf = 10f; // CHUNK_SIZE / 2
+                        float camX      = camera.transform.position.x;
+                        float camY      = camera.transform.position.y;
+                        float cx        = chunk.transform.position.x;
+                        float cy        = chunk.transform.position.y;
+                        visivel = cx + chunkHalf > camX - hw && cx - chunkHalf < camX + hw &&
+                                  cy + chunkHalf > camY - hh && cy - chunkHalf < camY + hh;
                     }
 
                     sb.AppendLine($"  Chunk {kv.Key}: pos={chunk.transform.position:F0} props={propCount} nulos={nullProps} visivel={visivel}");

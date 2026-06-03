@@ -161,6 +161,19 @@ public class WorldChunkManager : MonoBehaviour
         return go.AddComponent<ChunkInstance>();
     }
 
+    void OnDestroy()
+    {
+        foreach (var kv in _active)
+            if (kv.Value != null) Destroy(kv.Value.gameObject);
+        _active.Clear();
+        while (_pool.Count > 0)
+        {
+            var chunk = _pool.Dequeue();
+            if (chunk != null) Destroy(chunk.gameObject);
+        }
+        _pool.Clear();
+    }
+
     static Vector2Int ToChunk(Vector3 p) =>
         new Vector2Int(Mathf.FloorToInt(p.x / CHUNK_SIZE),
                        Mathf.FloorToInt(p.y / CHUNK_SIZE));
