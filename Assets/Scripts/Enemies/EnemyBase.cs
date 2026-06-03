@@ -19,7 +19,7 @@ public class EnemyBase : MonoBehaviour
 
     [Header("Tipo")]
     [SerializeField] protected bool isHeavy = false;
-    [SerializeField] protected bool isBoss  = false;
+    public bool isBoss = false;
 
     [Header("Dano de Contato")]
     [SerializeField] float contactDamageInterval = 0.5f;
