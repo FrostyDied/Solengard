@@ -351,8 +351,6 @@ public class ZoneManager : MonoBehaviour
                     hpMultiplier        = 8f;
                     eb.moveSpeed       *= 0.7f;
                     eb.stoppingDistance = 2.0f;
-                    var darkElf = bossGO.GetComponent<EnemyDarkElf>();
-                    if (darkElf != null) darkElf.isBoss = true;
 
                     var sr = bossGO.GetComponentInChildren<SpriteRenderer>();
                     if (sr != null) sr.flipX = false;
@@ -364,6 +362,7 @@ public class ZoneManager : MonoBehaviour
                     eb.moveSpeed   *= 1.5f;
                 }
 
+                eb.isBoss = true;
                 bossGO.transform.localScale *= scaleMultiplier;
                 eb.maxHealth               *= hpMultiplier;
                 eb.InitializeHealth();

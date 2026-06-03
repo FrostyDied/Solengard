@@ -212,6 +212,8 @@ public class EnemyBase : MonoBehaviour
     {
         if (isDead || !CanTakeDamage()) return;
         currentHealth -= amount;
+        if (isBoss)
+            Debug.Log($"[Boss] {name} recebeu {amount:F0} dano. HP: {currentHealth:F0}/{maxHealth:F0}");
         var hitType = isBoss  ? VFXManager.EnemyType.Boss  :
                       isHeavy ? VFXManager.EnemyType.Heavy : VFXManager.EnemyType.Normal;
         VFXManager.Instance?.SpawnHit(transform.position, hitType);

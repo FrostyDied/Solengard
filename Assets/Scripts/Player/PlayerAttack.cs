@@ -49,11 +49,17 @@ public class PlayerAttack : MonoBehaviour
         }
 
         var hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
+        Debug.Log($"[PlayerAttack] {hits.Length} inimigos no range (mask={enemyLayerMask.value})");
         foreach (var h in hits)
         {
             if (h == null) continue;
-            var enemy = h.GetComponent<EnemyBase>();
-            if (enemy != null) enemy.TakeDamage(attackDamage);
+            var enemy = h.GetComponent<EnemyBase>() ?? h.GetComponentInParent<EnemyBase>();
+            if (enemy != null)
+            {
+                if (enemy.isBoss)
+                    Debug.Log($"[PlayerAttack] Acertou boss {enemy.name} com {attackDamage:F0} dano");
+                enemy.TakeDamage(attackDamage);
+            }
         }
     }
 
