@@ -55,6 +55,7 @@ public class GameManager : MonoBehaviour
 
     GameState currentState;
     public GameState CurrentState => currentState;
+    public bool IsPlaying => currentState == GameState.Playing;
 
     bool _gameStarted;
     bool _autoStartScheduled;

@@ -141,6 +141,9 @@ public class ZoneManager : MonoBehaviour
             _currentMinute     = 1;
             Debug.Log($"[Zone] Zona {CurrentZone+1} iniciando. Budget inicial={_spawnBudget}");
 
+            if (zone.enemyPrefabs == null || zone.enemyPrefabs.Count == 0)
+                Debug.LogError($"[Safeguard] Zona {CurrentZone+1} ({zone.nome}) sem inimigos configurados — spawn será vazio");
+
             BiomeSystem.Instance?.SetBiome(zone.biome);
             WorldChunkManager.Instance?.SetBiome(CurrentZone);
             OnZoneStarted?.Invoke(CurrentZone);
@@ -397,6 +400,13 @@ public class ZoneManager : MonoBehaviour
         Debug.Log($"[Zone] {validBosses.Count} boss(es) spawnados em {zone.nome}! {zone.bossTimeLimit}s para derrotá-los!");
 
         yield return new WaitForSeconds(1f);
+
+        if (_bossInstances.Count == 0)
+        {
+            Debug.LogError("[Safeguard] Boss falhou ao spawnar — forçando avanço de zona");
+            _allBossesDefeated = true;
+        }
+
         _spawnCoroutine      = StartCoroutine(SpawnLoop(zone));
         _quotaTimerCoroutine = StartCoroutine(QuotaTimer());
     }
