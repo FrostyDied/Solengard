@@ -37,6 +37,15 @@ public class EnemyAssassin : EnemyBase
         float   dist = Vector2.Distance(rb.position, (Vector2)playerTransform.position);
         Vector2 dir  = ((Vector2)playerTransform.position - rb.position).normalized;
 
+        // FASE 0: afastamento de emergência — nunca dentro de 1u do player
+        if (dist < 1.0f)
+        {
+            rb.linearVelocity = -dir * moveSpeed * 2f;
+            _dashing          = false;
+            _dashTimer        = dashCooldown;
+            return;
+        }
+
         // FASE 1: em dash — direção FIXA, não guiada
         if (_dashing)
         {

@@ -324,9 +324,12 @@ public class ZoneManager : MonoBehaviour
                 }
                 else if (bossName.Contains("darkelf") || bossName.Contains("elf"))
                 {
-                    scaleMultiplier = 1.5f;
-                    hpMultiplier    = 8f;
-                    eb.moveSpeed   *= 2f;
+                    scaleMultiplier     = 1.5f;
+                    hpMultiplier        = 8f;
+                    eb.moveSpeed       *= 0.7f;
+                    eb.stoppingDistance = 2.0f;
+                    var darkElf = bossGO.GetComponent<EnemyDarkElf>();
+                    if (darkElf != null) darkElf.isBoss = true;
                 }
                 else // EnemyGolem e outros
                 {
