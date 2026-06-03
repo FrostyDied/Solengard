@@ -127,6 +127,7 @@ public class WorldChunkManager : MonoBehaviour
     {
         if (_player == null) return;
         var center = ToChunk(_player.position);
+        Debug.Log($"[Chunks] UpdateChunks chamado. Player={_player.position}, center={center}, active={_active.Count}");
         var needed = new HashSet<Vector2Int>();
         for (int x = -GRID_RADIUS; x <= GRID_RADIUS; x++)
             for (int y = -GRID_RADIUS; y <= GRID_RADIUS; y++)
@@ -150,6 +151,7 @@ public class WorldChunkManager : MonoBehaviour
             chunk.Populate(pos, _currentBiome, props, PROPS_PER_CHUNK, CHUNK_SIZE);
             _active[pos] = chunk;
         }
+        Debug.Log($"[Chunks] Após update: {_active.Count} chunks ativos");
     }
 
     ChunkInstance MakeChunk()
