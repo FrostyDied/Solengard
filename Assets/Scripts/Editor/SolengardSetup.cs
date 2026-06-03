@@ -16,7 +16,7 @@ public static class SolengardSetup
 {
     const string GAME_CONFIG_PATH        = "Assets/Data/GameConfig.asset";
     const string PLAYER_DATA_PATH        = "Assets/Data/PlayerData.asset";
-    const string SLIME_PREFAB_PATH       = "Assets/Prefabs/Enemies/Slime.prefab";
+    const string SLIME_PREFAB_PATH       = "Assets/Prefabs/Enemies/EnemySlime.prefab";
     const string HIT_EFFECT_PATH         = "Assets/Prefabs/Effects/HitEffect.prefab";
     const string EXPECTED_SCENE          = "GameScene";
     const string MAIN_MENU_SCENE_PATH    = "Assets/Scenes/MainMenu.unity";
@@ -324,6 +324,7 @@ public static class SolengardSetup
                 Object.DestroyImmediate(go);
         }
 
+        AssetDatabase.ImportAsset(PLAYER_LEVEL1_PREFAB, ImportAssetOptions.ForceUpdate);
         var playerPrefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_LEVEL1_PREFAB);
         GameObject playerGO;
 
@@ -753,7 +754,7 @@ public static class SolengardSetup
         total += TryAssign<DiamondSystem>("playerData",   playerData,  log);
         total += TryAssign<ScoreSystem>("playerData",     playerData,  log);
         total += TryAssign<SeasonPassSystem>("playerData", playerData, log);
-        total += TryAssignPrefabByPath<PlayerAttack>("slashEffectPrefab", HIT_EFFECT_PATH, log);
+
         total += TryAssignPrefabByPath<PlayerHealth>("hitEffectPrefab",    HIT_EFFECT_PATH, log);
         return total;
     }

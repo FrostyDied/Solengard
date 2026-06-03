@@ -98,9 +98,13 @@ public class GameManager : MonoBehaviour
         if (runRewardSystem == null)
             runRewardSystem = Object.FindFirstObjectByType<RunRewardSystem>();
 
-        // Restart path: Start() won't run again because GameManager is DontDestroyOnLoad
-        if (scene.name == "GameScene" && !_gameStarted && currentState == GameState.MainMenu)
-            AutoStart();
+        // Restart path: Start() won't run again because GameManager is DontDestroyOnLoad.
+        // Reset _gameStarted so RestartRun() race conditions don't block AutoStart.
+        if (scene.name == "GameScene" && currentState == GameState.MainMenu)
+        {
+            _gameStarted = false;
+            Invoke(nameof(AutoStart), 0.2f);
+        }
     }
 
     void Start()
