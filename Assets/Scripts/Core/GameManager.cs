@@ -75,6 +75,7 @@ public class GameManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        Physics2D.queriesHitTriggers = true;
     }
 
     void OnEnable()

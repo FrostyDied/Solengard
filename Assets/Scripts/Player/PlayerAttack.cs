@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
@@ -48,12 +49,18 @@ public class PlayerAttack : MonoBehaviour
             StartCoroutine(ResetToWalk(anim));
         }
 
-        var hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
-        Debug.Log($"[PlayerAttack] {hits.Length} inimigos no range (mask={enemyLayerMask.value})");
-        foreach (var h in hits)
+        var filter = new ContactFilter2D();
+        filter.useTriggers  = true;
+        filter.useLayerMask = true;
+        filter.SetLayerMask(enemyLayerMask);
+
+        var results = new List<Collider2D>();
+        Physics2D.OverlapCircle(transform.position, attackRange, filter, results);
+        Debug.Log($"[PlayerAttack] {results.Count} inimigos no range (mask={enemyLayerMask.value})");
+        foreach (var col in results)
         {
-            if (h == null) continue;
-            var enemy = h.GetComponent<EnemyBase>() ?? h.GetComponentInParent<EnemyBase>();
+            if (col == null) continue;
+            var enemy = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
             if (enemy != null)
             {
                 if (enemy.isBoss)

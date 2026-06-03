@@ -1,6 +1,7 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
-using System.Collections;
 
 public class BossAttack : MonoBehaviour
 {
@@ -70,8 +71,12 @@ public class BossAttack : MonoBehaviour
 
         SpawnVFX(aoeVFXPrefab, transform.position, Quaternion.identity, scale: 2f, lifetime: 1f);
 
-        var hits = Physics2D.OverlapCircleAll(transform.position, attackRange * 0.8f,
-            LayerMask.GetMask("Player"));
+        var filter = new ContactFilter2D();
+        filter.useTriggers  = true;
+        filter.useLayerMask = true;
+        filter.SetLayerMask(LayerMask.GetMask("Player"));
+        var hits = new List<Collider2D>();
+        Physics2D.OverlapCircle(transform.position, attackRange * 0.8f, filter, hits);
         foreach (var h in hits)
             h.GetComponent<PlayerHealth>()?.TakeDamage(attackDamage);
     }
@@ -107,8 +112,13 @@ public class BossAttack : MonoBehaviour
             Vector3 pos = transform.position + (Vector3)(dir * i * 2f);
             SpawnVFX(explosionPrefab, pos, Quaternion.identity, scale: 1f, lifetime: 1f);
 
-            var hits = Physics2D.OverlapCircleAll(pos, 1.5f, LayerMask.GetMask("Player"));
-            foreach (var h in hits)
+            var slamFilter = new ContactFilter2D();
+            slamFilter.useTriggers  = true;
+            slamFilter.useLayerMask = true;
+            slamFilter.SetLayerMask(LayerMask.GetMask("Player"));
+            var slamHits = new List<Collider2D>();
+            Physics2D.OverlapCircle(pos, 1.5f, slamFilter, slamHits);
+            foreach (var h in slamHits)
                 h.GetComponent<PlayerHealth>()?.TakeDamage(attackDamage * 0.5f);
 
             yield return new WaitForSeconds(0.2f);
