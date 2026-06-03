@@ -324,18 +324,21 @@ public class ZoneManager : MonoBehaviour
 
                 if (bossName.Contains("caveman") || bossName.Contains("goblin") || bossName.Contains("viking"))
                 {
-                    scaleMultiplier = 0.25f;
+                    scaleMultiplier = 0.225f;
                     hpMultiplier    = 6f;
                     eb.moveSpeed   *= 1.8f;
                 }
                 else if (bossName.Contains("darkelf") || bossName.Contains("elf"))
                 {
-                    scaleMultiplier     = 1.5f;
+                    scaleMultiplier     = 1.35f;
                     hpMultiplier        = 8f;
                     eb.moveSpeed       *= 0.7f;
                     eb.stoppingDistance = 2.0f;
                     var darkElf = bossGO.GetComponent<EnemyDarkElf>();
                     if (darkElf != null) darkElf.isBoss = true;
+
+                    var sr = bossGO.GetComponentInChildren<SpriteRenderer>();
+                    if (sr != null) sr.flipX = false;
                 }
                 else // EnemyGolem e outros
                 {
@@ -367,11 +370,14 @@ public class ZoneManager : MonoBehaviour
             var anim = bossGO.GetComponent<CharacterAnimator>();
             if (anim != null) anim.ForceState(CharacterAnimator.State.Walk);
 
-#if UNITY_EDITOR
             string spawnedName = validBosses[i].name.ToLower();
-            if ((spawnedName.Contains("darkelf") || spawnedName.Contains("elf")) && anim != null)
-                LoadAndApplyElf2Frames(anim);
+            if (spawnedName.Contains("darkelf") || spawnedName.Contains("elf"))
+            {
+                if (anim != null) anim.SetState(CharacterAnimator.State.Walk);
+#if UNITY_EDITOR
+                if (anim != null) LoadAndApplyElf2Frames(anim);
 #endif
+            }
 
             if (bossGO.GetComponent<BossAttack>() == null)
                 bossGO.AddComponent<BossAttack>();
