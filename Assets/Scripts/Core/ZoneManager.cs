@@ -68,6 +68,8 @@ public class ZoneManager : MonoBehaviour
 
     [Header("Modo de teste — 0 = desativado")]
     [SerializeField] float testBossSpawnAt = 0f;
+    [Tooltip("Zona inicial para testes (1-5). 0 = comportamento normal.")]
+    public int testStartZone = 0;
 
     readonly int[] _quotaPerMinute = { 30, 50, 80, 110, 140, 170, 200, 240 };
     int   _currentMinute    = 0;
@@ -116,7 +118,11 @@ public class ZoneManager : MonoBehaviour
     {
         if (IsRunning) return;
         IsRunning   = true;
-        CurrentZone = 0;
+        CurrentZone = testStartZone > 0
+            ? Mathf.Clamp(testStartZone - 1, 0, zones.Length - 1)
+            : 0;
+        if (testStartZone > 0)
+            Debug.Log($"[Debug] Iniciando direto na Zona {testStartZone} (índice {CurrentZone})");
         StartCoroutine(ZoneLoop());
     }
 

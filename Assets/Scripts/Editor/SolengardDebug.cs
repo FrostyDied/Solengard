@@ -145,6 +145,29 @@ public static class SolengardDebug
         {
             Debug.LogError("[Debug] Campo _allBossesDefeated não encontrado em ZoneManager");
         }
+
+        var ph = PlayerController.Instance?.GetComponent<PlayerHealth>();
+        if (ph != null)
+        {
+            ph.RestoreHealth(ph.MaxHealth, ph.MaxHealth);
+            Debug.Log("[Debug] Player restaurado para próxima zona");
+        }
+    }
+
+    // ── Seletor de zona inicial ──────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Debug/Ir para Zona 1")] static void GoToZone1() => SetTestZone(1);
+    [MenuItem("Solengard/Debug/Ir para Zona 2")] static void GoToZone2() => SetTestZone(2);
+    [MenuItem("Solengard/Debug/Ir para Zona 3")] static void GoToZone3() => SetTestZone(3);
+    [MenuItem("Solengard/Debug/Ir para Zona 4")] static void GoToZone4() => SetTestZone(4);
+    [MenuItem("Solengard/Debug/Ir para Zona 5")] static void GoToZone5() => SetTestZone(5);
+
+    static void SetTestZone(int zone)
+    {
+        var zm = Object.FindFirstObjectByType<ZoneManager>();
+        if (zm == null) { Debug.LogError("[Debug] ZoneManager não encontrado"); return; }
+        zm.testStartZone = zone;
+        Debug.Log($"[Debug] testStartZone = {zone} — dê Play para iniciar nessa zona");
     }
 
     // Encontra o componente T na cena ativa; se estiver num GO com nome errado, move.
