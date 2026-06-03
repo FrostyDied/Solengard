@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
@@ -153,6 +154,111 @@ public static class SolengardDebug
             Debug.Log("[Debug] Player restaurado para próxima zona");
         }
     }
+
+    // ── Diagnóstico de posições ──────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Debug/Log Posicoes")]
+    static void LogPosicoes()
+    {
+        var player = PlayerController.Instance;
+        var camera = Camera.main;
+        var wcm    = WorldChunkManager.Instance;
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("=== DIAGNÓSTICO DE POSIÇÕES ===");
+        sb.AppendLine($"Timestamp: {System.DateTime.Now:HH:mm:ss}");
+        sb.AppendLine();
+
+        if (player != null)
+        {
+            sb.AppendLine("PLAYER");
+            sb.AppendLine($"  Posição: {player.transform.position}");
+            sb.AppendLine($"  Chunk atual: {WorldToChunk(player.transform.position, 20f)}");
+        }
+        else sb.AppendLine("PLAYER: NULL");
+
+        if (camera != null)
+        {
+            sb.AppendLine("CÂMERA");
+            sb.AppendLine($"  Posição: {camera.transform.position}");
+            sb.AppendLine($"  OrthoSize: {camera.orthographicSize}");
+            sb.AppendLine($"  Visível: X[{camera.transform.position.x - camera.orthographicSize * camera.aspect:F1} a {camera.transform.position.x + camera.orthographicSize * camera.aspect:F1}]");
+            sb.AppendLine($"           Y[{camera.transform.position.y - camera.orthographicSize:F1} a {camera.transform.position.y + camera.orthographicSize:F1}]");
+        }
+        else sb.AppendLine("CÂMERA: NULL");
+
+        if (wcm != null)
+        {
+            var activeField = typeof(WorldChunkManager).GetField("_active",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var active = activeField?.GetValue(wcm) as Dictionary<Vector2Int, ChunkInstance>;
+
+            sb.AppendLine($"CHUNKS ATIVOS: {active?.Count ?? 0}");
+            if (active != null)
+            {
+                foreach (var kv in active)
+                {
+                    var chunk = kv.Value;
+                    if (chunk == null) continue;
+
+                    var propsField = typeof(ChunkInstance).GetField("_props",
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var props     = propsField?.GetValue(chunk) as List<GameObject>;
+                    int propCount = props?.Count ?? 0;
+                    int nullProps = 0;
+                    if (props != null) foreach (var p in props) if (p == null) nullProps++;
+
+                    bool visivel = false;
+                    if (camera != null)
+                    {
+                        float hw = camera.orthographicSize * camera.aspect + 20f;
+                        float hh = camera.orthographicSize + 20f;
+                        visivel = Mathf.Abs(chunk.transform.position.x - camera.transform.position.x) < hw &&
+                                  Mathf.Abs(chunk.transform.position.y - camera.transform.position.y) < hh;
+                    }
+
+                    sb.AppendLine($"  Chunk {kv.Key}: pos={chunk.transform.position:F0} props={propCount} nulos={nullProps} visivel={visivel}");
+                }
+            }
+        }
+        else sb.AppendLine("WORLDCHUNKMANAGER: NULL");
+
+        var arena = SimpleArena.Instance;
+        if (arena != null)
+        {
+            var floorField = typeof(SimpleArena).GetField("_floorRenderer",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var floor = floorField?.GetValue(arena) as SpriteRenderer;
+            sb.AppendLine("CHÃO (SimpleArena)");
+            sb.AppendLine($"  Posição: {floor?.transform.position:F0}");
+            sb.AppendLine($"  Escala: {floor?.transform.localScale:F1}");
+        }
+
+        var allProps = Object.FindObjectsByType<EnvironmentProp>(FindObjectsSortMode.None);
+        sb.AppendLine($"ENVIRONMENT PROPS NA CENA: {allProps.Length}");
+        int shown = 0;
+        foreach (var ep in allProps)
+        {
+            if (shown >= 5) break;
+            var sr = ep.GetComponent<SpriteRenderer>();
+            sb.AppendLine($"  {ep.gameObject.name} pos={ep.transform.position:F0} sprite={sr?.sprite?.name ?? "NULL"} enabled={sr?.enabled} sortOrder={sr?.sortingOrder}");
+            shown++;
+        }
+
+        string report = sb.ToString();
+        Debug.Log(report);
+
+        string path = $"Assets/Logs/PosicoesDiagnostico_{System.DateTime.Now:HHmmss}.txt";
+        System.IO.Directory.CreateDirectory("Assets/Logs");
+        System.IO.File.WriteAllText(path, report);
+        AssetDatabase.Refresh();
+        Debug.Log($"[Debug] Log salvo em {path}");
+    }
+
+    static Vector2Int WorldToChunk(Vector3 pos, float chunkSize) =>
+        new Vector2Int(
+            Mathf.FloorToInt(pos.x / chunkSize),
+            Mathf.FloorToInt(pos.y / chunkSize));
 
     // ── Seletor de zona inicial ──────────────────────────────────────────────────
 
