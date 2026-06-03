@@ -318,13 +318,13 @@ public class ZoneManager : MonoBehaviour
 
                 if (bossName.Contains("caveman") || bossName.Contains("goblin") || bossName.Contains("viking"))
                 {
-                    scaleMultiplier = 0.5f;
+                    scaleMultiplier = 0.25f;
                     hpMultiplier    = 6f;
                     eb.moveSpeed   *= 1.8f;
                 }
-                else if (bossName.Contains("darkelf"))
+                else if (bossName.Contains("darkelf") || bossName.Contains("elf"))
                 {
-                    scaleMultiplier = 2.6f;
+                    scaleMultiplier = 1.5f;
                     hpMultiplier    = 8f;
                     eb.moveSpeed   *= 2f;
                 }
@@ -357,6 +357,12 @@ public class ZoneManager : MonoBehaviour
 
             var anim = bossGO.GetComponent<CharacterAnimator>();
             if (anim != null) anim.ForceState(CharacterAnimator.State.Walk);
+
+#if UNITY_EDITOR
+            string spawnedName = validBosses[i].name.ToLower();
+            if ((spawnedName.Contains("darkelf") || spawnedName.Contains("elf")) && anim != null)
+                LoadAndApplyElf2Frames(anim);
+#endif
 
             if (bossGO.GetComponent<BossAttack>() == null)
                 bossGO.AddComponent<BossAttack>();
@@ -530,4 +536,51 @@ public class ZoneManager : MonoBehaviour
     {
         CurrentZone = Mathf.Clamp(zone, 0, zones.Length - 1);
     }
+
+#if UNITY_EDITOR
+    static void LoadAndApplyElf2Frames(CharacterAnimator anim)
+    {
+        const string ELF2 = "Assets/Art/Characters/Enemies/DarkElf/Elf_2";
+        if (!UnityEditor.AssetDatabase.IsValidFolder(ELF2)) return;
+
+        string[] paths = UnityEditor.AssetDatabase.FindAssets("t:Texture2D", new[] { ELF2 })
+            .Select(UnityEditor.AssetDatabase.GUIDToAssetPath).ToArray();
+
+        var idle   = ExtractRow(FindFile(paths, new[]{"idle"},                        new[]{"shadow_"}));
+        var walk   = ExtractRow(FindFile(paths, new[]{"walk"},                        new[]{"run","attack","shadow_"}));
+        var attack = ExtractRow(FindFile(paths, new[]{"attack"},                      new[]{"walk","run","shadow_"}));
+        var hurt   = ExtractRow(FindFile(paths, new[]{"hurt","hit"},                  new[]{"shadow_"}));
+        var death  = ExtractRow(FindFile(paths, new[]{"death","dead","dying","die"},   new[]{"shadow_"}));
+
+        anim.OverrideFrames(idle, walk, attack, hurt, death);
+    }
+
+    static string FindFile(string[] paths, string[] include, string[] exclude)
+    {
+        foreach (var p in paths)
+        {
+            var n = System.IO.Path.GetFileNameWithoutExtension(p).ToLowerInvariant();
+            if (!include.Any(k => n.Contains(k))) continue;
+            if (exclude.Any(k => n.Contains(k))) continue;
+            return p;
+        }
+        return null;
+    }
+
+    static Sprite[] ExtractRow(string sheetPath)
+    {
+        if (string.IsNullOrEmpty(sheetPath)) return null;
+        var sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(sheetPath)
+            .OfType<Sprite>().Where(s => s.rect.width >= 8f && s.rect.height >= 8f).ToList();
+        if (sprites.Count == 0) return null;
+        var rows = new System.Collections.Generic.List<System.Collections.Generic.List<Sprite>>();
+        foreach (var s in sprites.OrderByDescending(s => s.rect.y))
+        {
+            var row = rows.FirstOrDefault(r => Mathf.Abs(r[0].rect.y - s.rect.y) < 6f);
+            if (row == null) { row = new System.Collections.Generic.List<Sprite>(); rows.Add(row); }
+            row.Add(s);
+        }
+        return rows[0].OrderBy(s => s.rect.x).ToArray();
+    }
+#endif
 }

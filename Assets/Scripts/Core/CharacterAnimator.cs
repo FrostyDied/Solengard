@@ -91,4 +91,15 @@ public class CharacterAnimator : MonoBehaviour
     }
 
     public State CurrentState => _state;
+
+    public void OverrideFrames(Sprite[] idle, Sprite[] walk, Sprite[] attack, Sprite[] hurt, Sprite[] death)
+    {
+        if (idle   != null && idle.Length   > 0) idleFrames   = idle;
+        if (walk   != null && walk.Length   > 0) walkFrames   = walk;
+        if (attack != null && attack.Length > 0) attackFrames = attack;
+        if (hurt   != null && hurt.Length   > 0) hurtFrames   = hurt;
+        if (death  != null && death.Length  > 0) deathFrames  = death;
+        _frame = 0;
+        _timer = 0f;
+    }
 }
