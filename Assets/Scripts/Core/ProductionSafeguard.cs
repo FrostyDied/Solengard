@@ -25,6 +25,19 @@ public class ProductionSafeguard : MonoBehaviour
 
         ValidateSession();
         ValidatePlayerPrefs();
+        StartCoroutine(VerifySpawnStarted());
+    }
+
+    IEnumerator VerifySpawnStarted()
+    {
+        yield return new WaitForSecondsRealtime(5f);
+        var zm = ZoneManager.Instance;
+        if (zm == null || GameManager.Instance == null) yield break;
+        if (GameManager.Instance.IsPlaying && !zm.IsRunning)
+        {
+            Debug.LogError("[Safeguard] ZoneManager não está rodando após 5s — forçando StartZones");
+            zm.StartZones();
+        }
     }
 
     void ValidateSession()

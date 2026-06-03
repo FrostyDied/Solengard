@@ -116,14 +116,20 @@ public class ZoneManager : MonoBehaviour
 
     public void StartZones()
     {
-        Debug.Log($"[Zone] StartZones chamado. CurrentZone={CurrentZone}, IsRunning={IsRunning}");
-        if (IsRunning) return;
-        IsRunning   = true;
         CurrentZone = testStartZone > 0
             ? Mathf.Clamp(testStartZone - 1, 0, zones.Length - 1)
             : 0;
         if (testStartZone > 0)
             Debug.Log($"[Debug] Iniciando direto na Zona {testStartZone} (índice {CurrentZone})");
+        StartZonesFromCurrent();
+    }
+
+    public void StartZonesFromCurrent()
+    {
+        Debug.Log($"[Zone] StartZonesFromCurrent: CurrentZone={CurrentZone}, IsRunning={IsRunning}");
+        if (IsRunning) return;
+        IsRunning = true;
+        KillCount = 0;
         StartCoroutine(ZoneLoop());
     }
 
@@ -574,6 +580,7 @@ public class ZoneManager : MonoBehaviour
     public void RestoreToZone(int zone)
     {
         CurrentZone = Mathf.Clamp(zone, 0, zones.Length - 1);
+        StartZonesFromCurrent();
     }
 
 #if UNITY_EDITOR
