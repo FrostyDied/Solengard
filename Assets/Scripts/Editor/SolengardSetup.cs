@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using TMPro;
 using UnityEditor;
@@ -2044,6 +2045,37 @@ public static class SolengardSetup
     [MenuItem("Solengard/Setup Rich Environment", validate = true)]
     static bool ValidateSetupRichEnvironment() =>
         !string.IsNullOrEmpty(EditorSceneManager.GetActiveScene().name);
+
+    [MenuItem("Solengard/Setup/Copiar Prefabs para Resources")]
+    static void CopyPrefabsToResources()
+    {
+        const string SRC = "Assets/Prefabs/Environment/Rich";
+        const string DST = "Assets/Resources/Environment/Rich";
+
+        if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+            AssetDatabase.CreateFolder("Assets", "Resources");
+        if (!AssetDatabase.IsValidFolder("Assets/Resources/Environment"))
+            AssetDatabase.CreateFolder("Assets/Resources", "Environment");
+        if (!AssetDatabase.IsValidFolder(DST))
+            AssetDatabase.CreateFolder("Assets/Resources/Environment", "Rich");
+
+        var guids = AssetDatabase.FindAssets("t:Prefab", new[] { SRC });
+        int copied = 0, skipped = 0;
+        foreach (var guid in guids)
+        {
+            var srcPath = AssetDatabase.GUIDToAssetPath(guid);
+            var name    = Path.GetFileName(srcPath);
+            var dstPath = DST + "/" + name;
+            if (!File.Exists(Path.GetFullPath(dstPath)))
+            {
+                AssetDatabase.CopyAsset(srcPath, dstPath);
+                copied++;
+            }
+            else skipped++;
+        }
+        AssetDatabase.Refresh();
+        Debug.Log($"[Setup] {copied} prefabs copiados para Resources/Environment/Rich/ ({skipped} já existiam)");
+    }
 
     static void SetupRichPrefabs()
     {

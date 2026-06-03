@@ -16,6 +16,15 @@ public class WorldChunkManager : MonoBehaviour
     const int   GRID_RADIUS     = 3;    // 7×7 = 49 chunks ativos (140×140u)
     const int   PROPS_PER_CHUNK = 12;
 
+    static readonly string[][] BIOME_RESOURCE_NAMES = new string[][]
+    {
+        new[]{ "Veremoth_Tree","Veremoth_Bush","Veremoth_Mushroom","Veremoth_Rock","Veremoth_Ruin" },
+        new[]{ "Khorduum_Crystal","Khorduum_Stone","Khorduum_Mushroom","Khorduum_Object" },
+        new[]{ "Valdross_Grave","Valdross_Bones","Valdross_Tree","Valdross_Object" },
+        new[]{ "Gorveth_Tree","Gorveth_Plant","Gorveth_Object","Gorveth_Mushroom" },
+        new[]{ "Arkenfall_Rock","Arkenfall_Ruin","Arkenfall_Bones","Arkenfall_Tree" },
+    };
+
     [HideInInspector] public BiomePropList[] biomeProps = new BiomePropList[5];
 
     int        _currentBiome = 0;
@@ -34,6 +43,23 @@ public class WorldChunkManager : MonoBehaviour
 
     void Start()
     {
+        // Diagnóstico: verificar se biomeProps foi serializado corretamente
+        Debug.Log($"[Chunks] Start: biomeProps.Length={biomeProps?.Length ?? 0}");
+        int totalPrefabs = 0;
+        for (int i = 0; i < biomeProps?.Length; i++)
+        {
+            int count = biomeProps[i]?.prefabs?.Count ?? 0;
+            Debug.Log($"[Chunks] Bioma {i}: {count} prefabs serializados");
+            totalPrefabs += count;
+        }
+
+        // Se biomeProps está vazio, carregar via Resources.Load como fallback
+        if (totalPrefabs == 0)
+        {
+            Debug.LogWarning("[Chunks] biomeProps vazio em runtime — usando fallback Resources.Load");
+            LoadBiomePropsFromResources();
+        }
+
         if (PlayerController.Instance != null)
             _player = PlayerController.Instance.transform;
         if (_player == null)
@@ -42,6 +68,24 @@ public class WorldChunkManager : MonoBehaviour
             if (p != null) _player = p.transform;
         }
         UpdateChunks();
+    }
+
+    void LoadBiomePropsFromResources()
+    {
+        biomeProps = new BiomePropList[5];
+        for (int b = 0; b < 5; b++)
+        {
+            biomeProps[b] = new BiomePropList();
+            foreach (var name in BIOME_RESOURCE_NAMES[b])
+            {
+                var go = Resources.Load<GameObject>($"Environment/Rich/{name}");
+                if (go != null)
+                    biomeProps[b].prefabs.Add(go);
+                else
+                    Debug.LogWarning($"[Chunks] Resources.Load falhou: Environment/Rich/{name}");
+            }
+            Debug.Log($"[Chunks] Bioma {b} carregado via Resources: {biomeProps[b].prefabs.Count} prefabs");
+        }
     }
 
     void Update()
@@ -73,9 +117,10 @@ public class WorldChunkManager : MonoBehaviour
     {
         _currentBiome = Mathf.Clamp(b, 0, 4);
         var props = biomeProps[_currentBiome]?.prefabs;
+        int count = props?.Count ?? 0;
+        Debug.Log($"[Chunks] SetBiome({b}): {count} prefabs disponíveis");
         foreach (var kv in _active)
             kv.Value.Repopulate(_currentBiome, props, PROPS_PER_CHUNK, CHUNK_SIZE);
-        Debug.Log($"[Chunks] Bioma trocado para {_currentBiome}");
     }
 
     void UpdateChunks()

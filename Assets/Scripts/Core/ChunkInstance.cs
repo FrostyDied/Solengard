@@ -18,7 +18,16 @@ public class ChunkInstance : MonoBehaviour
         List<GameObject> prefabs, int count, float size)
     {
         Clear();
-        if (prefabs == null || prefabs.Count == 0) return;
+        if (prefabs == null || prefabs.Count == 0)
+        {
+            Debug.LogWarning($"[Chunk] Populate abortado: prefabs null ou vazio para bioma {biome} em {gridPos}");
+            return;
+        }
+
+        int nullCount = 0;
+        foreach (var p in prefabs) if (p == null) nullCount++;
+        if (nullCount > 0)
+            Debug.LogWarning($"[Chunk] {nullCount}/{prefabs.Count} prefabs são null para bioma {biome}");
 
         int seed = gridPos.x * 73856093 ^ gridPos.y * 19349663 ^ biome * 83492791;
         var rng  = new System.Random(seed);
