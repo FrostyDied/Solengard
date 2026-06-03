@@ -216,7 +216,17 @@ public class EnemyBase : MonoBehaviour
                       isHeavy ? VFXManager.EnemyType.Heavy : VFXManager.EnemyType.Normal;
         VFXManager.Instance?.SpawnHit(transform.position, hitType);
         StartCoroutine(FlashRed());
+
+        var anim = GetComponent<CharacterAnimator>();
+        if (anim != null) anim.SetState(CharacterAnimator.State.Hurt);
         if (currentHealth <= 0.01f) Die();
+        else if (anim != null) StartCoroutine(ResetAnimAfterHurt(anim));
+    }
+
+    IEnumerator ResetAnimAfterHurt(CharacterAnimator anim)
+    {
+        yield return new WaitForSeconds(0.3f);
+        if (!isDead && anim != null) anim.SetState(CharacterAnimator.State.Walk);
     }
 
     IEnumerator FlashRed()

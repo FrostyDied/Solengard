@@ -41,6 +41,13 @@ public class PlayerAttack : MonoBehaviour
         if (PlayerController.Instance != null)
             PlayerController.Instance.LastAttackTime = Time.time;
 
+        var anim = GetComponent<CharacterAnimator>();
+        if (anim != null)
+        {
+            anim.SetState(CharacterAnimator.State.Attack);
+            StartCoroutine(ResetToWalk(anim));
+        }
+
         var hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
         foreach (var h in hits)
         {
@@ -48,6 +55,12 @@ public class PlayerAttack : MonoBehaviour
             var enemy = h.GetComponent<EnemyBase>();
             if (enemy != null) enemy.TakeDamage(attackDamage);
         }
+    }
+
+    IEnumerator ResetToWalk(CharacterAnimator anim)
+    {
+        yield return new WaitForSeconds(attackCooldown * 0.8f);
+        if (anim != null) anim.SetState(CharacterAnimator.State.Walk);
     }
 
     void SpawnSpinSlash()
