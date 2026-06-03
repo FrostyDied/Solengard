@@ -57,6 +57,7 @@ public class GameManager : MonoBehaviour
     public GameState CurrentState => currentState;
 
     bool _gameStarted;
+    bool _autoStartScheduled;
 
     public RunData currentRunData;
     float          runStartTime;
@@ -102,6 +103,8 @@ public class GameManager : MonoBehaviour
         // Reset _gameStarted so RestartRun() race conditions don't block AutoStart.
         if (scene.name == "GameScene" && currentState == GameState.MainMenu)
         {
+            if (_autoStartScheduled) return;
+            _autoStartScheduled = true;
             _gameStarted = false;
             Invoke(nameof(AutoStart), 0.2f);
         }
@@ -125,8 +128,8 @@ public class GameManager : MonoBehaviour
 
     void AutoStart()
     {
+        _autoStartScheduled = false;
         if (Camera.main != null) Camera.main.backgroundColor = Color.black;
-        StartCoroutine(SafetyTimeScale());
         StartGame();
     }
 
@@ -154,8 +157,7 @@ public class GameManager : MonoBehaviour
         onComplete?.Invoke();
     }
 
-    // Timeout longo: lore pode durar ~10s + tempo do usuário pressionar.
-    // 15s a partir do início da lore é seguro sem prejudicar a UX normal.
+    // Safety net: iniciado APÓS a lore ser dispensada. Se StartZones travar com timeScale=0, recupera em 15s.
     IEnumerator SafetyTimeScale()
     {
         yield return new WaitForSecondsRealtime(15f);
@@ -208,9 +210,14 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GameManager] StartGame loreUI={loreUI != null} config={config != null} sessao={sessaoAtiva}");
 
         System.Action afterLore = sessaoAtiva
-            ? (System.Action)(() => StartCoroutine(FadeFromBlack(() => RestoreSession(sessaoData))))
-            : ()          => StartCoroutine(FadeFromBlack(() =>
+            ? (System.Action)(() => StartCoroutine(FadeFromBlack(() =>
               {
+                  StartCoroutine(SafetyTimeScale());
+                  RestoreSession(sessaoData);
+              })))
+            : () => StartCoroutine(FadeFromBlack(() =>
+              {
+                  StartCoroutine(SafetyTimeScale());
                   proceduralArena?.InitializeRun();
                   ZoneManager.Instance?.StartZones();
               }));
