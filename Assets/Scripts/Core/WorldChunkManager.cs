@@ -13,7 +13,7 @@ public class WorldChunkManager : MonoBehaviour
     }
 
     const float CHUNK_SIZE      = 20f;
-    const int   GRID_RADIUS     = 2;    // 5×5 = 25 chunks ativos
+    const int   GRID_RADIUS     = 3;    // 7×7 = 49 chunks ativos (140×140u)
     const int   PROPS_PER_CHUNK = 12;
 
     [HideInInspector] public BiomePropList[] biomeProps = new BiomePropList[5];
@@ -46,8 +46,10 @@ public class WorldChunkManager : MonoBehaviour
 
     void Update()
     {
-        if (_player == null)
+        // Detecta player destruído ou inativo (recriado pelo RebuildGameScene)
+        if (_player == null || !_player.gameObject.activeInHierarchy)
         {
+            _player = null;
             if (PlayerController.Instance != null)
                 _player = PlayerController.Instance.transform;
             else
@@ -55,7 +57,11 @@ public class WorldChunkManager : MonoBehaviour
                 var p = GameObject.FindGameObjectWithTag("Player");
                 if (p != null) _player = p.transform;
             }
-            if (_player != null) UpdateChunks();
+            if (_player != null)
+            {
+                _lastChunk = new Vector2Int(int.MaxValue, int.MaxValue);
+                UpdateChunks();
+            }
             return;
         }
 
