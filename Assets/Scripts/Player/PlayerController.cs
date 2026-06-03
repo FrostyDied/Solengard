@@ -44,7 +44,7 @@ public class PlayerController : MonoBehaviour
         if (_anim == null) Debug.LogError($"[PlayerController] CharacterAnimator não encontrado em '{gameObject.name}' nem em filhos.");
 
         _rb.gravityScale           = 0f;
-        _rb.isKinematic            = true;
+        _rb.bodyType               = RigidbodyType2D.Kinematic;
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         _rb.interpolation          = RigidbodyInterpolation2D.Interpolate;
 

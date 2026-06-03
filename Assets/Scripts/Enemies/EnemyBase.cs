@@ -58,7 +58,7 @@ public class EnemyBase : MonoBehaviour
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        rb.isKinematic            = false;
+        rb.bodyType               = RigidbodyType2D.Dynamic;
         rb.gravityScale           = 0f;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
         rb.interpolation          = RigidbodyInterpolation2D.Interpolate;

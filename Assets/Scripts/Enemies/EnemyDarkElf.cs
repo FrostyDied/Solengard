@@ -2,8 +2,6 @@ using UnityEngine;
 
 public class EnemyDarkElf : EnemyAssassin
 {
-    public bool isBoss = false;
-
     protected override void Awake()
     {
         base.Awake();
