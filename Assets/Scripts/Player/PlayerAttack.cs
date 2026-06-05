@@ -20,7 +20,11 @@ public class PlayerAttack : MonoBehaviour
 
     static Sprite _dotSprite;
 
+    const float PROJ_SPEED = 18f;
+
     GameObject _vfxMelee;
+    GameObject _vfxHoly;
+    GameObject _vfxSlash;
     GameObject _vfxMagicImpact;
     GameObject _vfxArrowImpact;
     GameObject _vfxSummonImpact;
@@ -36,6 +40,8 @@ public class PlayerAttack : MonoBehaviour
     void LoadVFX()
     {
         _vfxMelee        = Resources.Load<GameObject>("VFX/AoE slash orange");
+        _vfxHoly         = Resources.Load<GameObject>("VFX/Healing circle");
+        _vfxSlash        = Resources.Load<GameObject>("VFX/Electro hit");
         _vfxMagicImpact  = Resources.Load<GameObject>("VFX/Crystal effect blue");
         _vfxArrowImpact  = Resources.Load<GameObject>("VFX/Sparks explode blue");
         _vfxSummonImpact = Resources.Load<GameObject>("VFX/Stones hit");
@@ -61,13 +67,13 @@ public class PlayerAttack : MonoBehaviour
 
         switch (_attackType)
         {
-            case AttackType.Melee360:     AttackMelee(360f);            break;
-            case AttackType.Melee180:     AttackMelee(180f);            break;
-            case AttackType.MeleeCone:    AttackMelee(_attackArc);      break;
-            case AttackType.RangedSingle: AttackRanged(1);              break;
+            case AttackType.Melee360:     AttackMelee(360f);             break;
+            case AttackType.Melee180:     AttackMelee(180f);             break;
+            case AttackType.MeleeCone:    AttackMelee(_attackArc);       break;
+            case AttackType.RangedSingle: AttackRanged(1);               break;
             case AttackType.RangedMulti:  AttackRanged(_projectileCount); break;
-            case AttackType.RangedSummon: AttackRangedSummon();         break;
-            default:                      AttackMelee(360f);            break;
+            case AttackType.RangedSummon: AttackRangedSummon();          break;
+            default:                      AttackMelee(360f);             break;
         }
     }
 
@@ -75,7 +81,24 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackMelee(float arc)
     {
-        SpawnVFX(_vfxMelee, transform.position, 0.5f);
+        switch (_attackType)
+        {
+            case AttackType.Melee360:
+                SpawnVFX(_vfxMelee, transform.position, 0.5f, 1.5f);
+                break;
+            case AttackType.Melee180:
+                SpawnVFX(_vfxHoly, transform.position, 0.5f, 1.2f, new Color(1f, 0.9f, 0.4f));
+                break;
+            case AttackType.MeleeCone:
+                Vector3 slashPos = transform.position;
+                if (PlayerController.Instance != null)
+                    slashPos += (Vector3)(PlayerController.Instance.FacingDirection * 1.5f);
+                SpawnVFX(_vfxSlash, slashPos, 0.5f, 0.8f);
+                break;
+            default:
+                SpawnVFX(_vfxMelee, transform.position, 0.5f, 1f);
+                break;
+        }
 
         var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
         filter.SetLayerMask(enemyLayerMask);
@@ -102,8 +125,8 @@ public class PlayerAttack : MonoBehaviour
         var targets   = GetNearestEnemies(count);
         var impactVFX = _attackType == AttackType.RangedMulti ? _vfxArrowImpact : _vfxMagicImpact;
         var color     = _attackType == AttackType.RangedMulti
-            ? new Color(0.6f, 0.9f, 1.0f)   // caçador — azul claro (flecha)
-            : new Color(0.5f, 0.3f, 1.0f);   // mago    — roxo (orbe)
+            ? new Color(0.6f, 0.9f, 1.0f)
+            : new Color(0.5f, 0.3f, 1.0f);
         foreach (var e in targets)
             FireProjectile((Vector2)(e.transform.position - transform.position), color, impactVFX);
     }
@@ -113,27 +136,62 @@ public class PlayerAttack : MonoBehaviour
         var targets = GetNearestEnemies(1);
         foreach (var e in targets)
             FireProjectile((Vector2)(e.transform.position - transform.position),
-                new Color(0.4f, 1.0f, 0.5f), _vfxSummonImpact);   // necromante — verde osso
+                new Color(0.4f, 1.0f, 0.5f), _vfxSummonImpact);
     }
 
-    void FireProjectile(Vector2 dir, Color color, GameObject impactVFX)
+    void FireProjectile(Vector2 dir, Color fallbackColor, GameObject impactVFX)
     {
+        var classDef       = PlayerClassManager.Instance?.CurrentClass;
+        bool hasAnimFrames  = classDef != null && classDef.projectileFrames != null && classDef.projectileFrames.Length > 0;
+        bool hasStaticSprite = !hasAnimFrames && classDef != null && classDef.projectileSprite != null;
+
         var go = new GameObject("PlayerProjectile");
         go.transform.position = transform.position;
-        go.layer = 0; // Default — colide com Enemy independente da layer matrix do player
+
+        int playerLayer = LayerMask.NameToLayer("Player");
+        go.layer = playerLayer >= 0 ? playerLayer : 0;
+
+        // Flecha (Caçador): rotacionar para apontar na direção do alvo
+        if (hasStaticSprite)
+        {
+            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            go.transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        }
+
+        float scale = classDef != null ? classDef.projectileScale : 1f;
+        go.transform.localScale = Vector3.one * scale;
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite           = GetDotSprite();
-        sr.color            = color;
         sr.sortingLayerName = "Characters";
         sr.sortingOrder     = 2;
+
+        if (hasAnimFrames)
+        {
+            sr.sprite = classDef.projectileFrames[0];
+            sr.color  = Color.white;
+        }
+        else if (hasStaticSprite)
+        {
+            sr.sprite = classDef.projectileSprite;
+            sr.color  = Color.white;
+        }
+        else
+        {
+            sr.sprite = GetDotSprite();
+            sr.color  = fallbackColor;
+        }
 
         var col = go.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
         col.radius    = 0.18f;
 
+        float lifetime = attackRange / PROJ_SPEED + 0.2f;
+
         var proj = go.AddComponent<PlayerProjectile>();
-        proj.Init(attackDamage, dir, 12f, impactVFX);
+        proj.Init(attackDamage, dir, PROJ_SPEED, impactVFX, lifetime);
+
+        if (hasAnimFrames)
+            proj.SetFrames(classDef.projectileFrames);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -171,10 +229,17 @@ public class PlayerAttack : MonoBehaviour
         return Vector2.Angle(facing, dir) <= arc * 0.5f;
     }
 
-    static void SpawnVFX(GameObject prefab, Vector3 pos, float lifetime)
+    static void SpawnVFX(GameObject prefab, Vector3 pos, float lifetime, float scale = 1f, Color? tint = null)
     {
         if (prefab == null) return;
-        Destroy(Instantiate(prefab, pos, Quaternion.identity), lifetime);
+        var go = Instantiate(prefab, pos, Quaternion.identity);
+        if (scale != 1f) go.transform.localScale = Vector3.one * scale;
+        if (tint.HasValue)
+        {
+            var sr = go.GetComponent<SpriteRenderer>();
+            if (sr != null) sr.color = tint.Value;
+        }
+        Destroy(go, lifetime);
     }
 
     static Sprite GetDotSprite()

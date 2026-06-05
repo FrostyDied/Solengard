@@ -21,83 +21,103 @@ public static class SolengardHeroAnimSetup
         public string attackFile;
         public string hurtFile;
         public string deathFile;
-        public bool   multiRowSheet;  // true = Guerreiro: sheets têm várias linhas (direções)
+        public bool   multiRowSheet;
         public float  worldScale;
+        // Projétil
+        public string projectileFile;
+        public int    projectileMaxFrame; // -1 = todos os frames; >=0 = frames 0..N
+        public bool   projectileIsStatic; // true → salvar em projectileSprite (frame único)
+        public float  projectileScale;
     }
 
     static readonly HeroEntry[] _entries =
     {
         new HeroEntry {
-            classId      = "warrior",
-            prefabName   = "Hero_Warrior",
-            folder       = HERO_ROOT + "/Cavaleiro/Level1-3/PNG/Swordsman_lvl1/Without_shadow",
-            idleFile     = "Swordsman_lvl1_Idle_without_shadow.png",
-            walkFile     = "Swordsman_lvl1_Walk_without_shadow.png",
-            attackFile   = "Swordsman_lvl1_attack_without_shadow.png",   // 'a' minúsculo
-            hurtFile     = "Swordsman_lvl1_Hurt_without_shadow.png",
-            deathFile    = "Swordsman_lvl1_Death_without_shadow.png",
-            multiRowSheet = true,
-            worldScale   = 1.0f,
+            classId           = "warrior",
+            prefabName        = "Hero_Warrior",
+            folder            = HERO_ROOT + "/Cavaleiro/Level1-3/PNG/Swordsman_lvl1/Without_shadow",
+            idleFile          = "Swordsman_lvl1_Idle_without_shadow.png",
+            walkFile          = "Swordsman_lvl1_Walk_without_shadow.png",
+            attackFile        = "Swordsman_lvl1_attack_without_shadow.png",
+            hurtFile          = "Swordsman_lvl1_Hurt_without_shadow.png",
+            deathFile         = "Swordsman_lvl1_Death_without_shadow.png",
+            multiRowSheet     = true,
+            worldScale        = 1.0f,
+            projectileScale   = 1f,
         },
         new HeroEntry {
-            classId      = "mage",
-            prefabName   = "Hero_Mage",
-            folder       = HERO_ROOT + "/Mago/Lightning Mage",           // espaço no nome
-            idleFile     = "Idle.png",
-            walkFile     = "Walk.png",
-            attackFile   = "Attack_1.png",
-            hurtFile     = "Hurt.png",
-            deathFile    = "Dead.png",
-            multiRowSheet = false,
-            worldScale   = 0.32f,
+            classId           = "mage",
+            prefabName        = "Hero_Mage",
+            folder            = HERO_ROOT + "/Mago/Lightning Mage",
+            idleFile          = "Idle.png",
+            walkFile          = "Walk.png",
+            attackFile        = "Attack_1.png",
+            hurtFile          = "Hurt.png",
+            deathFile         = "Dead.png",
+            multiRowSheet     = false,
+            worldScale        = 0.32f,
+            projectileFile    = "Light_ball.png",
+            projectileMaxFrame = -1,
+            projectileIsStatic = false,
+            projectileScale   = 2.0f,
         },
         new HeroEntry {
-            classId      = "assassin",
-            prefabName   = "Hero_Assassin",
-            folder       = HERO_ROOT + "/Assassino/Assassino",
-            idleFile     = "Idle.png",
-            walkFile     = "Walk.png",
-            attackFile   = "Attack.png",
-            hurtFile     = "Hurt.png",
-            deathFile    = "Dead.png",
-            multiRowSheet = false,
-            worldScale   = 1.0f,
+            classId           = "assassin",
+            prefabName        = "Hero_Assassin",
+            folder            = HERO_ROOT + "/Assassino/Assassino",
+            idleFile          = "Idle.png",
+            walkFile          = "Walk.png",
+            attackFile        = "Attack.png",
+            hurtFile          = "Hurt.png",
+            deathFile         = "Dead.png",
+            multiRowSheet     = false,
+            worldScale        = 1.0f,
+            projectileScale   = 1f,
         },
         new HeroEntry {
-            classId      = "necromancer",
-            prefabName   = "Hero_Necromancer",
-            folder       = HERO_ROOT + "/Necromante/Necromante",
-            idleFile     = "Idle.png",
-            walkFile     = "Walk.png",
-            attackFile   = "Attack_1.png",
-            hurtFile     = "Hurt.png",
-            deathFile    = "Dead.png",
-            multiRowSheet = false,
-            worldScale   = 0.32f,
+            classId           = "necromancer",
+            prefabName        = "Hero_Necromancer",
+            folder            = HERO_ROOT + "/Necromante/Necromante",
+            idleFile          = "Idle.png",
+            walkFile          = "Walk.png",
+            attackFile        = "Attack_1.png",
+            hurtFile          = "Hurt.png",
+            deathFile         = "Dead.png",
+            multiRowSheet     = false,
+            worldScale        = 0.32f,
+            projectileFile    = "Spear.png",
+            projectileMaxFrame = 4,
+            projectileIsStatic = false,
+            projectileScale   = 2.5f,
         },
         new HeroEntry {
-            classId      = "paladin",
-            prefabName   = "Hero_Paladin",
-            folder       = HERO_ROOT + "/Paladino/Paladino",
-            idleFile     = "Idle.png",
-            walkFile     = "Walk.png",
-            attackFile   = "Attack 1.png",   // espaço no nome do arquivo
-            hurtFile     = "Hurt.png",
-            deathFile    = "Dead.png",
-            multiRowSheet = false,
-            worldScale   = 0.32f,
+            classId           = "paladin",
+            prefabName        = "Hero_Paladin",
+            folder            = HERO_ROOT + "/Paladino/Paladino",
+            idleFile          = "Idle.png",
+            walkFile          = "Walk.png",
+            attackFile        = "Attack 1.png",
+            hurtFile          = "Hurt.png",
+            deathFile         = "Dead.png",
+            multiRowSheet     = false,
+            worldScale        = 0.32f,
+            projectileScale   = 1f,
         },
         new HeroEntry {
-            classId      = "hunter",
-            prefabName   = "Hero_Hunter",
-            folder       = HERO_ROOT + "/Caçador/Caçador",    // ç = ç
-            idleFile     = "Idle.png",
-            walkFile     = "Walk.png",
-            attackFile   = "Attack.png",
-            hurtFile     = "Hurt.png",
-            deathFile    = "Dead.png",
-            multiRowSheet = false,
-            worldScale   = 1.0f,
+            classId            = "hunter",
+            prefabName         = "Hero_Hunter",
+            folder             = HERO_ROOT + "/Caçador/Caçador",
+            idleFile           = "Idle.png",
+            walkFile           = "Walk.png",
+            attackFile         = "Attack.png",
+            hurtFile           = "Hurt.png",
+            deathFile          = "Dead.png",
+            multiRowSheet      = false,
+            worldScale         = 1.0f,
+            projectileFile     = "Charge.png",
+            projectileMaxFrame = 0,
+            projectileIsStatic = true,
+            projectileScale    = 3.0f,
         },
     };
 
@@ -144,7 +164,6 @@ public static class SolengardHeroAnimSetup
                 PrefabUtility.UnloadPrefabContents(contents);
             }
 
-            // Salvar frames também no ClassDefinition asset para uso em runtime
             string defPath = $"Assets/Resources/Classes/{e.classId}.asset";
             var classDef = AssetDatabase.LoadAssetAtPath<ClassDefinition>(defPath);
             if (classDef != null)
@@ -155,9 +174,24 @@ public static class SolengardHeroAnimSetup
                 SetSpriteArray(cso, "attackFrames", attack);
                 SetSpriteArray(cso, "hurtFrames",   hurt);
                 SetSpriteArray(cso, "deathFrames",  death);
+
+                // Projétil
+                var projFrames = LoadProjectileFrames(e);
+                if (e.projectileIsStatic && projFrames.Length > 0)
+                {
+                    cso.FindProperty("projectileSprite").objectReferenceValue = projFrames[0];
+                    SetSpriteArray(cso, "projectileFrames", new Sprite[0]);
+                }
+                else if (projFrames.Length > 0)
+                {
+                    SetSpriteArray(cso, "projectileFrames", projFrames);
+                    cso.FindProperty("projectileSprite").objectReferenceValue = null;
+                }
+                cso.FindProperty("projectileScale").floatValue = e.projectileScale;
+
                 cso.ApplyModifiedProperties();
                 EditorUtility.SetDirty(classDef);
-                Debug.Log($"[HeroAnim] ClassDefinition {e.classId} frames atualizados");
+                Debug.Log($"[HeroAnim] ClassDefinition {e.classId} frames atualizados (projFrames={projFrames.Length})");
             }
             else
             {
@@ -165,6 +199,7 @@ public static class SolengardHeroAnimSetup
             }
         }
 
+        AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log($"[HeroAnim] Concluído — {done}/{_entries.Length} prefabs configurados em {PREFAB_DIR}");
         EditorUtility.DisplayDialog("Hero Animations", $"{done} heroes configurados.", "OK");
@@ -224,8 +259,29 @@ public static class SolengardHeroAnimSetup
         if (e.multiRowSheet)
             return ExtractTopRow(all);
 
-        // Animação de uma linha: ordenar por nome (Idle_0, Idle_1, ...)
         return all.OrderBy(s => s.name, System.StringComparer.Ordinal).ToArray();
+    }
+
+    static Sprite[] LoadProjectileFrames(HeroEntry e)
+    {
+        if (string.IsNullOrEmpty(e.projectileFile)) return new Sprite[0];
+
+        string path = e.folder + "/" + e.projectileFile;
+        var all = AssetDatabase.LoadAllAssetsAtPath(path)
+            .OfType<Sprite>()
+            .OrderBy(s => s.name, System.StringComparer.Ordinal)
+            .ToList();
+
+        if (all.Count == 0)
+        {
+            Debug.LogWarning($"[HeroAnim] {e.classId}: nenhum sprite de projétil em '{path}'");
+            return new Sprite[0];
+        }
+
+        if (e.projectileMaxFrame >= 0 && e.projectileMaxFrame < all.Count - 1)
+            all = all.Take(e.projectileMaxFrame + 1).ToList();
+
+        return all.ToArray();
     }
 
     // Extrai apenas a primeira linha (Y mais alto) de um sheet multi-direcional.

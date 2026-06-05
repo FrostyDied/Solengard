@@ -20,7 +20,7 @@ MonoBehaviour:
   defense: 12
   attackDamage: 38
   moveSpeed: 5
-  attackRange: 6.5
+  attackRange: 10
   attackInterval: 1
   attackType: 4
   attackArc: 270

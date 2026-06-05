@@ -20,7 +20,7 @@ MonoBehaviour:
   defense: 10
   attackDamage: 45
   moveSpeed: 6
-  attackRange: 6.5
+  attackRange: 2.5
   attackInterval: 0.35
   attackType: 2
   attackArc: 60
@@ -31,6 +31,45 @@ MonoBehaviour:
   specialType: 2
   spriteFolder: Assets/Art/Characters/Hero/Assassino/Assassino
   pixelsPerUnit: 32
+  idleFrames:
+  - {fileID: 4723107735738678597, guid: 25ab150500f6c824198669d44880e36e, type: 3}
+  - {fileID: -7385789195546760866, guid: 25ab150500f6c824198669d44880e36e, type: 3}
+  - {fileID: 3234629978573100161, guid: 25ab150500f6c824198669d44880e36e, type: 3}
+  - {fileID: 6373048116405451881, guid: 25ab150500f6c824198669d44880e36e, type: 3}
+  - {fileID: 7264182050183361747, guid: 25ab150500f6c824198669d44880e36e, type: 3}
+  - {fileID: -2834552850196481573, guid: 25ab150500f6c824198669d44880e36e, type: 3}
+  walkFrames:
+  - {fileID: 4035959289877228764, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: -982904232830982447, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: 11406907883527339, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: 8030128826893041618, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: -350908408369970039, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: -5409570386352685021, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: 1553940418269799609, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: 2416434504916517810, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: -6428935122508569504, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: 7144598999076838305, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: 7500509103958437945, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  - {fileID: 1008816216748069464, guid: a00568c9fab526a418544893de37e52f, type: 3}
+  attackFrames:
+  - {fileID: -7008412969330441016, guid: c1bc7b9bee0c15041b10645eeb671129, type: 3}
+  - {fileID: -7763475090823894447, guid: c1bc7b9bee0c15041b10645eeb671129, type: 3}
+  - {fileID: 302641331129538988, guid: c1bc7b9bee0c15041b10645eeb671129, type: 3}
+  - {fileID: -6329420634031446844, guid: c1bc7b9bee0c15041b10645eeb671129, type: 3}
+  - {fileID: -910092549403018386, guid: c1bc7b9bee0c15041b10645eeb671129, type: 3}
+  hurtFrames:
+  - {fileID: -2048800907179887802, guid: 190a84d22decf684fab02ea4970c9dff, type: 3}
+  - {fileID: 490842205202310979, guid: 190a84d22decf684fab02ea4970c9dff, type: 3}
+  - {fileID: -3720053754089064719, guid: 190a84d22decf684fab02ea4970c9dff, type: 3}
+  deathFrames:
+  - {fileID: 2649847697073447219, guid: f563900ef34a86f4e80593918dfb5da3, type: 3}
+  - {fileID: -8293461521501190705, guid: f563900ef34a86f4e80593918dfb5da3, type: 3}
+  - {fileID: -1631342717326862633, guid: f563900ef34a86f4e80593918dfb5da3, type: 3}
+  - {fileID: -3927913518680497933, guid: f563900ef34a86f4e80593918dfb5da3, type: 3}
+  - {fileID: -1057675302478342458, guid: f563900ef34a86f4e80593918dfb5da3, type: 3}
+  - {fileID: -7954960911384535938, guid: f563900ef34a86f4e80593918dfb5da3, type: 3}
+  - {fileID: -2214552090018719568, guid: f563900ef34a86f4e80593918dfb5da3, type: 3}
+  - {fileID: -8629073497498026496, guid: f563900ef34a86f4e80593918dfb5da3, type: 3}
   unlockedByDefault: 0
   unlockCostDiamonds: 800
   worldScale: 1

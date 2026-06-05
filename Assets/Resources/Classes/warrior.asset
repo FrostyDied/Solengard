@@ -20,7 +20,7 @@ MonoBehaviour:
   defense: 20
   attackDamage: 40
   moveSpeed: 3.5
-  attackRange: 6.5
+  attackRange: 3.5
   attackInterval: 0.8
   attackType: 0
   attackArc: 270
@@ -31,6 +31,46 @@ MonoBehaviour:
   specialType: 0
   spriteFolder: Assets/Art/Characters/Hero/Cavaleiro/Level1-3/PNG/Swordsman_lvl1/Without_shadow
   pixelsPerUnit: 32
+  idleFrames:
+  - {fileID: -2847181348054271617, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: 6059807036206175533, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: 6041749187743405991, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: -1745279244941072245, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: 5922420085343366742, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: -1728515686997086616, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: 4710009884095267006, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: -1244390540476460725, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: -3719909837372792940, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: 8560782259622839903, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: 8293830565415452964, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  - {fileID: -748733020504453349, guid: 35b67dc6216756e41974d0ef514bfa0b, type: 3}
+  walkFrames:
+  - {fileID: 1992433402255742662, guid: f83042caf1be19b4288f2ac5a9bc9e59, type: 3}
+  - {fileID: 2759565357871198296, guid: f83042caf1be19b4288f2ac5a9bc9e59, type: 3}
+  - {fileID: 7868360403205069576, guid: f83042caf1be19b4288f2ac5a9bc9e59, type: 3}
+  - {fileID: -1373536433421968551, guid: f83042caf1be19b4288f2ac5a9bc9e59, type: 3}
+  - {fileID: 1313124186904186079, guid: f83042caf1be19b4288f2ac5a9bc9e59, type: 3}
+  - {fileID: -6963118226296269013, guid: f83042caf1be19b4288f2ac5a9bc9e59, type: 3}
+  attackFrames:
+  - {fileID: 4274791444574708757, guid: 57acc5a56d76d8e41a8df7f5802e74a9, type: 3}
+  - {fileID: 493632974854230967, guid: 57acc5a56d76d8e41a8df7f5802e74a9, type: 3}
+  - {fileID: 562201629823225244, guid: 57acc5a56d76d8e41a8df7f5802e74a9, type: 3}
+  - {fileID: 5658033973161105780, guid: 57acc5a56d76d8e41a8df7f5802e74a9, type: 3}
+  - {fileID: -1151379616214541211, guid: 57acc5a56d76d8e41a8df7f5802e74a9, type: 3}
+  hurtFrames:
+  - {fileID: -4751148320632443752, guid: c5a0f60baac791f40bbed7893cd2d3de, type: 3}
+  - {fileID: 5912881920044059553, guid: c5a0f60baac791f40bbed7893cd2d3de, type: 3}
+  - {fileID: -4845059669900268019, guid: c5a0f60baac791f40bbed7893cd2d3de, type: 3}
+  - {fileID: -8958926851169861083, guid: c5a0f60baac791f40bbed7893cd2d3de, type: 3}
+  - {fileID: 1277452682952648276, guid: c5a0f60baac791f40bbed7893cd2d3de, type: 3}
+  deathFrames:
+  - {fileID: 5730410250515692780, guid: 5d26f4937848ddf45bff80dfbd449f82, type: 3}
+  - {fileID: -3516680639697003550, guid: 5d26f4937848ddf45bff80dfbd449f82, type: 3}
+  - {fileID: -1828190812602012932, guid: 5d26f4937848ddf45bff80dfbd449f82, type: 3}
+  - {fileID: 8805036778364316310, guid: 5d26f4937848ddf45bff80dfbd449f82, type: 3}
+  - {fileID: -4987107980942723018, guid: 5d26f4937848ddf45bff80dfbd449f82, type: 3}
+  - {fileID: -2272000799859623240, guid: 5d26f4937848ddf45bff80dfbd449f82, type: 3}
+  - {fileID: -5172407023562201331, guid: 5d26f4937848ddf45bff80dfbd449f82, type: 3}
   unlockedByDefault: 1
   unlockCostDiamonds: 0
   worldScale: 1

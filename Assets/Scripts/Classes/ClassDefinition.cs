@@ -42,6 +42,11 @@ public class ClassDefinition : ScriptableObject
     public Sprite[] hurtFrames;
     public Sprite[] deathFrames;
 
+    [Header("Projétil (populado por SolengardHeroAnimSetup)")]
+    public Sprite[] projectileFrames;
+    public Sprite   projectileSprite;
+    public float    projectileScale = 1f;
+
     [Header("Desbloqueio")]
     public bool  unlockedByDefault  = false;
     public int   unlockCostDiamonds = 0;
