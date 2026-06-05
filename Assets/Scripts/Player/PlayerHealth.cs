@@ -149,6 +149,13 @@ public class PlayerHealth : MonoBehaviour
         Debug.Log($"[PlayerHealth] Player revivido com {currentHealth:F0}/{maxHealth:F0} HP.");
     }
 
+    public void SetMaxHealth(float max)
+    {
+        maxHealth     = max;
+        currentHealth = max;
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+    }
+
     // ── Lógica interna ──────────────────────────────────────────────────────────
 
     void Die()

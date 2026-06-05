@@ -182,6 +182,31 @@ public static class CreateClassDefinitions
         }
     }
 
+    [MenuItem("Solengard/Classes/Testar - Selecionar Guerreiro")]
+    static void TestSelectWarrior()    => SetTestClass("warrior");
+
+    [MenuItem("Solengard/Classes/Testar - Selecionar Mago")]
+    static void TestSelectMage()       => SetTestClass("mage");
+
+    [MenuItem("Solengard/Classes/Testar - Selecionar Assassino")]
+    static void TestSelectAssassin()   => SetTestClass("assassin");
+
+    [MenuItem("Solengard/Classes/Testar - Selecionar Necromante")]
+    static void TestSelectNecromancer() => SetTestClass("necromancer");
+
+    [MenuItem("Solengard/Classes/Testar - Selecionar Paladino")]
+    static void TestSelectPaladin()    => SetTestClass("paladin");
+
+    [MenuItem("Solengard/Classes/Testar - Selecionar Caçador")]
+    static void TestSelectHunter()     => SetTestClass("hunter");
+
+    static void SetTestClass(string classId)
+    {
+        PlayerPrefs.SetString("selected_class", classId);
+        PlayerPrefs.Save();
+        Debug.Log($"[Teste] Classe '{classId}' selecionada — dê Play para aplicar");
+    }
+
     static void Create(ClassDefinition data)
     {
         string path = $"{OUTPUT_DIR}/{data.classId}.asset";

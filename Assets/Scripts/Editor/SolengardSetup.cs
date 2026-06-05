@@ -271,6 +271,7 @@ public static class SolengardSetup
 
         // 4. Create every system as a root GO (same order as RunCreateNewSystemObjects)
         CreateSceneSystem<ProductionSafeguard>   ("ProductionSafeguard");
+        CreateSceneSystem<PlayerClassManager>    ("PlayerClassManager");
         CreateSceneSystem<GameManager>           ("GameManager");
         CreateSceneSystem<ZoneManager>           ("ZoneManager");
         CreateSceneSystem<ObjectPoolManager>     ("ObjectPoolManager");

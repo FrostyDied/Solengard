@@ -12,6 +12,10 @@ public class PlayerAttack : MonoBehaviour
     [Header("Detecção")]
     public LayerMask enemyLayerMask;
 
+    AttackType _attackType      = AttackType.Melee360;
+    float      _attackArc       = 270f;
+    int        _projectileCount = 1;
+
     PlayerWeapon weapon;
     float _cooldownTimer;
 
@@ -92,6 +96,17 @@ public class PlayerAttack : MonoBehaviour
     }
 
     void AoUpgradeArma(PlayerWeapon pw) => SyncFromWeapon();
+
+    public void SetClassConfig(float dmg, float range, float interval,
+        AttackType type, float arc, int projCount)
+    {
+        attackDamage    = dmg;
+        attackRange     = range;
+        attackCooldown  = interval;
+        _attackType     = type;
+        _attackArc      = arc;
+        _projectileCount = projCount;
+    }
 
     // ── Gizmos ──────────────────────────────────────────────────────────────────
 

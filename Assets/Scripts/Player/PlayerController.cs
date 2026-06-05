@@ -114,4 +114,9 @@ public class PlayerController : MonoBehaviour
                 : CharacterAnimator.State.Idle);
     }
 
+    public void SetMoveSpeed(float speed)
+    {
+        moveSpeed = Mathf.Clamp(speed, 0.1f, MAX_MOVE_SPEED);
+    }
+
 }
