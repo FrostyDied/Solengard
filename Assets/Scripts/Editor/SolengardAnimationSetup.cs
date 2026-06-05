@@ -25,15 +25,15 @@ public static class SolengardAnimationSetup
     static readonly Entry[] _entries =
     {
         // ── Players ─────────────────────────────────────────────────────────────────
-        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level1.prefab", spriteFolder = "Assets/Art/Characters/Hero/Level1-3/PNG/Swordsman_lvl1/Without_shadow" },
-        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level2.prefab", spriteFolder = "Assets/Art/Characters/Hero/Level1-3/PNG/Swordsman_lvl2/Without_shadow" },
-        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level3.prefab", spriteFolder = "Assets/Art/Characters/Hero/Level1-3/PNG/Swordsman_lvl3/Without_shadow" },
-        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level4.prefab", spriteFolder = "Assets/Art/Characters/Hero/Level4-6/PNG/Swordsman_lvl4/Without_shadow" },
-        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level5.prefab", spriteFolder = "Assets/Art/Characters/Hero/Level4-6/PNG/Swordsman_lvl5/Without_shadow" },
-        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level6.prefab", spriteFolder = "Assets/Art/Characters/Hero/Level4-6/PNG/Swordsman_lvl6/Without_shadow" },
-        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level7.prefab", spriteFolder = "Assets/Art/Characters/Hero/Level7-9/PNG/Swordsman_lvl7/Without_shadow" },
-        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level8.prefab", spriteFolder = "Assets/Art/Characters/Hero/Level7-9/PNG/Swordsman_lvl8/Without_shadow" },
-        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level9.prefab", spriteFolder = "Assets/Art/Characters/Hero/Level7-9/PNG/Swordsman_lvl9/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level1.prefab", spriteFolder = "Assets/Art/Characters/Hero/Cavaleiro/Level1-3/PNG/Swordsman_lvl1/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level2.prefab", spriteFolder = "Assets/Art/Characters/Hero/Cavaleiro/Level1-3/PNG/Swordsman_lvl2/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level3.prefab", spriteFolder = "Assets/Art/Characters/Hero/Cavaleiro/Level1-3/PNG/Swordsman_lvl3/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level4.prefab", spriteFolder = "Assets/Art/Characters/Hero/Cavaleiro/Level4-6/PNG/Swordsman_lvl4/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level5.prefab", spriteFolder = "Assets/Art/Characters/Hero/Cavaleiro/Level4-6/PNG/Swordsman_lvl5/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level6.prefab", spriteFolder = "Assets/Art/Characters/Hero/Cavaleiro/Level4-6/PNG/Swordsman_lvl6/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level7.prefab", spriteFolder = "Assets/Art/Characters/Hero/Cavaleiro/Level7-9/PNG/Swordsman_lvl7/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level8.prefab", spriteFolder = "Assets/Art/Characters/Hero/Cavaleiro/Level7-9/PNG/Swordsman_lvl8/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Characters/Player_Level9.prefab", spriteFolder = "Assets/Art/Characters/Hero/Cavaleiro/Level7-9/PNG/Swordsman_lvl9/Without_shadow" },
 
         // ── Slimes ──────────────────────────────────────────────────────────────────
         new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemySlime.prefab",  spriteFolder = "Assets/Art/Characters/Enemies/Slime/PNG/Slime1/Without_shadow" },
