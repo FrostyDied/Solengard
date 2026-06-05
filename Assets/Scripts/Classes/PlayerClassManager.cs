@@ -74,6 +74,8 @@ public class PlayerClassManager : MonoBehaviour
 
         var attack = playerGO.GetComponent<PlayerAttack>();
         if (attack != null)
+        {
+            Debug.Log($"[ClassManager] Aplicando {CurrentClass.className}: interval={CurrentClass.attackInterval}");
             attack.SetClassConfig(
                 CurrentClass.attackDamage,
                 CurrentClass.attackRange,
@@ -81,6 +83,7 @@ public class PlayerClassManager : MonoBehaviour
                 CurrentClass.attackType,
                 CurrentClass.attackArc,
                 CurrentClass.projectileCount);
+        }
 
         var controller = playerGO.GetComponent<PlayerController>();
         if (controller != null)

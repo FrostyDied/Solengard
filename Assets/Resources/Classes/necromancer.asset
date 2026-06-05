@@ -21,7 +21,7 @@ MonoBehaviour:
   attackDamage: 35
   moveSpeed: 4
   attackRange: 7
-  attackInterval: 2
+  attackInterval: 2.5
   attackType: 5
   attackArc: 270
   projectileCount: 1
@@ -75,7 +75,7 @@ MonoBehaviour:
   - {fileID: -5278986678097760932, guid: 74fc8a00a866039468e5720c2ddabd52, type: 3}
   - {fileID: -9116357245615480295, guid: 74fc8a00a866039468e5720c2ddabd52, type: 3}
   projectileSprite: {fileID: 0}
-  projectileScale: 2.5
+  projectileScale: 1
   unlockedByDefault: 0
   unlockCostDiamonds: 1000
   worldScale: 3

@@ -74,10 +74,6 @@ public class PlayerAttack : MonoBehaviour
         if (PlayerController.Instance != null)
             PlayerController.Instance.LastAttackTime = Time.time;
 
-        // Animação de ataque
-        if (_anim != null)
-            _anim.LockAttack(attackCooldown * 0.8f);
-
         switch (_attackType)
         {
             case AttackType.Melee360:         AttackMelee(360f);             break;
@@ -144,15 +140,9 @@ public class PlayerAttack : MonoBehaviour
 
             case AttackType.Melee180:
                 Vector3 paladinPos = transform.position + (Vector3)((Vector2)facing * 1.5f);
-                var paladinVfx = SpawnVFX(_vfxMelee, paladinPos, 0.4f);
+                var paladinVfx = SpawnVFX(_vfxHoly, paladinPos, 0.4f);
                 if (paladinVfx != null)
-                {
-                    float angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
-                    paladinVfx.transform.rotation   = Quaternion.Euler(0f, 0f, angle);
-                    paladinVfx.transform.localScale = Vector3.one * 0.6f;
-                    var sr = paladinVfx.GetComponentInChildren<SpriteRenderer>();
-                    if (sr != null) sr.color = new Color(1f, 0.95f, 0.7f);
-                }
+                    paladinVfx.transform.localScale = Vector3.one * 0.5f;
                 break;
 
             case AttackType.MeleeCone:

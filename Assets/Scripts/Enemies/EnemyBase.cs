@@ -215,15 +215,23 @@ public class EnemyBase : MonoBehaviour
         currentHealth -= amount;
         if (isBoss)
             Debug.Log($"[Boss] {name} recebeu {amount:F0} dano. HP: {currentHealth:F0}/{maxHealth:F0}");
+
         var hitType = isBoss  ? VFXManager.EnemyType.Boss  :
                       isHeavy ? VFXManager.EnemyType.Heavy : VFXManager.EnemyType.Normal;
-        VFXManager.Instance?.SpawnHit(transform.position, hitType);
-        StartCoroutine(FlashRed());
 
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.SetState(CharacterAnimator.State.Hurt);
-        if (currentHealth <= 0.01f) Die();
-        else if (anim != null) StartCoroutine(ResetAnimAfterHurt(anim));
+
+        if (currentHealth <= 0.01f)
+        {
+            Die(); // Die() spawna SpawnDeath — sem SpawnHit duplicado
+        }
+        else
+        {
+            VFXManager.Instance?.SpawnHit(transform.position, hitType);
+            StartCoroutine(FlashRed());
+            if (anim != null) StartCoroutine(ResetAnimAfterHurt(anim));
+        }
     }
 
     IEnumerator ResetAnimAfterHurt(CharacterAnimator anim)

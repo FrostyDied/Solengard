@@ -21,7 +21,7 @@ MonoBehaviour:
   attackDamage: 50
   moveSpeed: 4.5
   attackRange: 8
-  attackInterval: 1.2
+  attackInterval: 2
   attackType: 3
   attackArc: 270
   projectileCount: 1
@@ -31,6 +31,63 @@ MonoBehaviour:
   specialType: 1
   spriteFolder: Assets/Art/Characters/Hero/Mago/Lightning Mage
   pixelsPerUnit: 100
+  idleFrames:
+  - {fileID: 4723107735738678597, guid: c4fe2582364edf64e8b968eed3aaf892, type: 3}
+  - {fileID: -7385789195546760866, guid: c4fe2582364edf64e8b968eed3aaf892, type: 3}
+  - {fileID: 3234629978573100161, guid: c4fe2582364edf64e8b968eed3aaf892, type: 3}
+  - {fileID: 6373048116405451881, guid: c4fe2582364edf64e8b968eed3aaf892, type: 3}
+  - {fileID: 7264182050183361747, guid: c4fe2582364edf64e8b968eed3aaf892, type: 3}
+  - {fileID: -2834552850196481573, guid: c4fe2582364edf64e8b968eed3aaf892, type: 3}
+  - {fileID: 3278449094680734212, guid: c4fe2582364edf64e8b968eed3aaf892, type: 3}
+  walkFrames:
+  - {fileID: 4035959289877228764, guid: 81836aeee5b44eb4e8d8581d98619093, type: 3}
+  - {fileID: -982904232830982447, guid: 81836aeee5b44eb4e8d8581d98619093, type: 3}
+  - {fileID: -350908408369970039, guid: 81836aeee5b44eb4e8d8581d98619093, type: 3}
+  - {fileID: -5409570386352685021, guid: 81836aeee5b44eb4e8d8581d98619093, type: 3}
+  - {fileID: 1553940418269799609, guid: 81836aeee5b44eb4e8d8581d98619093, type: 3}
+  - {fileID: 2416434504916517810, guid: 81836aeee5b44eb4e8d8581d98619093, type: 3}
+  - {fileID: -6428935122508569504, guid: 81836aeee5b44eb4e8d8581d98619093, type: 3}
+  attackFrames:
+  - {fileID: -8915327726919978405, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: 4416717768442454902, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: 549843493828548186, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: -1949197173246352631, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: -8098450456456241304, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: -5964631490132687288, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: 1041346128526885044, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: 8971151442190097498, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: -8053095777402275025, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: -7284276865116135648, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: -5920049745647856285, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: 1501608984118140601, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: 2287586033297064399, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: 8368086727976462686, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: 4688295478533005478, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: -4176445809780997858, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: 9111255474114485651, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: -6197699949570948299, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: 5610570195965040114, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  - {fileID: -4186573142144889428, guid: f3c0d381f09759042a02e2029a8b42cd, type: 3}
+  hurtFrames:
+  - {fileID: -2048800907179887802, guid: 96a36d1c565bed54dbd6f8a7659c4b1e, type: 3}
+  - {fileID: 490842205202310979, guid: 96a36d1c565bed54dbd6f8a7659c4b1e, type: 3}
+  - {fileID: -3720053754089064719, guid: 96a36d1c565bed54dbd6f8a7659c4b1e, type: 3}
+  deathFrames:
+  - {fileID: 2649847697073447219, guid: d42db0b8297aca541a0c9ba0652f444a, type: 3}
+  - {fileID: -8293461521501190705, guid: d42db0b8297aca541a0c9ba0652f444a, type: 3}
+  - {fileID: -1631342717326862633, guid: d42db0b8297aca541a0c9ba0652f444a, type: 3}
+  - {fileID: -3927913518680497933, guid: d42db0b8297aca541a0c9ba0652f444a, type: 3}
+  - {fileID: -1057675302478342458, guid: d42db0b8297aca541a0c9ba0652f444a, type: 3}
+  projectileFrames:
+  - {fileID: 2738620186445829463, guid: 36c300d26caf68a41a305bbcd9439489, type: 3}
+  - {fileID: 8752018101579050596, guid: 36c300d26caf68a41a305bbcd9439489, type: 3}
+  - {fileID: -1640791292941081927, guid: 36c300d26caf68a41a305bbcd9439489, type: 3}
+  - {fileID: 8942023398709923323, guid: 36c300d26caf68a41a305bbcd9439489, type: 3}
+  - {fileID: 1790254546840505467, guid: 36c300d26caf68a41a305bbcd9439489, type: 3}
+  - {fileID: -555749976282318871, guid: 36c300d26caf68a41a305bbcd9439489, type: 3}
+  - {fileID: 542821090439673570, guid: 36c300d26caf68a41a305bbcd9439489, type: 3}
+  projectileSprite: {fileID: 0}
+  projectileScale: 0.8
   unlockedByDefault: 0
   unlockCostDiamonds: 500
   worldScale: 3
