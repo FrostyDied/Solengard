@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba85ccbbab58b264a8fe333d8b76285e, type: 3}
+  m_Name: hunter
+  m_EditorClassIdentifier: 
+  classId: hunter
+  displayName: Rynn, a Sem-Descanso
+  className: "Ca\xE7ador"
+  lore: 
+  maxHP: 120
+  defense: 12
+  attackDamage: 38
+  moveSpeed: 5
+  attackRange: 6.5
+  attackInterval: 1
+  attackType: 4
+  attackArc: 270
+  projectileCount: 2
+  specialName: Chuva de Flechas
+  specialCooldown: 12
+  specialDuration: 3
+  specialType: 5
+  spriteFolder: "Assets/Art/Characters/Hero/Ca\xE7ador/Ca\xE7ador"
+  pixelsPerUnit: 32
+  unlockedByDefault: 0
+  unlockCostDiamonds: 800
+  worldScale: 1

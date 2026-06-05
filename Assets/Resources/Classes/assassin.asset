@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba85ccbbab58b264a8fe333d8b76285e, type: 3}
+  m_Name: assassin
+  m_EditorClassIdentifier: 
+  classId: assassin
+  displayName: Vael, a Sombra Fraturada
+  className: Assassino
+  lore: 
+  maxHP: 110
+  defense: 10
+  attackDamage: 45
+  moveSpeed: 6
+  attackRange: 6.5
+  attackInterval: 0.35
+  attackType: 2
+  attackArc: 60
+  projectileCount: 1
+  specialName: "Evas\xE3o Sombria"
+  specialCooldown: 12
+  specialDuration: 3
+  specialType: 2
+  spriteFolder: Assets/Art/Characters/Hero/Assassino/Assassino
+  pixelsPerUnit: 32
+  unlockedByDefault: 0
+  unlockCostDiamonds: 800
+  worldScale: 1

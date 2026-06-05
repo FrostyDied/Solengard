@@ -170,6 +170,18 @@ public static class CreateClassDefinitions
         Debug.Log("[Classes] 6 ClassDefinitions criadas em " + OUTPUT_DIR);
     }
 
+    [MenuItem("Solengard/Classes/Testar Carregamento")]
+    static void TestLoad()
+    {
+        var classes = Resources.LoadAll<ClassDefinition>("Classes");
+        Debug.Log($"[Teste] {classes.Length} classes carregadas:");
+        foreach (var c in classes)
+        {
+            bool pathOk = System.IO.Directory.Exists(c.spriteFolder);
+            Debug.Log($"  {c.className} ({c.classId}): HP={c.maxHP} ATK={c.attackDamage} PPU={c.pixelsPerUnit} worldScale={c.worldScale} pathOk={pathOk}");
+        }
+    }
+
     static void Create(ClassDefinition data)
     {
         string path = $"{OUTPUT_DIR}/{data.classId}.asset";
