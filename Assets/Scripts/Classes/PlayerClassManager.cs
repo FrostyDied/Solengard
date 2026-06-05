@@ -64,7 +64,9 @@ public class PlayerClassManager : MonoBehaviour
 
     public void ApplyClassToPlayer(GameObject playerGO)
     {
-        if (CurrentClass == null) return;
+        Debug.Log($"[ClassManager] ApplyClassToPlayer chamado. Classe={CurrentClass?.className ?? "NULL"}, selected_class PlayerPrefs={PlayerPrefs.GetString(SELECTED_CLASS_KEY, "vazio")}");
+
+        if (CurrentClass == null) { Debug.LogError("[ClassManager] CurrentClass é null — LoadSelectedClass falhou?"); return; }
 
         var health = playerGO.GetComponent<PlayerHealth>();
         if (health != null)
@@ -87,7 +89,9 @@ public class PlayerClassManager : MonoBehaviour
         playerGO.transform.localScale = Vector3.one * CurrentClass.worldScale;
 
         var anim = playerGO.GetComponent<CharacterAnimator>();
-        if (anim != null && (CurrentClass.idleFrames?.Length ?? 0) > 0)
+        int idleCount = CurrentClass.idleFrames?.Length ?? 0;
+        Debug.Log($"[ClassManager] CharacterAnimator={anim != null}, idleFrames={idleCount}, walkFrames={CurrentClass.walkFrames?.Length ?? 0}");
+        if (anim != null && idleCount > 0)
         {
             anim.OverrideFrames(
                 CurrentClass.idleFrames,
@@ -95,6 +99,11 @@ public class PlayerClassManager : MonoBehaviour
                 CurrentClass.attackFrames,
                 CurrentClass.hurtFrames,
                 CurrentClass.deathFrames);
+            Debug.Log($"[ClassManager] OverrideFrames aplicado — {idleCount} frames idle");
+        }
+        else if (idleCount == 0)
+        {
+            Debug.LogWarning($"[ClassManager] idleFrames vazio para '{CurrentClass.classId}' — rode Solengard > Classes > Setup Hero Animations no Editor");
         }
 
         Debug.Log($"[ClassManager] Player configurado como {CurrentClass.className}: sprite trocado, stats aplicados");

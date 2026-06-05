@@ -217,6 +217,7 @@ public class GameManager : MonoBehaviour
             Debug.Log($"[GameManager] Sessao ativa — wave={sessaoData.currentWave}, restaurada apos lore");
 
         var playerGO = PlayerController.Instance?.gameObject;
+        Debug.Log($"[GameManager] StartGame — PlayerController.Instance={PlayerController.Instance != null}, PlayerClassManager.Instance={PlayerClassManager.Instance != null}, playerGO={playerGO != null}");
         if (playerGO != null)
             PlayerClassManager.Instance?.ApplyClassToPlayer(playerGO);
 
