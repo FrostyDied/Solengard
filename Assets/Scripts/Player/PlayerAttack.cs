@@ -14,6 +14,7 @@ public class PlayerAttack : MonoBehaviour
     AttackType _attackType       = AttackType.Melee360;
     float      _attackArc        = 270f;
     int        _projectileCount  = 1;
+    bool       _meleeAlt;
 
     PlayerWeapon weapon;
     float _cooldownTimer;
@@ -67,17 +68,49 @@ public class PlayerAttack : MonoBehaviour
 
         switch (_attackType)
         {
-            case AttackType.Melee360:     AttackMelee(360f);             break;
-            case AttackType.Melee180:     AttackMelee(180f);             break;
-            case AttackType.MeleeCone:    AttackMelee(_attackArc);       break;
-            case AttackType.RangedSingle: AttackRanged(1);               break;
-            case AttackType.RangedMulti:  AttackRanged(_projectileCount); break;
-            case AttackType.RangedSummon: AttackRangedSummon();          break;
-            default:                      AttackMelee(360f);             break;
+            case AttackType.Melee360:        AttackMelee(360f);             break;
+            case AttackType.Melee180:        AttackMelee(180f);             break;
+            case AttackType.MeleeCone:       AttackMelee(_attackArc);       break;
+            case AttackType.MeleeDirectional: AttackMeleeDirectional();     break;
+            case AttackType.RangedSingle:    AttackRanged(1);               break;
+            case AttackType.RangedMulti:     AttackRanged(_projectileCount); break;
+            case AttackType.RangedSummon:    AttackRangedSummon();          break;
+            default:                         AttackMelee(360f);             break;
         }
     }
 
     // ── Melee ────────────────────────────────────────────────────────────────────
+
+    void AttackMeleeDirectional()
+    {
+        var facing = PlayerController.Instance != null
+            ? PlayerController.Instance.FacingDirection
+            : Vector2.right;
+
+        Vector2 attackDir = _meleeAlt ? -facing : facing;
+        _meleeAlt = !_meleeAlt;
+
+        Vector3 vfxPos = transform.position + (Vector3)(attackDir * 1.5f);
+        SpawnVFX(_vfxMelee, vfxPos, 0.5f, 1.5f);
+
+        var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+        filter.SetLayerMask(enemyLayerMask);
+        var results = new List<Collider2D>();
+        Physics2D.OverlapCircle(transform.position, attackRange, filter, results);
+
+        foreach (var col in results)
+        {
+            if (col == null) continue;
+            var dir = ((Vector2)(col.transform.position - transform.position)).normalized;
+            if (Vector2.Angle(attackDir, dir) > 45f) continue;
+            var enemy = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+            if (enemy != null)
+            {
+                if (enemy.isBoss) Debug.Log($"[PlayerAttack] Acertou boss {enemy.name} — {attackDamage:F0} dmg");
+                enemy.TakeDamage(attackDamage);
+            }
+        }
+    }
 
     void AttackMelee(float arc)
     {
@@ -87,13 +120,16 @@ public class PlayerAttack : MonoBehaviour
                 SpawnVFX(_vfxMelee, transform.position, 0.5f, 1.5f);
                 break;
             case AttackType.Melee180:
-                SpawnVFX(_vfxHoly, transform.position, 0.5f, 1.2f, new Color(1f, 0.9f, 0.4f));
+                Vector3 paladinPos = transform.position;
+                if (PlayerController.Instance != null)
+                    paladinPos += (Vector3)(PlayerController.Instance.FacingDirection * 1.5f);
+                SpawnVFX(_vfxSlash, paladinPos, 0.5f, 0.8f, Color.white);
                 break;
             case AttackType.MeleeCone:
                 Vector3 slashPos = transform.position;
                 if (PlayerController.Instance != null)
                     slashPos += (Vector3)(PlayerController.Instance.FacingDirection * 1.5f);
-                SpawnVFX(_vfxSlash, slashPos, 0.5f, 0.8f);
+                SpawnVFX(_vfxSlash, slashPos, 0.5f, 0.4f);
                 break;
             default:
                 SpawnVFX(_vfxMelee, transform.position, 0.5f, 1f);
@@ -141,7 +177,7 @@ public class PlayerAttack : MonoBehaviour
 
     void FireProjectile(Vector2 dir, Color fallbackColor, GameObject impactVFX)
     {
-        var classDef       = PlayerClassManager.Instance?.CurrentClass;
+        var classDef        = PlayerClassManager.Instance?.CurrentClass;
         bool hasAnimFrames  = classDef != null && classDef.projectileFrames != null && classDef.projectileFrames.Length > 0;
         bool hasStaticSprite = !hasAnimFrames && classDef != null && classDef.projectileSprite != null;
 
@@ -151,14 +187,16 @@ public class PlayerAttack : MonoBehaviour
         int playerLayer = LayerMask.NameToLayer("Player");
         go.layer = playerLayer >= 0 ? playerLayer : 0;
 
-        // Flecha (Caçador): rotacionar para apontar na direção do alvo
         if (hasStaticSprite)
         {
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
             go.transform.rotation = Quaternion.Euler(0f, 0f, angle);
         }
 
-        float scale = classDef != null ? classDef.projectileScale : 1f;
+        // Escala: sprites reais recebem 50% do projectileScale configurado
+        float scale = hasAnimFrames || hasStaticSprite
+            ? (classDef != null ? classDef.projectileScale : 1f) * 0.5f
+            : 1f;
         go.transform.localScale = Vector3.one * scale;
 
         var sr = go.AddComponent<SpriteRenderer>();

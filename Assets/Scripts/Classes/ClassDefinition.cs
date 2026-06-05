@@ -55,12 +55,13 @@ public class ClassDefinition : ScriptableObject
 
 public enum AttackType
 {
-    Melee360,     // Guerreiro — arco 270°
-    Melee180,     // Paladino — arco 180° frontal
-    MeleeCone,    // Assassino — cone 60° rápido
-    RangedSingle, // Mago — projétil no mais próximo
-    RangedMulti,  // Caçador — 2 alvos
-    RangedSummon  // Necromante — bone shard + minion
+    Melee360,          // (legado)
+    Melee180,          // Paladino — arco 180° frontal
+    MeleeCone,         // Assassino — cone 60° rápido
+    RangedSingle,      // Mago — projétil no mais próximo
+    RangedMulti,       // Caçador — 2 alvos
+    RangedSummon,      // Necromante — bone shard + minion
+    MeleeDirectional   // Guerreiro — slash frente/trás alternando
 }
 
 public enum SpecialType

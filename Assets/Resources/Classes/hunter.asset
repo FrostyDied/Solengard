@@ -24,13 +24,59 @@ MonoBehaviour:
   attackInterval: 1
   attackType: 4
   attackArc: 270
-  projectileCount: 2
+  projectileCount: 1
   specialName: Chuva de Flechas
   specialCooldown: 12
   specialDuration: 3
   specialType: 5
   spriteFolder: "Assets/Art/Characters/Hero/Ca\xE7ador/Ca\xE7ador"
   pixelsPerUnit: 32
+  idleFrames:
+  - {fileID: 4723107735738678597, guid: 29d4ceb628a6a2245b29dd977545a5e5, type: 3}
+  - {fileID: -7385789195546760866, guid: 29d4ceb628a6a2245b29dd977545a5e5, type: 3}
+  - {fileID: 3234629978573100161, guid: 29d4ceb628a6a2245b29dd977545a5e5, type: 3}
+  - {fileID: 6373048116405451881, guid: 29d4ceb628a6a2245b29dd977545a5e5, type: 3}
+  - {fileID: 7264182050183361747, guid: 29d4ceb628a6a2245b29dd977545a5e5, type: 3}
+  - {fileID: -2834552850196481573, guid: 29d4ceb628a6a2245b29dd977545a5e5, type: 3}
+  walkFrames:
+  - {fileID: 4035959289877228764, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: -982904232830982447, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: 11406907883527339, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: 8030128826893041618, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: -350908408369970039, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: -5409570386352685021, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: 1553940418269799609, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: 2416434504916517810, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: -6428935122508569504, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: 7144598999076838305, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: 7500509103958437945, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  - {fileID: 1008816216748069464, guid: 0a44cbe71fa4ea3489f5fef19fe6763b, type: 3}
+  attackFrames:
+  - {fileID: -7008412969330441016, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: -7763475090823894447, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: -4098942091326826159, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: -9192815492500660022, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: 302641331129538988, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: -6329420634031446844, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: -910092549403018386, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: 221524225039350300, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: 1290532464073988732, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: 4780903288873104255, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: -2238382357930459393, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  - {fileID: -297473348006037033, guid: 07789bd390709304d8fb3c39ac0394fe, type: 3}
+  hurtFrames:
+  - {fileID: -2048800907179887802, guid: 4d6b210243bed7749afd8f7be6df6b0c, type: 3}
+  - {fileID: 490842205202310979, guid: 4d6b210243bed7749afd8f7be6df6b0c, type: 3}
+  - {fileID: -3720053754089064719, guid: 4d6b210243bed7749afd8f7be6df6b0c, type: 3}
+  deathFrames:
+  - {fileID: 2649847697073447219, guid: 740e7bcb9eaa93447914653dab5638bc, type: 3}
+  - {fileID: -8293461521501190705, guid: 740e7bcb9eaa93447914653dab5638bc, type: 3}
+  - {fileID: -1631342717326862633, guid: 740e7bcb9eaa93447914653dab5638bc, type: 3}
+  - {fileID: -3927913518680497933, guid: 740e7bcb9eaa93447914653dab5638bc, type: 3}
+  - {fileID: -1057675302478342458, guid: 740e7bcb9eaa93447914653dab5638bc, type: 3}
+  projectileFrames: []
+  projectileSprite: {fileID: 7043984996573275655, guid: f39edbac03d66ac4682b5eabab8b593b, type: 3}
+  projectileScale: 3
   unlockedByDefault: 0
   unlockCostDiamonds: 800
   worldScale: 1.4

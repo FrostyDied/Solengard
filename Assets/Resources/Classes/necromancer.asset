@@ -21,7 +21,7 @@ MonoBehaviour:
   attackDamage: 35
   moveSpeed: 4
   attackRange: 7
-  attackInterval: 1
+  attackInterval: 2
   attackType: 5
   attackArc: 270
   projectileCount: 1
@@ -31,6 +31,51 @@ MonoBehaviour:
   specialType: 3
   spriteFolder: Assets/Art/Characters/Hero/Necromante/Necromante
   pixelsPerUnit: 100
+  idleFrames:
+  - {fileID: 4723107735738678597, guid: afe10c1eba752174b991a681e5d087a1, type: 3}
+  - {fileID: -7385789195546760866, guid: afe10c1eba752174b991a681e5d087a1, type: 3}
+  - {fileID: 3234629978573100161, guid: afe10c1eba752174b991a681e5d087a1, type: 3}
+  - {fileID: 6373048116405451881, guid: afe10c1eba752174b991a681e5d087a1, type: 3}
+  - {fileID: 7264182050183361747, guid: afe10c1eba752174b991a681e5d087a1, type: 3}
+  - {fileID: -2834552850196481573, guid: afe10c1eba752174b991a681e5d087a1, type: 3}
+  walkFrames:
+  - {fileID: 4035959289877228764, guid: ad4cfca110e3fbf43af7d8d18cb9a27f, type: 3}
+  - {fileID: -982904232830982447, guid: ad4cfca110e3fbf43af7d8d18cb9a27f, type: 3}
+  - {fileID: -350908408369970039, guid: ad4cfca110e3fbf43af7d8d18cb9a27f, type: 3}
+  - {fileID: -5409570386352685021, guid: ad4cfca110e3fbf43af7d8d18cb9a27f, type: 3}
+  - {fileID: 1553940418269799609, guid: ad4cfca110e3fbf43af7d8d18cb9a27f, type: 3}
+  - {fileID: 2416434504916517810, guid: ad4cfca110e3fbf43af7d8d18cb9a27f, type: 3}
+  - {fileID: -6428935122508569504, guid: ad4cfca110e3fbf43af7d8d18cb9a27f, type: 3}
+  - {fileID: 7144598999076838305, guid: ad4cfca110e3fbf43af7d8d18cb9a27f, type: 3}
+  - {fileID: 7500509103958437945, guid: ad4cfca110e3fbf43af7d8d18cb9a27f, type: 3}
+  - {fileID: 1008816216748069464, guid: ad4cfca110e3fbf43af7d8d18cb9a27f, type: 3}
+  attackFrames:
+  - {fileID: -8915327726919978405, guid: 9766a88cd72c95740b4b3d733a97c3a1, type: 3}
+  - {fileID: 4416717768442454902, guid: 9766a88cd72c95740b4b3d733a97c3a1, type: 3}
+  - {fileID: -8053095777402275025, guid: 9766a88cd72c95740b4b3d733a97c3a1, type: 3}
+  - {fileID: 4688295478533005478, guid: 9766a88cd72c95740b4b3d733a97c3a1, type: 3}
+  - {fileID: 3156989228384878200, guid: 9766a88cd72c95740b4b3d733a97c3a1, type: 3}
+  - {fileID: -4176445809780997858, guid: 9766a88cd72c95740b4b3d733a97c3a1, type: 3}
+  hurtFrames:
+  - {fileID: -2048800907179887802, guid: f10522f99da54e647bdf65b4cd670b1a, type: 3}
+  - {fileID: 490842205202310979, guid: f10522f99da54e647bdf65b4cd670b1a, type: 3}
+  - {fileID: -3720053754089064719, guid: f10522f99da54e647bdf65b4cd670b1a, type: 3}
+  - {fileID: 5649970053243570431, guid: f10522f99da54e647bdf65b4cd670b1a, type: 3}
+  - {fileID: -371187646486735994, guid: f10522f99da54e647bdf65b4cd670b1a, type: 3}
+  - {fileID: 1177448812329152706, guid: f10522f99da54e647bdf65b4cd670b1a, type: 3}
+  deathFrames:
+  - {fileID: 2649847697073447219, guid: 2fafccd62f10ac8498e55ae7c644621c, type: 3}
+  - {fileID: -8293461521501190705, guid: 2fafccd62f10ac8498e55ae7c644621c, type: 3}
+  - {fileID: -1631342717326862633, guid: 2fafccd62f10ac8498e55ae7c644621c, type: 3}
+  - {fileID: -3927913518680497933, guid: 2fafccd62f10ac8498e55ae7c644621c, type: 3}
+  projectileFrames:
+  - {fileID: 6108012597462862368, guid: 74fc8a00a866039468e5720c2ddabd52, type: 3}
+  - {fileID: -3232016802565754395, guid: 74fc8a00a866039468e5720c2ddabd52, type: 3}
+  - {fileID: -8452378982718362965, guid: 74fc8a00a866039468e5720c2ddabd52, type: 3}
+  - {fileID: -5278986678097760932, guid: 74fc8a00a866039468e5720c2ddabd52, type: 3}
+  - {fileID: -9116357245615480295, guid: 74fc8a00a866039468e5720c2ddabd52, type: 3}
+  projectileSprite: {fileID: 0}
+  projectileScale: 2.5
   unlockedByDefault: 0
   unlockCostDiamonds: 1000
   worldScale: 3

@@ -25,9 +25,10 @@ public static class SolengardHeroAnimSetup
         public float  worldScale;
         // Projétil
         public string projectileFile;
-        public int    projectileMaxFrame; // -1 = todos os frames; >=0 = frames 0..N
-        public bool   projectileIsStatic; // true → salvar em projectileSprite (frame único)
+        public int    projectileMaxFrame;   // -1 = todos os frames; >=0 = frames 0..N
+        public bool   projectileIsStatic;   // true → salvar em projectileSprite (frame único)
         public float  projectileScale;
+        public string projectileNameFilter; // opcional: só aceita sprites cujo nome contém este texto
     }
 
     static readonly HeroEntry[] _entries =
@@ -56,10 +57,11 @@ public static class SolengardHeroAnimSetup
             deathFile         = "Dead.png",
             multiRowSheet     = false,
             worldScale        = 0.32f,
-            projectileFile    = "Light_ball.png",
-            projectileMaxFrame = -1,
-            projectileIsStatic = false,
-            projectileScale   = 2.0f,
+            projectileFile       = "Light_ball.png",
+            projectileMaxFrame  = -1,
+            projectileIsStatic  = false,
+            projectileScale     = 2.0f,
+            projectileNameFilter = "Light_ball",
         },
         new HeroEntry {
             classId           = "assassin",
@@ -269,12 +271,13 @@ public static class SolengardHeroAnimSetup
         string path = e.folder + "/" + e.projectileFile;
         var all = AssetDatabase.LoadAllAssetsAtPath(path)
             .OfType<Sprite>()
+            .Where(s => string.IsNullOrEmpty(e.projectileNameFilter) || s.name.Contains(e.projectileNameFilter))
             .OrderBy(s => s.name, System.StringComparer.Ordinal)
             .ToList();
 
         if (all.Count == 0)
         {
-            Debug.LogWarning($"[HeroAnim] {e.classId}: nenhum sprite de projétil em '{path}'");
+            Debug.LogWarning($"[HeroAnim] {e.classId}: nenhum sprite de projétil em '{path}' (filtro='{e.projectileNameFilter}')");
             return new Sprite[0];
         }
 

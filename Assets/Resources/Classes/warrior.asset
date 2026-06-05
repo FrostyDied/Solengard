@@ -22,7 +22,7 @@ MonoBehaviour:
   moveSpeed: 3.5
   attackRange: 3.5
   attackInterval: 0.8
-  attackType: 0
+  attackType: 6
   attackArc: 270
   projectileCount: 1
   specialName: "F\xFAria Sangu\xEDnea"
@@ -71,6 +71,9 @@ MonoBehaviour:
   - {fileID: -4987107980942723018, guid: 5d26f4937848ddf45bff80dfbd449f82, type: 3}
   - {fileID: -2272000799859623240, guid: 5d26f4937848ddf45bff80dfbd449f82, type: 3}
   - {fileID: -5172407023562201331, guid: 5d26f4937848ddf45bff80dfbd449f82, type: 3}
+  projectileFrames: []
+  projectileSprite: {fileID: 0}
+  projectileScale: 1
   unlockedByDefault: 1
   unlockCostDiamonds: 0
   worldScale: 1
