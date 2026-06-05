@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,8 +17,9 @@ public class PlayerAttack : MonoBehaviour
     int        _projectileCount  = 1;
     bool       _meleeAlt;
 
-    PlayerWeapon weapon;
-    float _cooldownTimer;
+    PlayerWeapon      weapon;
+    CharacterAnimator _anim;
+    float             _cooldownTimer;
 
     static Sprite _dotSprite;
 
@@ -33,9 +35,12 @@ public class PlayerAttack : MonoBehaviour
     void Awake()
     {
         weapon = GetComponent<PlayerWeapon>();
+        _anim  = GetComponent<CharacterAnimator>();
         SyncFromWeapon();
         if (enemyLayerMask == 0) enemyLayerMask = LayerMask.GetMask("Enemy");
         LoadVFX();
+        // Começar com cooldown cheio — garante que SetClassConfig rode antes do primeiro ataque
+        _cooldownTimer = attackCooldown;
     }
 
     void LoadVFX()
@@ -63,19 +68,26 @@ public class PlayerAttack : MonoBehaviour
 
     void Attack()
     {
+        // Guard: não atacar antes da classe ser carregada
+        if (PlayerClassManager.Instance?.CurrentClass == null) return;
+
         if (PlayerController.Instance != null)
             PlayerController.Instance.LastAttackTime = Time.time;
 
+        // Animação de ataque
+        if (_anim != null)
+            _anim.LockAttack(attackCooldown * 0.8f);
+
         switch (_attackType)
         {
-            case AttackType.Melee360:        AttackMelee(360f);             break;
-            case AttackType.Melee180:        AttackMelee(180f);             break;
-            case AttackType.MeleeCone:       AttackMelee(_attackArc);       break;
-            case AttackType.MeleeDirectional: AttackMeleeDirectional();     break;
-            case AttackType.RangedSingle:    AttackRanged(1);               break;
-            case AttackType.RangedMulti:     AttackRanged(_projectileCount); break;
-            case AttackType.RangedSummon:    AttackRangedSummon();          break;
-            default:                         AttackMelee(360f);             break;
+            case AttackType.Melee360:         AttackMelee(360f);             break;
+            case AttackType.Melee180:         AttackMelee(180f);             break;
+            case AttackType.MeleeCone:        AttackMelee(_attackArc);       break;
+            case AttackType.MeleeDirectional: AttackMeleeDirectional();      break;
+            case AttackType.RangedSingle:     AttackRanged(1);               break;
+            case AttackType.RangedMulti:      AttackRanged(_projectileCount); break;
+            case AttackType.RangedSummon:     AttackRangedSummon();          break;
+            default:                          AttackMelee(360f);             break;
         }
     }
 
@@ -91,7 +103,13 @@ public class PlayerAttack : MonoBehaviour
         _meleeAlt = !_meleeAlt;
 
         Vector3 vfxPos = transform.position + (Vector3)(attackDir * 1.5f);
-        SpawnVFX(_vfxMelee, vfxPos, 0.5f, 1.5f);
+        var vfx = SpawnVFX(_vfxMelee, vfxPos, 0.4f);
+        if (vfx != null)
+        {
+            float angle = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
+            vfx.transform.rotation   = Quaternion.Euler(0f, 0f, angle);
+            vfx.transform.localScale = Vector3.one * 0.8f;
+        }
 
         var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
         filter.SetLayerMask(enemyLayerMask);
@@ -114,23 +132,38 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackMelee(float arc)
     {
+        var facing = PlayerController.Instance != null
+            ? PlayerController.Instance.FacingDirection
+            : Vector2.right;
+
         switch (_attackType)
         {
             case AttackType.Melee360:
                 SpawnVFX(_vfxMelee, transform.position, 0.5f, 1.5f);
                 break;
+
             case AttackType.Melee180:
-                Vector3 paladinPos = transform.position;
-                if (PlayerController.Instance != null)
-                    paladinPos += (Vector3)(PlayerController.Instance.FacingDirection * 1.5f);
-                SpawnVFX(_vfxSlash, paladinPos, 0.5f, 0.8f, Color.white);
+                Vector3 paladinPos = transform.position + (Vector3)((Vector2)facing * 1.5f);
+                var paladinVfx = SpawnVFX(_vfxMelee, paladinPos, 0.4f);
+                if (paladinVfx != null)
+                {
+                    float angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
+                    paladinVfx.transform.rotation   = Quaternion.Euler(0f, 0f, angle);
+                    paladinVfx.transform.localScale = Vector3.one * 0.6f;
+                    var sr = paladinVfx.GetComponentInChildren<SpriteRenderer>();
+                    if (sr != null) sr.color = new Color(1f, 0.95f, 0.7f);
+                }
                 break;
+
             case AttackType.MeleeCone:
-                Vector3 slashPos = transform.position;
-                if (PlayerController.Instance != null)
-                    slashPos += (Vector3)(PlayerController.Instance.FacingDirection * 1.5f);
-                SpawnVFX(_vfxSlash, slashPos, 0.5f, 0.4f);
+                var nearestInCone = GetNearestEnemyInCone(facing, _attackArc);
+                Vector3 coneVfxPos = nearestInCone != null
+                    ? nearestInCone.transform.position
+                    : transform.position + (Vector3)((Vector2)facing * 1.5f);
+                var coneVfx = SpawnVFX(_vfxSlash, coneVfxPos, 0.3f);
+                if (coneVfx != null) coneVfx.transform.localScale = Vector3.one * 0.4f;
                 break;
+
             default:
                 SpawnVFX(_vfxMelee, transform.position, 0.5f, 1f);
                 break;
@@ -177,8 +210,8 @@ public class PlayerAttack : MonoBehaviour
 
     void FireProjectile(Vector2 dir, Color fallbackColor, GameObject impactVFX)
     {
-        var classDef        = PlayerClassManager.Instance?.CurrentClass;
-        bool hasAnimFrames  = classDef != null && classDef.projectileFrames != null && classDef.projectileFrames.Length > 0;
+        var classDef         = PlayerClassManager.Instance?.CurrentClass;
+        bool hasAnimFrames   = classDef != null && classDef.projectileFrames != null && classDef.projectileFrames.Length > 0;
         bool hasStaticSprite = !hasAnimFrames && classDef != null && classDef.projectileSprite != null;
 
         var go = new GameObject("PlayerProjectile");
@@ -193,7 +226,6 @@ public class PlayerAttack : MonoBehaviour
             go.transform.rotation = Quaternion.Euler(0f, 0f, angle);
         }
 
-        // Escala: sprites reais recebem 50% do projectileScale configurado
         float scale = hasAnimFrames || hasStaticSprite
             ? (classDef != null ? classDef.projectileScale : 1f) * 0.5f
             : 1f;
@@ -257,6 +289,29 @@ public class PlayerAttack : MonoBehaviour
         return enemies.Count > count ? enemies.GetRange(0, count) : enemies;
     }
 
+    EnemyBase GetNearestEnemyInCone(Vector2 dir, float arc)
+    {
+        var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+        filter.SetLayerMask(enemyLayerMask);
+        var cols = new List<Collider2D>();
+        Physics2D.OverlapCircle(transform.position, attackRange, filter, cols);
+
+        EnemyBase nearest = null;
+        float     minDist = float.MaxValue;
+
+        foreach (var col in cols)
+        {
+            if (col == null) continue;
+            var toEnemy = ((Vector2)(col.transform.position - transform.position)).normalized;
+            if (Vector2.Angle(dir, toEnemy) > arc * 0.5f) continue;
+            var e = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+            if (e == null) continue;
+            float d = Vector2.Distance(transform.position, e.transform.position);
+            if (d < minDist) { minDist = d; nearest = e; }
+        }
+        return nearest;
+    }
+
     bool InArc(Vector3 targetPos, float arc)
     {
         if (arc >= 360f) return true;
@@ -267,9 +322,9 @@ public class PlayerAttack : MonoBehaviour
         return Vector2.Angle(facing, dir) <= arc * 0.5f;
     }
 
-    static void SpawnVFX(GameObject prefab, Vector3 pos, float lifetime, float scale = 1f, Color? tint = null)
+    static GameObject SpawnVFX(GameObject prefab, Vector3 pos, float lifetime, float scale = 1f, Color? tint = null)
     {
-        if (prefab == null) return;
+        if (prefab == null) return null;
         var go = Instantiate(prefab, pos, Quaternion.identity);
         if (scale != 1f) go.transform.localScale = Vector3.one * scale;
         if (tint.HasValue)
@@ -278,6 +333,7 @@ public class PlayerAttack : MonoBehaviour
             if (sr != null) sr.color = tint.Value;
         }
         Destroy(go, lifetime);
+        return go;
     }
 
     static Sprite GetDotSprite()

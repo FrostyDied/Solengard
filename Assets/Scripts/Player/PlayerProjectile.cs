@@ -55,7 +55,8 @@ public class PlayerProjectile : MonoBehaviour
 
         enemy.TakeDamage(_damage);
 
-        if (_impactVFX != null)
+        // Só spawna VFX de impacto se o inimigo sobreviveu; se morreu, EnemyBase.Die() já spawna o VFX de morte
+        if (!enemy.IsDead && _impactVFX != null)
         {
             var fx = Instantiate(_impactVFX, transform.position, Quaternion.identity);
             Destroy(fx, 0.5f);

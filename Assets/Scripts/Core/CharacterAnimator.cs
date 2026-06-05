@@ -20,6 +20,7 @@ public class CharacterAnimator : MonoBehaviour
     int   _frame;
     float _timer;
     bool  _locked;
+    float _attackLockTimer;
 
     void Awake()
     {
@@ -46,6 +47,8 @@ public class CharacterAnimator : MonoBehaviour
 
     void Update()
     {
+        if (_attackLockTimer > 0f) _attackLockTimer -= Time.deltaTime;
+
         var frames = GetFrames(_state);
         if (frames == null || frames.Length == 0) return;
 
@@ -75,11 +78,23 @@ public class CharacterAnimator : MonoBehaviour
 
     public void SetState(State newState)
     {
+        // Durante lock de ataque, só Hurt e Death podem sobrescrever
+        if (_attackLockTimer > 0f && newState != State.Hurt && newState != State.Death) return;
         if (_locked || newState == _state) return;
-        _state = newState;
-        _frame = 0;
-        _timer = 0f;
+        _state  = newState;
+        _frame  = 0;
+        _timer  = 0f;
         _locked = newState == State.Death;
+    }
+
+    // Inicia animação de ataque e bloqueia sobrescrita por duration segundos
+    public void LockAttack(float duration)
+    {
+        _attackLockTimer = duration;
+        _state  = State.Attack;
+        _frame  = 0;
+        _timer  = 0f;
+        _locked = false;
     }
 
     public void ForceState(State newState)

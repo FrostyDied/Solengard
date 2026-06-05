@@ -44,6 +44,7 @@ public class EnemyBase : MonoBehaviour
     public const float CHARACTER_WORLD_SCALE = 1.0f;
 
     protected float currentHealth;
+    public    bool  IsDead => isDead;
     protected Rigidbody2D rb;
     protected SpriteRenderer _sr;
 
