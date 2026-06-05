@@ -62,7 +62,7 @@ public static class CreateClassDefinitions
             pixelsPerUnit       = 100f,
             unlockedByDefault   = false,
             unlockCostDiamonds  = 500,
-            worldScale          = 0.32f,
+            worldScale          = 3.1f,
         });
 
         Create(new ClassDefinition
@@ -112,7 +112,7 @@ public static class CreateClassDefinitions
             pixelsPerUnit       = 100f,
             unlockedByDefault   = false,
             unlockCostDiamonds  = 1000,
-            worldScale          = 0.32f,
+            worldScale          = 3.1f,
         });
 
         Create(new ClassDefinition
@@ -137,7 +137,7 @@ public static class CreateClassDefinitions
             pixelsPerUnit       = 100f,
             unlockedByDefault   = false,
             unlockCostDiamonds  = 500,
-            worldScale          = 0.32f,
+            worldScale          = 3.1f,
         });
 
         Create(new ClassDefinition
