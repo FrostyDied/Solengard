@@ -35,6 +35,13 @@ public class ClassDefinition : ScriptableObject
     [Header("PPU dos sprites")]
     public float pixelsPerUnit = 32f;
 
+    [Header("Frames de Animação (populados por SolengardHeroAnimSetup)")]
+    public Sprite[] idleFrames;
+    public Sprite[] walkFrames;
+    public Sprite[] attackFrames;
+    public Sprite[] hurtFrames;
+    public Sprite[] deathFrames;
+
     [Header("Desbloqueio")]
     public bool  unlockedByDefault  = false;
     public int   unlockCostDiamonds = 0;

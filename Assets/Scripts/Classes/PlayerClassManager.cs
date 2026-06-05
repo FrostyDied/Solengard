@@ -86,6 +86,17 @@ public class PlayerClassManager : MonoBehaviour
 
         playerGO.transform.localScale = Vector3.one * CurrentClass.worldScale;
 
-        Debug.Log($"[ClassManager] Stats aplicados: {CurrentClass.className} HP={CurrentClass.maxHP} ATK={CurrentClass.attackDamage} vel={CurrentClass.moveSpeed} scale={CurrentClass.worldScale}");
+        var anim = playerGO.GetComponent<CharacterAnimator>();
+        if (anim != null && (CurrentClass.idleFrames?.Length ?? 0) > 0)
+        {
+            anim.OverrideFrames(
+                CurrentClass.idleFrames,
+                CurrentClass.walkFrames,
+                CurrentClass.attackFrames,
+                CurrentClass.hurtFrames,
+                CurrentClass.deathFrames);
+        }
+
+        Debug.Log($"[ClassManager] Player configurado como {CurrentClass.className}: sprite trocado, stats aplicados");
     }
 }

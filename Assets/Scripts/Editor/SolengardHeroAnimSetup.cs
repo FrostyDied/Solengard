@@ -143,6 +143,26 @@ public static class SolengardHeroAnimSetup
             {
                 PrefabUtility.UnloadPrefabContents(contents);
             }
+
+            // Salvar frames também no ClassDefinition asset para uso em runtime
+            string defPath = $"Assets/Resources/Classes/{e.classId}.asset";
+            var classDef = AssetDatabase.LoadAssetAtPath<ClassDefinition>(defPath);
+            if (classDef != null)
+            {
+                var cso = new SerializedObject(classDef);
+                SetSpriteArray(cso, "idleFrames",   idle);
+                SetSpriteArray(cso, "walkFrames",   walk);
+                SetSpriteArray(cso, "attackFrames", attack);
+                SetSpriteArray(cso, "hurtFrames",   hurt);
+                SetSpriteArray(cso, "deathFrames",  death);
+                cso.ApplyModifiedProperties();
+                EditorUtility.SetDirty(classDef);
+                Debug.Log($"[HeroAnim] ClassDefinition {e.classId} frames atualizados");
+            }
+            else
+            {
+                Debug.LogWarning($"[HeroAnim] ClassDefinition não encontrado: {defPath}");
+            }
         }
 
         AssetDatabase.Refresh();

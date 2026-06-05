@@ -216,6 +216,10 @@ public class GameManager : MonoBehaviour
         if (sessaoAtiva)
             Debug.Log($"[GameManager] Sessao ativa — wave={sessaoData.currentWave}, restaurada apos lore");
 
+        var playerGO = PlayerController.Instance?.gameObject;
+        if (playerGO != null)
+            PlayerClassManager.Instance?.ApplyClassToPlayer(playerGO);
+
         currentRunData = new RunData { causeOfDeath = "inimigo" };
         runStartTime   = Time.time;
         runTimer       = 0f;
