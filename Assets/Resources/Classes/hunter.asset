@@ -33,4 +33,4 @@ MonoBehaviour:
   pixelsPerUnit: 32
   unlockedByDefault: 0
   unlockCostDiamonds: 800
-  worldScale: 1
+  worldScale: 1.4

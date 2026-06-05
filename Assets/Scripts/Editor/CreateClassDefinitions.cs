@@ -62,7 +62,7 @@ public static class CreateClassDefinitions
             pixelsPerUnit       = 100f,
             unlockedByDefault   = false,
             unlockCostDiamonds  = 500,
-            worldScale          = 3.1f,
+            worldScale          = 3.0f,
         });
 
         Create(new ClassDefinition
@@ -112,7 +112,7 @@ public static class CreateClassDefinitions
             pixelsPerUnit       = 100f,
             unlockedByDefault   = false,
             unlockCostDiamonds  = 1000,
-            worldScale          = 3.1f,
+            worldScale          = 3.0f,
         });
 
         Create(new ClassDefinition
@@ -137,7 +137,7 @@ public static class CreateClassDefinitions
             pixelsPerUnit       = 100f,
             unlockedByDefault   = false,
             unlockCostDiamonds  = 500,
-            worldScale          = 3.1f,
+            worldScale          = 3.0f,
         });
 
         Create(new ClassDefinition
@@ -162,7 +162,7 @@ public static class CreateClassDefinitions
             pixelsPerUnit       = 32f,
             unlockedByDefault   = false,
             unlockCostDiamonds  = 800,
-            worldScale          = 1.0f,
+            worldScale          = 1.4f,
         });
 
         AssetDatabase.SaveAssets();
