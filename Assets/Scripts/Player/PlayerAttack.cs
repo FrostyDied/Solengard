@@ -25,20 +25,12 @@ public class PlayerAttack : MonoBehaviour
 
     const float PROJ_SPEED = 18f;
 
-    GameObject _vfxMelee;
-    GameObject _vfxMagicImpact;
-    GameObject _vfxArrowImpact;
-    GameObject _vfxSummonImpact;
-
-    Sprite[] _slashFrames;
-
     void Awake()
     {
         weapon = GetComponent<PlayerWeapon>();
         _anim  = GetComponent<CharacterAnimator>();
         SyncFromWeapon();
         if (enemyLayerMask == 0) enemyLayerMask = LayerMask.GetMask("Enemy");
-        LoadVFX();
         _cooldownTimer = attackCooldown;
     }
 
@@ -53,14 +45,6 @@ public class PlayerAttack : MonoBehaviour
             SetClassConfig(cls.attackDamage, cls.attackRange, cls.attackInterval,
                 cls.attackType, cls.attackArc, cls.projectileCount);
         }
-    }
-
-    void LoadVFX()
-    {
-        _vfxMelee        = Resources.Load<GameObject>("VFX/AoE slash orange");
-        _vfxMagicImpact  = Resources.Load<GameObject>("VFX/Crystal effect blue");
-        _vfxArrowImpact  = Resources.Load<GameObject>("VFX/Sparks explode blue");
-        _vfxSummonImpact = Resources.Load<GameObject>("VFX/Stones hit");
     }
 
     void OnEnable()  => PlayerWeapon.OnWeaponUpgraded += AoUpgradeArma;
@@ -108,15 +92,8 @@ public class PlayerAttack : MonoBehaviour
         _meleeAlt = !_meleeAlt;
 
         Vector3 vfxPos = transform.position + (Vector3)(attackDir * 1.5f);
-        var vfxDir = SpawnVFX(_vfxMelee, vfxPos, 0.4f);
-        if (vfxDir != null)
-        {
-            var ps = vfxDir.GetComponent<ParticleSystem>();
-            if (ps != null) { var m = ps.main; m.startColor = new Color(1f, 0.7f, 0.2f); }
-            float angle = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
-            vfxDir.transform.rotation   = Quaternion.Euler(0f, 0f, angle);
-            vfxDir.transform.localScale = Vector3.one * 0.8f;
-        }
+        float angle = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
+        SpriteVFX.Spawn(EffectLibrary.GetFrames(GetMeleeEffect()), vfxPos, angle, 0.4f, 0.35f);
 
         var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
         filter.SetLayerMask(enemyLayerMask);
@@ -146,44 +123,30 @@ public class PlayerAttack : MonoBehaviour
         switch (_attackType)
         {
             case AttackType.Melee360:
-                SpawnVFX(_vfxMelee, transform.position, 0.5f, 1.5f);
+                SpriteVFX.Spawn(EffectLibrary.GetFrames(GetMeleeEffect()), transform.position, 0f, 0.5f, 0.35f);
                 break;
 
             case AttackType.Melee180:
             {
                 Vector3 pos    = transform.position + (Vector3)((Vector2)facing * 1.5f);
-                var     vfx180 = SpawnVFX(_vfxMelee, pos, 0.4f);
-                if (vfx180 != null)
-                {
-                    var ps = vfx180.GetComponent<ParticleSystem>();
-                    if (ps != null) { var m = ps.main; m.startColor = new Color(1f, 0.95f, 0.5f); }
-                    float angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
-                    vfx180.transform.rotation   = Quaternion.Euler(0f, 0f, angle);
-                    vfx180.transform.localScale = Vector3.one * 0.5f;
-                }
+                float angle180 = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
+                SpriteVFX.Spawn(EffectLibrary.GetFrames(GetMeleeEffect()), pos, angle180, 0.35f, 0.35f);
                 break;
             }
 
             case AttackType.MeleeCone:
             {
                 var nearestInCone = GetNearestEnemyInCone(facing, _attackArc);
-                Vector3 conePos = nearestInCone != null
+                Vector3 conePos   = nearestInCone != null
                     ? nearestInCone.transform.position
                     : transform.position + (Vector3)((Vector2)facing * 1.5f);
-                var vfxCone = SpawnVFX(_vfxMelee, conePos, 0.3f);
-                if (vfxCone != null)
-                {
-                    var ps = vfxCone.GetComponent<ParticleSystem>();
-                    if (ps != null) { var m = ps.main; m.startColor = new Color(0.8f, 0.2f, 0.2f); }
-                    float angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
-                    vfxCone.transform.rotation   = Quaternion.Euler(0f, 0f, angle);
-                    vfxCone.transform.localScale = Vector3.one * 0.4f;
-                }
+                float angleCone = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
+                SpriteVFX.Spawn(EffectLibrary.GetFrames(GetMeleeEffect()), conePos, angleCone, 0.25f, 0.35f);
                 break;
             }
 
             default:
-                SpawnVFX(_vfxMelee, transform.position, 0.5f, 1f);
+                SpriteVFX.Spawn(EffectLibrary.GetFrames(GetMeleeEffect()), transform.position, 0f, 0.5f, 0.35f);
                 break;
         }
 
@@ -341,14 +304,13 @@ public class PlayerAttack : MonoBehaviour
         return Vector2.Angle(facing, dir) <= arc * 0.5f;
     }
 
-    static GameObject SpawnVFX(GameObject prefab, Vector3 pos, float lifetime, float scale = 1f)
+    string GetMeleeEffect() => _attackType switch
     {
-        if (prefab == null) return null;
-        var go = Instantiate(prefab, pos, Quaternion.identity);
-        if (scale != 1f) go.transform.localScale = Vector3.one * scale;
-        Destroy(go, lifetime);
-        return go;
-    }
+        AttackType.MeleeDirectional => "Slash/5",
+        AttackType.Melee180         => "Slash/3",
+        AttackType.MeleeCone        => "Slash/1",
+        _                           => "Slash/5",
+    };
 
     static Sprite GetDotSprite()
     {
@@ -391,10 +353,6 @@ public class PlayerAttack : MonoBehaviour
         _attackType      = type;
         _attackArc       = arc;
         _projectileCount = projCount;
-
-        var cls = PlayerClassManager.Instance?.CurrentClass;
-        if (cls != null)
-            _slashFrames = cls.attackFrames;
     }
 
     // ── Gizmos ──────────────────────────────────────────────────────────────────

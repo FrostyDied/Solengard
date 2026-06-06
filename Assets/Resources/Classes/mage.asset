@@ -19,7 +19,7 @@ MonoBehaviour:
   maxHP: 90
   defense: 8
   attackDamage: 50
-  moveSpeed: 4.5
+  moveSpeed: 2.6
   attackRange: 8
   attackInterval: 2
   attackType: 3
@@ -90,4 +90,4 @@ MonoBehaviour:
   projectileScale: 0.8
   unlockedByDefault: 0
   unlockCostDiamonds: 500
-  worldScale: 3
+  worldScale: 2
