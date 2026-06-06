@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerClassManager : MonoBehaviour
@@ -13,6 +14,28 @@ public class PlayerClassManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         LoadSelectedClass();
+    }
+
+    void Start()
+    {
+        var player = PlayerController.Instance?.gameObject;
+        if (player == null)
+        {
+            var p = GameObject.FindGameObjectWithTag("Player");
+            if (p != null) player = p;
+        }
+
+        if (player != null)
+            ApplyClassToPlayer(player);
+        else
+            StartCoroutine(WaitForPlayerAndApply());
+    }
+
+    IEnumerator WaitForPlayerAndApply()
+    {
+        while (PlayerController.Instance == null)
+            yield return null;
+        ApplyClassToPlayer(PlayerController.Instance.gameObject);
     }
 
     void LoadSelectedClass()
