@@ -91,9 +91,13 @@ public class PlayerAttack : MonoBehaviour
         Vector2 attackDir = _meleeAlt ? -facing : facing;
         _meleeAlt = !_meleeAlt;
 
-        Vector3 vfxPos = transform.position + (Vector3)(attackDir * 1.5f);
-        float angle = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
-        SpriteVFX.Spawn(EffectLibrary.GetFrames(GetMeleeEffect()), vfxPos, angle, 0.4f, 0.35f);
+        var   meleeFrames = EffectLibrary.GetFrames(GetMeleeEffect());
+        float angle       = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
+        for (int i = -1; i <= 1; i++)
+        {
+            var rotDir = Quaternion.Euler(0f, 0f, i * 25f) * new Vector3(attackDir.x, attackDir.y, 0f);
+            SpriteVFX.Spawn(meleeFrames, transform.position + rotDir * 1.5f, angle + i * 25f, 0.8f, 0.25f, 30f);
+        }
 
         var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
         filter.SetLayerMask(enemyLayerMask);
@@ -120,14 +124,14 @@ public class PlayerAttack : MonoBehaviour
             ? PlayerController.Instance.FacingDirection
             : Vector2.right;
 
-        // Melee180 e MeleeCone miram na direção do inimigo mais próximo no arco
-        Vector2    attackDir    = facing;
-        EnemyBase  nearestEnemy = null;
+        // Melee180 e MeleeCone miram na direção do inimigo mais próximo (fallback: qualquer direção)
+        Vector2   attackDir    = facing;
+        EnemyBase nearestEnemy = null;
         if (_attackType == AttackType.Melee180 || _attackType == AttackType.MeleeCone)
         {
-            nearestEnemy = GetNearestEnemyInCone(facing, arc);
-            if (nearestEnemy != null)
-                attackDir = ((Vector2)(nearestEnemy.transform.position - transform.position)).normalized;
+            attackDir    = GetAttackDirection();
+            nearestEnemy = GetNearestEnemyInCone(attackDir, arc)
+                        ?? GetNearestEnemy(attackRange * 1.5f);
         }
 
         switch (_attackType)
@@ -259,9 +263,7 @@ public class PlayerAttack : MonoBehaviour
         string impactEffect = GetImpactEffect();
         if (!string.IsNullOrEmpty(impactEffect))
         {
-            Sprite[] impactFrames = _attackType == AttackType.RangedSingle
-                ? EffectLibrary.GetFramesRange(impactEffect, 4, 8)
-                : EffectLibrary.GetFrames(impactEffect);
+            Sprite[] impactFrames = EffectLibrary.GetFrames(impactEffect);
             float impactScale = _attackType == AttackType.RangedSingle ? 0.5f : 0.4f;
             if (impactFrames.Length > 0)
                 proj.SetImpactVFX(impactFrames, impactScale);
@@ -343,18 +345,56 @@ public class PlayerAttack : MonoBehaviour
         return Vector2.Angle(dir, toTarget) <= arc * 0.5f;
     }
 
+    Vector2 GetAttackDirection()
+    {
+        var facing = PlayerController.Instance != null
+            ? PlayerController.Instance.FacingDirection
+            : Vector2.right;
+
+        var inArc = GetNearestEnemyInCone(facing, _attackArc);
+        if (inArc != null)
+            return ((Vector2)(inArc.transform.position - transform.position)).normalized;
+
+        var nearest = GetNearestEnemy(attackRange * 1.5f);
+        if (nearest != null)
+            return ((Vector2)(nearest.transform.position - transform.position)).normalized;
+
+        return facing;
+    }
+
+    EnemyBase GetNearestEnemy(float range)
+    {
+        var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+        filter.SetLayerMask(enemyLayerMask);
+        var cols = new List<Collider2D>();
+        Physics2D.OverlapCircle(transform.position, range, filter, cols);
+
+        EnemyBase nearest = null;
+        float     minDist = float.MaxValue;
+        foreach (var col in cols)
+        {
+            if (col == null) continue;
+            var e = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+            if (e == null) continue;
+            float d = Vector2.Distance(transform.position, e.transform.position);
+            if (d < minDist) { minDist = d; nearest = e; }
+        }
+        return nearest;
+    }
+
     string GetMeleeEffect() => _attackType switch
     {
-        AttackType.MeleeDirectional => "Slash/5",
-        AttackType.Melee180         => "Slash/Paladino",
-        AttackType.MeleeCone        => "Slash/10",
+        AttackType.MeleeDirectional => "Guerreiro/Sword",
+        AttackType.Melee180         => "Paladino",
+        AttackType.MeleeCone        => "Assassino",
         _                           => "Slash/5",
     };
 
     string GetImpactEffect() => _attackType switch
     {
-        AttackType.RangedSingle => "Magic/MagoImpact",
-        AttackType.RangedSummon => "Magic/NecromanteImpact",
+        AttackType.RangedSingle => "Mago/Attack",
+        AttackType.RangedMulti  => "Cacador/Arrow",
+        AttackType.RangedSummon => "Slash/2",
         _                       => "",
     };
 

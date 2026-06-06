@@ -62,7 +62,9 @@ public class PlayerProjectile : MonoBehaviour
 
         enemy.TakeDamage(_damage);
 
-        if (!enemy.IsDead && _impactFrames != null && _impactFrames.Length > 0)
+        bool spawnImpact = !enemy.IsDead && _impactFrames != null && _impactFrames.Length > 0;
+        Debug.Log($"[Hit] {enemy.name} isDead={enemy.IsDead} → spawning={( spawnImpact ? "impactVFX" : "nenhum")}");
+        if (spawnImpact)
             SpriteVFX.Spawn(_impactFrames, transform.position, 0f, _impactScale, 0.4f);
 
         Destroy(gameObject);

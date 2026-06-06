@@ -271,6 +271,7 @@ public class EnemyBase : MonoBehaviour
 
         var deathType = isBoss  ? VFXManager.EnemyType.Boss  :
                         isHeavy ? VFXManager.EnemyType.Heavy : VFXManager.EnemyType.Normal;
+        Debug.Log($"[Die] {name} spawning SpawnDeath");
         VFXManager.Instance?.SpawnDeath(transform.position, deathType);
         GameManager.Instance?.IncrementKill();
         XPDrop.SpawnAt(transform.position, xpValue);
