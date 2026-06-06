@@ -5,7 +5,6 @@ public class PlayerProjectile : MonoBehaviour
     float      _damage;
     float      _speed;
     Vector2    _dir;
-    GameObject _impactVFX;
 
     Sprite[]       _frames;
     SpriteRenderer _sr;
@@ -13,13 +12,12 @@ public class PlayerProjectile : MonoBehaviour
     int            _frameIndex;
     const float    FRAME_INTERVAL = 1f / 12f;
 
-    public void Init(float damage, Vector2 dir, float speed, GameObject impactVFX, float lifetime = 2.5f)
+    public void Init(float damage, Vector2 dir, float speed, float lifetime = 2.5f)
     {
-        _damage    = damage;
-        _dir       = dir.normalized;
-        _speed     = speed;
-        _impactVFX = impactVFX;
-        _sr        = GetComponent<SpriteRenderer>();
+        _damage = damage;
+        _dir    = dir.normalized;
+        _speed  = speed;
+        _sr     = GetComponent<SpriteRenderer>();
         Destroy(gameObject, lifetime);
     }
 
@@ -54,14 +52,6 @@ public class PlayerProjectile : MonoBehaviour
         if (enemy == null) return;
 
         enemy.TakeDamage(_damage);
-
-        // Só spawna VFX de impacto se o inimigo sobreviveu; se morreu, EnemyBase.Die() já spawna o VFX de morte
-        if (!enemy.IsDead && _impactVFX != null)
-        {
-            var fx = Instantiate(_impactVFX, transform.position, Quaternion.identity);
-            Destroy(fx, 0.5f);
-        }
-
         Destroy(gameObject);
     }
 }

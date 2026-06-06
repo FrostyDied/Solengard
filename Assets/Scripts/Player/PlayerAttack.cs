@@ -26,11 +26,11 @@ public class PlayerAttack : MonoBehaviour
     const float PROJ_SPEED = 18f;
 
     GameObject _vfxMelee;
-    GameObject _vfxHoly;
-    GameObject _vfxSlash;
     GameObject _vfxMagicImpact;
     GameObject _vfxArrowImpact;
     GameObject _vfxSummonImpact;
+
+    Sprite[] _slashFrames;
 
     void Awake()
     {
@@ -39,15 +39,25 @@ public class PlayerAttack : MonoBehaviour
         SyncFromWeapon();
         if (enemyLayerMask == 0) enemyLayerMask = LayerMask.GetMask("Enemy");
         LoadVFX();
-        // Começar com cooldown cheio — garante que SetClassConfig rode antes do primeiro ataque
         _cooldownTimer = attackCooldown;
+    }
+
+    void Start() => StartCoroutine(WaitAndApplyClass());
+
+    IEnumerator WaitAndApplyClass()
+    {
+        yield return null;
+        var cls = PlayerClassManager.Instance?.CurrentClass;
+        if (cls != null)
+        {
+            SetClassConfig(cls.attackDamage, cls.attackRange, cls.attackInterval,
+                cls.attackType, cls.attackArc, cls.projectileCount);
+        }
     }
 
     void LoadVFX()
     {
         _vfxMelee        = Resources.Load<GameObject>("VFX/AoE slash orange");
-        _vfxHoly         = Resources.Load<GameObject>("VFX/Healing circle");
-        _vfxSlash        = Resources.Load<GameObject>("VFX/Electro hit");
         _vfxMagicImpact  = Resources.Load<GameObject>("VFX/Crystal effect blue");
         _vfxArrowImpact  = Resources.Load<GameObject>("VFX/Sparks explode blue");
         _vfxSummonImpact = Resources.Load<GameObject>("VFX/Stones hit");
@@ -68,7 +78,6 @@ public class PlayerAttack : MonoBehaviour
 
     void Attack()
     {
-        // Guard: não atacar antes da classe ser carregada
         if (PlayerClassManager.Instance?.CurrentClass == null) return;
 
         if (PlayerController.Instance != null)
@@ -99,13 +108,8 @@ public class PlayerAttack : MonoBehaviour
         _meleeAlt = !_meleeAlt;
 
         Vector3 vfxPos = transform.position + (Vector3)(attackDir * 1.5f);
-        var vfx = SpawnVFX(_vfxMelee, vfxPos, 0.4f);
-        if (vfx != null)
-        {
-            float angle = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
-            vfx.transform.rotation   = Quaternion.Euler(0f, 0f, angle);
-            vfx.transform.localScale = Vector3.one * 0.8f;
-        }
+        float angle = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg - 90f;
+        SpriteVFX.Spawn(_slashFrames, vfxPos, angle, 1.5f, 0.3f, 16f);
 
         var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
         filter.SetLayerMask(enemyLayerMask);
@@ -139,20 +143,23 @@ public class PlayerAttack : MonoBehaviour
                 break;
 
             case AttackType.Melee180:
-                Vector3 paladinPos = transform.position + (Vector3)((Vector2)facing * 1.5f);
-                var paladinVfx = SpawnVFX(_vfxHoly, paladinPos, 0.4f);
-                if (paladinVfx != null)
-                    paladinVfx.transform.localScale = Vector3.one * 0.5f;
+            {
+                Vector3 pos   = transform.position + (Vector3)((Vector2)facing * 1.5f);
+                float   angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg - 90f;
+                SpriteVFX.Spawn(_slashFrames, pos, angle, 1.2f, 0.3f, 16f);
                 break;
+            }
 
             case AttackType.MeleeCone:
+            {
                 var nearestInCone = GetNearestEnemyInCone(facing, _attackArc);
-                Vector3 coneVfxPos = nearestInCone != null
+                Vector3 pos = nearestInCone != null
                     ? nearestInCone.transform.position
                     : transform.position + (Vector3)((Vector2)facing * 1.5f);
-                var coneVfx = SpawnVFX(_vfxSlash, coneVfxPos, 0.3f);
-                if (coneVfx != null) coneVfx.transform.localScale = Vector3.one * 0.4f;
+                float angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg - 90f;
+                SpriteVFX.Spawn(_slashFrames, pos, angle, 0.6f, 0.3f, 16f);
                 break;
+            }
 
             default:
                 SpawnVFX(_vfxMelee, transform.position, 0.5f, 1f);
@@ -181,24 +188,19 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackRanged(int count)
     {
-        var targets   = GetNearestEnemies(count);
-        var impactVFX = _attackType == AttackType.RangedMulti ? _vfxArrowImpact : _vfxMagicImpact;
-        var color     = _attackType == AttackType.RangedMulti
-            ? new Color(0.6f, 0.9f, 1.0f)
-            : new Color(0.5f, 0.3f, 1.0f);
+        var targets = GetNearestEnemies(count);
         foreach (var e in targets)
-            FireProjectile((Vector2)(e.transform.position - transform.position), color, impactVFX);
+            FireProjectile((Vector2)(e.transform.position - transform.position));
     }
 
     void AttackRangedSummon()
     {
         var targets = GetNearestEnemies(1);
         foreach (var e in targets)
-            FireProjectile((Vector2)(e.transform.position - transform.position),
-                new Color(0.4f, 1.0f, 0.5f), _vfxSummonImpact);
+            FireProjectile((Vector2)(e.transform.position - transform.position));
     }
 
-    void FireProjectile(Vector2 dir, Color fallbackColor, GameObject impactVFX)
+    void FireProjectile(Vector2 dir)
     {
         var classDef         = PlayerClassManager.Instance?.CurrentClass;
         bool hasAnimFrames   = classDef != null && classDef.projectileFrames != null && classDef.projectileFrames.Length > 0;
@@ -221,6 +223,8 @@ public class PlayerAttack : MonoBehaviour
             : 1f;
         go.transform.localScale = Vector3.one * scale;
 
+        Debug.Log($"[Proj] {classDef?.classId} scale={scale} projectileScale={classDef?.projectileScale} hasFrames={hasAnimFrames}");
+
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sortingLayerName = "Characters";
         sr.sortingOrder     = 2;
@@ -238,7 +242,11 @@ public class PlayerAttack : MonoBehaviour
         else
         {
             sr.sprite = GetDotSprite();
-            sr.color  = fallbackColor;
+            sr.color  = _attackType == AttackType.RangedMulti
+                ? new Color(0.6f, 0.9f, 1.0f)
+                : _attackType == AttackType.RangedSummon
+                    ? new Color(0.4f, 1.0f, 0.5f)
+                    : new Color(0.5f, 0.3f, 1.0f);
         }
 
         var col = go.AddComponent<CircleCollider2D>();
@@ -248,7 +256,7 @@ public class PlayerAttack : MonoBehaviour
         float lifetime = attackRange / PROJ_SPEED + 0.2f;
 
         var proj = go.AddComponent<PlayerProjectile>();
-        proj.Init(attackDamage, dir, PROJ_SPEED, impactVFX, lifetime);
+        proj.Init(attackDamage, dir, PROJ_SPEED, lifetime);
 
         if (hasAnimFrames)
             proj.SetFrames(classDef.projectileFrames);
@@ -312,16 +320,11 @@ public class PlayerAttack : MonoBehaviour
         return Vector2.Angle(facing, dir) <= arc * 0.5f;
     }
 
-    static GameObject SpawnVFX(GameObject prefab, Vector3 pos, float lifetime, float scale = 1f, Color? tint = null)
+    static GameObject SpawnVFX(GameObject prefab, Vector3 pos, float lifetime, float scale = 1f)
     {
         if (prefab == null) return null;
         var go = Instantiate(prefab, pos, Quaternion.identity);
         if (scale != 1f) go.transform.localScale = Vector3.one * scale;
-        if (tint.HasValue)
-        {
-            var sr = go.GetComponent<SpriteRenderer>();
-            if (sr != null) sr.color = tint.Value;
-        }
         Destroy(go, lifetime);
         return go;
     }
@@ -367,6 +370,10 @@ public class PlayerAttack : MonoBehaviour
         _attackType      = type;
         _attackArc       = arc;
         _projectileCount = projCount;
+
+        var cls = PlayerClassManager.Instance?.CurrentClass;
+        if (cls != null)
+            _slashFrames = cls.attackFrames;
     }
 
     // ── Gizmos ──────────────────────────────────────────────────────────────────

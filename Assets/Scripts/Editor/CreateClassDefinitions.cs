@@ -74,7 +74,7 @@ public static class CreateClassDefinitions
             maxHP               = 110f,
             defense             = 10f,
             attackDamage        = 45f,
-            moveSpeed           = 6.0f,
+            moveSpeed           = 2.0f,
             attackRange         = 2.5f,
             attackInterval      = 0.6f,
             attackType          = AttackType.MeleeCone,
