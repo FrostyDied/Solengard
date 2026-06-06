@@ -108,8 +108,15 @@ public class PlayerAttack : MonoBehaviour
         _meleeAlt = !_meleeAlt;
 
         Vector3 vfxPos = transform.position + (Vector3)(attackDir * 1.5f);
-        float angle = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg - 90f;
-        SpriteVFX.Spawn(_slashFrames, vfxPos, angle, 1.5f, 0.3f, 16f);
+        var vfxDir = SpawnVFX(_vfxMelee, vfxPos, 0.4f);
+        if (vfxDir != null)
+        {
+            var ps = vfxDir.GetComponent<ParticleSystem>();
+            if (ps != null) { var m = ps.main; m.startColor = new Color(1f, 0.7f, 0.2f); }
+            float angle = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
+            vfxDir.transform.rotation   = Quaternion.Euler(0f, 0f, angle);
+            vfxDir.transform.localScale = Vector3.one * 0.8f;
+        }
 
         var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
         filter.SetLayerMask(enemyLayerMask);
@@ -144,20 +151,34 @@ public class PlayerAttack : MonoBehaviour
 
             case AttackType.Melee180:
             {
-                Vector3 pos   = transform.position + (Vector3)((Vector2)facing * 1.5f);
-                float   angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg - 90f;
-                SpriteVFX.Spawn(_slashFrames, pos, angle, 1.2f, 0.3f, 16f);
+                Vector3 pos    = transform.position + (Vector3)((Vector2)facing * 1.5f);
+                var     vfx180 = SpawnVFX(_vfxMelee, pos, 0.4f);
+                if (vfx180 != null)
+                {
+                    var ps = vfx180.GetComponent<ParticleSystem>();
+                    if (ps != null) { var m = ps.main; m.startColor = new Color(1f, 0.95f, 0.5f); }
+                    float angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
+                    vfx180.transform.rotation   = Quaternion.Euler(0f, 0f, angle);
+                    vfx180.transform.localScale = Vector3.one * 0.5f;
+                }
                 break;
             }
 
             case AttackType.MeleeCone:
             {
                 var nearestInCone = GetNearestEnemyInCone(facing, _attackArc);
-                Vector3 pos = nearestInCone != null
+                Vector3 conePos = nearestInCone != null
                     ? nearestInCone.transform.position
                     : transform.position + (Vector3)((Vector2)facing * 1.5f);
-                float angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg - 90f;
-                SpriteVFX.Spawn(_slashFrames, pos, angle, 0.6f, 0.3f, 16f);
+                var vfxCone = SpawnVFX(_vfxMelee, conePos, 0.3f);
+                if (vfxCone != null)
+                {
+                    var ps = vfxCone.GetComponent<ParticleSystem>();
+                    if (ps != null) { var m = ps.main; m.startColor = new Color(0.8f, 0.2f, 0.2f); }
+                    float angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
+                    vfxCone.transform.rotation   = Quaternion.Euler(0f, 0f, angle);
+                    vfxCone.transform.localScale = Vector3.one * 0.4f;
+                }
                 break;
             }
 

@@ -31,6 +31,41 @@ MonoBehaviour:
   specialType: 4
   spriteFolder: Assets/Art/Characters/Hero/Paladino/Paladino
   pixelsPerUnit: 100
+  idleFrames:
+  - {fileID: 4723107735738678597, guid: 6ebbff30c57bc834298275bbad46ff5b, type: 3}
+  - {fileID: -7385789195546760866, guid: 6ebbff30c57bc834298275bbad46ff5b, type: 3}
+  - {fileID: 3234629978573100161, guid: 6ebbff30c57bc834298275bbad46ff5b, type: 3}
+  - {fileID: 6373048116405451881, guid: 6ebbff30c57bc834298275bbad46ff5b, type: 3}
+  walkFrames:
+  - {fileID: 4035959289877228764, guid: a6b4de1acc017db4392f33d4ceb7f97f, type: 3}
+  - {fileID: -982904232830982447, guid: a6b4de1acc017db4392f33d4ceb7f97f, type: 3}
+  - {fileID: -350908408369970039, guid: a6b4de1acc017db4392f33d4ceb7f97f, type: 3}
+  - {fileID: -5409570386352685021, guid: a6b4de1acc017db4392f33d4ceb7f97f, type: 3}
+  - {fileID: 1553940418269799609, guid: a6b4de1acc017db4392f33d4ceb7f97f, type: 3}
+  - {fileID: 2416434504916517810, guid: a6b4de1acc017db4392f33d4ceb7f97f, type: 3}
+  - {fileID: -6428935122508569504, guid: a6b4de1acc017db4392f33d4ceb7f97f, type: 3}
+  - {fileID: 7144598999076838305, guid: a6b4de1acc017db4392f33d4ceb7f97f, type: 3}
+  attackFrames:
+  - {fileID: -2351156727781230690, guid: 927ae51ab3f52a1469f180f77fd4d7ab, type: 3}
+  - {fileID: -3877564771510113781, guid: 927ae51ab3f52a1469f180f77fd4d7ab, type: 3}
+  - {fileID: 8036391861149860661, guid: 927ae51ab3f52a1469f180f77fd4d7ab, type: 3}
+  - {fileID: 3199637627024557385, guid: 927ae51ab3f52a1469f180f77fd4d7ab, type: 3}
+  - {fileID: -8061845164187749324, guid: 927ae51ab3f52a1469f180f77fd4d7ab, type: 3}
+  - {fileID: -6302065868831435788, guid: 927ae51ab3f52a1469f180f77fd4d7ab, type: 3}
+  - {fileID: -4125723935000731172, guid: 927ae51ab3f52a1469f180f77fd4d7ab, type: 3}
+  hurtFrames:
+  - {fileID: -2048800907179887802, guid: 6504664e621024a4ebc4184495dd1617, type: 3}
+  - {fileID: 490842205202310979, guid: 6504664e621024a4ebc4184495dd1617, type: 3}
+  deathFrames:
+  - {fileID: 2649847697073447219, guid: 4b4bb9fefdb7d4f4b82180bbe58dfb9d, type: 3}
+  - {fileID: -8293461521501190705, guid: 4b4bb9fefdb7d4f4b82180bbe58dfb9d, type: 3}
+  - {fileID: -1631342717326862633, guid: 4b4bb9fefdb7d4f4b82180bbe58dfb9d, type: 3}
+  - {fileID: -3927913518680497933, guid: 4b4bb9fefdb7d4f4b82180bbe58dfb9d, type: 3}
+  - {fileID: -1057675302478342458, guid: 4b4bb9fefdb7d4f4b82180bbe58dfb9d, type: 3}
+  - {fileID: -7954960911384535938, guid: 4b4bb9fefdb7d4f4b82180bbe58dfb9d, type: 3}
+  projectileFrames: []
+  projectileSprite: {fileID: 0}
+  projectileScale: 1
   unlockedByDefault: 0
   unlockCostDiamonds: 500
-  worldScale: 3
+  worldScale: 2.2

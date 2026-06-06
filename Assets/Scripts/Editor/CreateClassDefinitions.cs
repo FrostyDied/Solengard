@@ -139,7 +139,7 @@ public static class CreateClassDefinitions
             pixelsPerUnit       = 100f,
             unlockedByDefault   = false,
             unlockCostDiamonds  = 500,
-            worldScale          = 3.0f,
+            worldScale          = 2.2f,
         });
 
         Create(new ClassDefinition
