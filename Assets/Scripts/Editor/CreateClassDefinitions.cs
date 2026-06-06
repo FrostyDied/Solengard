@@ -23,7 +23,7 @@ public static class CreateClassDefinitions
             maxHP               = 180f,
             defense             = 20f,
             attackDamage        = 40f,
-            moveSpeed           = 3.5f,
+            moveSpeed           = 2.66f,
             attackRange         = 3.5f,
             attackInterval      = 0.8f,
             attackType          = AttackType.MeleeDirectional,
@@ -63,7 +63,7 @@ public static class CreateClassDefinitions
             pixelsPerUnit       = 100f,
             unlockedByDefault   = false,
             unlockCostDiamonds  = 500,
-            worldScale          = 2.0f,
+            worldScale          = 1.8f,
         });
 
         Create(new ClassDefinition
@@ -88,7 +88,7 @@ public static class CreateClassDefinitions
             pixelsPerUnit       = 32f,
             unlockedByDefault   = false,
             unlockCostDiamonds  = 800,
-            worldScale          = 0.7f,
+            worldScale          = 0.525f,
         });
 
         Create(new ClassDefinition
@@ -150,7 +150,7 @@ public static class CreateClassDefinitions
             maxHP               = 120f,
             defense             = 12f,
             attackDamage        = 38f,
-            moveSpeed           = 3.0f,
+            moveSpeed           = 2.7f,
             attackRange         = 6.0f,
             attackInterval      = 2.0f,
             attackType          = AttackType.RangedMulti,

@@ -75,4 +75,4 @@ MonoBehaviour:
   projectileScale: 1
   unlockedByDefault: 0
   unlockCostDiamonds: 800
-  worldScale: 0.7
+  worldScale: 0.525

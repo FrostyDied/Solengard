@@ -19,6 +19,17 @@ public static class EffectLibrary
         return sprites;
     }
 
+    public static Sprite[] GetFramesRange(string effectName, int start, int count)
+    {
+        var all = GetFrames(effectName);
+        if (all.Length == 0) return all;
+        start = Mathf.Clamp(start, 0, all.Length - 1);
+        count = Mathf.Clamp(count, 1, all.Length - start);
+        var result = new Sprite[count];
+        System.Array.Copy(all, start, result, 0, count);
+        return result;
+    }
+
     static int NaturalCompare(string a, string b)
     {
         int numA = ExtractTrailingInt(a);

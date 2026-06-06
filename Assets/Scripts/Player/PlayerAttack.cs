@@ -120,6 +120,16 @@ public class PlayerAttack : MonoBehaviour
             ? PlayerController.Instance.FacingDirection
             : Vector2.right;
 
+        // Melee180 e MeleeCone miram na direção do inimigo mais próximo no arco
+        Vector2    attackDir    = facing;
+        EnemyBase  nearestEnemy = null;
+        if (_attackType == AttackType.Melee180 || _attackType == AttackType.MeleeCone)
+        {
+            nearestEnemy = GetNearestEnemyInCone(facing, arc);
+            if (nearestEnemy != null)
+                attackDir = ((Vector2)(nearestEnemy.transform.position - transform.position)).normalized;
+        }
+
         switch (_attackType)
         {
             case AttackType.Melee360:
@@ -128,19 +138,18 @@ public class PlayerAttack : MonoBehaviour
 
             case AttackType.Melee180:
             {
-                Vector3 pos    = transform.position + (Vector3)((Vector2)facing * 1.5f);
-                float angle180 = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
+                Vector3 pos    = transform.position + (Vector3)(attackDir * 1.5f);
+                float angle180 = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
                 SpriteVFX.Spawn(EffectLibrary.GetFrames(GetMeleeEffect()), pos, angle180, 0.35f, 0.35f);
                 break;
             }
 
             case AttackType.MeleeCone:
             {
-                var nearestInCone = GetNearestEnemyInCone(facing, _attackArc);
-                Vector3 conePos   = nearestInCone != null
-                    ? nearestInCone.transform.position
-                    : transform.position + (Vector3)((Vector2)facing * 1.5f);
-                float angleCone = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
+                Vector3 conePos = nearestEnemy != null
+                    ? nearestEnemy.transform.position
+                    : transform.position + (Vector3)(attackDir * 1.5f);
+                float angleCone = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
                 SpriteVFX.Spawn(EffectLibrary.GetFrames(GetMeleeEffect()), conePos, angleCone, 0.25f, 0.35f);
                 break;
             }
@@ -158,7 +167,7 @@ public class PlayerAttack : MonoBehaviour
         foreach (var col in results)
         {
             if (col == null) continue;
-            if (arc < 360f && !InArc(col.transform.position, arc)) continue;
+            if (arc < 360f && !InArc(col.transform.position, arc, attackDir)) continue;
             var enemy = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
             if (enemy != null)
             {
@@ -202,9 +211,10 @@ public class PlayerAttack : MonoBehaviour
             go.transform.rotation = Quaternion.Euler(0f, 0f, angle);
         }
 
-        float scale = hasAnimFrames || hasStaticSprite
+        float baseScale = hasAnimFrames || hasStaticSprite
             ? (classDef != null ? classDef.projectileScale : 1f) * 0.5f
             : 1f;
+        float scale = _attackType == AttackType.RangedMulti ? baseScale * 1.5f : baseScale;
         go.transform.localScale = Vector3.one * scale;
 
         Debug.Log($"[Proj] {classDef?.classId} scale={scale} projectileScale={classDef?.projectileScale} hasFrames={hasAnimFrames}");
@@ -244,6 +254,30 @@ public class PlayerAttack : MonoBehaviour
 
         if (hasAnimFrames)
             proj.SetFrames(classDef.projectileFrames);
+
+        // VFX de impacto por classe
+        string impactEffect = GetImpactEffect();
+        if (!string.IsNullOrEmpty(impactEffect))
+        {
+            Sprite[] impactFrames = _attackType == AttackType.RangedSingle
+                ? EffectLibrary.GetFramesRange(impactEffect, 4, 8)
+                : EffectLibrary.GetFrames(impactEffect);
+            float impactScale = _attackType == AttackType.RangedSingle ? 0.5f : 0.4f;
+            if (impactFrames.Length > 0)
+                proj.SetImpactVFX(impactFrames, impactScale);
+        }
+
+        // Caçador: flash de disparo na posição do player
+        if (_attackType == AttackType.RangedMulti)
+        {
+            var muzzleFrames = EffectLibrary.GetFrames("Slash/10");
+            if (muzzleFrames.Length > 0)
+            {
+                Vector2 dirN  = dir.normalized;
+                float   mAngle = Mathf.Atan2(dirN.y, dirN.x) * Mathf.Rad2Deg;
+                SpriteVFX.Spawn(muzzleFrames, transform.position + (Vector3)(dirN * 0.5f), mAngle, 0.2f, 0.15f, 30f);
+            }
+        }
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -296,20 +330,32 @@ public class PlayerAttack : MonoBehaviour
 
     bool InArc(Vector3 targetPos, float arc)
     {
-        if (arc >= 360f) return true;
-        var dir    = ((Vector2)(targetPos - transform.position)).normalized;
         var facing = PlayerController.Instance != null
             ? PlayerController.Instance.FacingDirection
             : Vector2.right;
-        return Vector2.Angle(facing, dir) <= arc * 0.5f;
+        return InArc(targetPos, arc, facing);
+    }
+
+    bool InArc(Vector3 targetPos, float arc, Vector2 dir)
+    {
+        if (arc >= 360f) return true;
+        var toTarget = ((Vector2)(targetPos - transform.position)).normalized;
+        return Vector2.Angle(dir, toTarget) <= arc * 0.5f;
     }
 
     string GetMeleeEffect() => _attackType switch
     {
         AttackType.MeleeDirectional => "Slash/5",
-        AttackType.Melee180         => "Slash/3",
-        AttackType.MeleeCone        => "Slash/1",
+        AttackType.Melee180         => "Slash/Paladino",
+        AttackType.MeleeCone        => "Slash/10",
         _                           => "Slash/5",
+    };
+
+    string GetImpactEffect() => _attackType switch
+    {
+        AttackType.RangedSingle => "Magic/MagoImpact",
+        AttackType.RangedSummon => "Magic/NecromanteImpact",
+        _                       => "",
     };
 
     static Sprite GetDotSprite()
