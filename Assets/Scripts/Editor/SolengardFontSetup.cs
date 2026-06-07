@@ -68,7 +68,7 @@ public static class SolengardFontSetup
             if (text.gameObject.name.ToLower().Contains("bioma") ||
                 text.gameObject.name.ToLower().Contains("nome"))
             {
-                text.fontSize = 48f;
+                text.fontSize = 50f; // era 48 +2
                 text.color    = new Color(0.98f, 0.85f, 0.20f); // dourado
                 text.fontStyle = FontStyles.Bold;
             }
@@ -80,7 +80,7 @@ public static class SolengardFontSetup
             }
             else // textoLore
             {
-                text.fontSize = 24f;
+                text.fontSize = 28f; // era 24 +4
                 text.color    = new Color(0.92f, 0.90f, 0.85f); // branco creme
             }
 
