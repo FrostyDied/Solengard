@@ -88,7 +88,7 @@ public class PlayerAttack : MonoBehaviour
         ));
         StartCoroutine(DelayedSlashArc(
             0.05f,
-            transform.position - (Vector3)(attackDir * 0.2f),
+            (Vector3)(-attackDir * 0.2f), // offset relativo, não posição absoluta
             -attackDir, 120f, attackRange * 0.45f, 0.2f,
             new Color(0.5f, 0.75f, 1f), 0.11f
         ));
@@ -128,23 +128,35 @@ public class PlayerAttack : MonoBehaviour
         EnemyBase nearestEnemy = GetNearestEnemyInCone(attackDir, _attackArc)
                               ?? GetNearestEnemy(attackRange * 1.5f);
 
-        StartCoroutine(ProceduralVFX.DaggerFlash(
-            transform.position + (Vector3)(attackDir * 0.3f),
-            attackDir, attackRange,
-            new Color(0.9f, 0.1f, 0.1f), 0.1f
-        ));
-        StartCoroutine(ProceduralVFX.DaggerFlash(
-            transform.position + (Vector3)(attackDir * 0.1f)
-                + new Vector3(-attackDir.y, attackDir.x, 0) * 0.15f,
-            attackDir, attackRange * 0.7f,
-            new Color(0.6f, 0f, 0.8f), 0.08f
-        ));
-
         if (nearestEnemy != null)
-            StartCoroutine(ProceduralVFX.CrossSlash(this,
-                nearestEnemy.transform.position, new Color(0.9f, 0f, 0.8f)));
-
-        ApplyDamageArc(attackDir, _attackArc);
+        {
+            // Estrela ninja voa em direção ao inimigo com colisão real
+            float dmg = attackDamage;
+            StartCoroutine(ProceduralVFX.StarProjectile(
+                transform.position,
+                ((Vector2)(nearestEnemy.transform.position - transform.position)).normalized,
+                speed: 14f,
+                range: attackRange,
+                color: new Color(0.9f, 0.1f, 0.1f),
+                onHit: enemy =>
+                {
+                    if (enemy == null || enemy.IsDead) return;
+                    enemy.TakeDamage(dmg);
+                    // Flash de impacto no ponto do inimigo
+                    StartCoroutine(ProceduralVFX.CrossSlash(this,
+                        enemy.transform.position, new Color(0.9f, 0f, 0.8f)));
+                }
+            ));
+        }
+        else
+        {
+            // Sem alvo — flash na direção do movimento
+            StartCoroutine(ProceduralVFX.DaggerFlash(
+                transform.position + (Vector3)(attackDir * 0.3f),
+                attackDir, attackRange,
+                new Color(0.9f, 0.1f, 0.1f), 0.1f
+            ));
+        }
     }
 
     // ── Mago (RangedSingle) ───────────────────────────────────────────────────────
@@ -167,7 +179,7 @@ public class PlayerAttack : MonoBehaviour
             onHit: hitPos =>
             {
                 StartCoroutine(ProceduralVFX.ExplosionRing(hitPos, new Color(0.4f, 0.6f, 1f), 1.5f, 0.3f));
-                ApplyDamageAtPoint(hitPos, 0.1f);
+                ApplyDamageAtPoint(hitPos, 0.5f); // era 0.1f — raio maior para garantir hit
             }
         ));
     }
@@ -267,10 +279,12 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    IEnumerator DelayedSlashArc(float delay, Vector3 origin, Vector2 dir,
+    IEnumerator DelayedSlashArc(float delay, Vector3 originOffset, Vector2 dir,
         float arc, float radius, float duration, Color color, float width)
     {
         yield return new WaitForSeconds(delay);
+        // Usar posição ATUAL do player + offset relativo
+        Vector3 origin = transform.position + originOffset;
         yield return ProceduralVFX.SlashArc(origin, dir, arc, radius, duration, color, width);
     }
 
@@ -298,11 +312,15 @@ public class PlayerAttack : MonoBehaviour
         filter.SetLayerMask(enemyLayerMask);
         var results = new List<Collider2D>();
         Physics2D.OverlapCircle(transform.position, r, filter, results);
+        var hit = new HashSet<EnemyBase>(); // evita hits duplos
         foreach (var col in results)
         {
             if (col == null) continue;
             if (arc < 360f && !InArc(col.transform.position, arc, dir)) continue;
-            DamageCollider(col);
+            var enemy = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+            if (enemy == null || enemy.IsDead || !hit.Add(enemy)) continue;
+            if (enemy.isBoss) Debug.Log($"[PlayerAttack] Acertou boss {enemy.name} — {attackDamage:F0} dmg");
+            enemy.TakeDamage(attackDamage);
         }
     }
 

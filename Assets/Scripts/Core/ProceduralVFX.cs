@@ -87,6 +87,10 @@ public static class ProceduralVFX
 
         float traveled    = 0f;
         float currentSize = size * 0.2f;
+        var boltFilter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+        boltFilter.SetLayerMask(LayerMask.GetMask("Enemy"));
+        var boltHits = new System.Collections.Generic.List<Collider2D>();
+
         while (traveled < range)
         {
             float step = speed * Time.deltaTime;
@@ -98,15 +102,31 @@ public static class ProceduralVFX
             core.transform.localScale = Vector3.one * currentSize;
             tr.startWidth = currentSize * 0.8f;
 
+            // Detecção de colisão em tempo real
+            Physics2D.OverlapCircle(go.transform.position, currentSize * 0.8f, boltFilter, boltHits);
+            if (boltHits.Count > 0)
+            {
+                var eb = boltHits[0].GetComponent<EnemyBase>()
+                      ?? boltHits[0].GetComponentInParent<EnemyBase>();
+                if (eb != null && !eb.IsDead)
+                {
+                    Vector3 hitPos = go.transform.position;
+                    Object.Destroy(go);
+                    if (onHit != null) onHit(hitPos);
+                    var explosion = CreateExplosion(hitPos, coreColor, size * 3f, 0.3f);
+                    Object.Destroy(explosion, 0.35f);
+                    yield break;
+                }
+            }
+
             yield return null;
         }
 
-        Vector3 hitPos = go.transform.position;
+        Vector3 endPos = go.transform.position;
         Object.Destroy(go);
-        if (onHit != null) onHit(hitPos);
-
-        var explosion = CreateExplosion(hitPos, coreColor, size * 3f, 0.3f);
-        Object.Destroy(explosion, 0.35f);
+        // Sem inimigo atingido — explosão no ponto final mas sem dano
+        var endExplosion = CreateExplosion(endPos, coreColor, size * 2f, 0.2f);
+        Object.Destroy(endExplosion, 0.25f);
     }
 
     // ═══════════════════════════════════════════
@@ -164,6 +184,84 @@ public static class ProceduralVFX
             for (int i = 0; i < ak.Length; i++)
                 ak[i] = new GradientAlphaKey(ak[i].alpha * alpha, ak[i].time);
             elapsed += Time.deltaTime;
+            yield return null;
+        }
+        Object.Destroy(go);
+    }
+
+    // ═══════════════════════════════════════════
+    // TIPO 4b — STAR PROJECTILE (estrela ninja)
+    // Usado por: Assassino
+    // Estrela geométrica de 4 pontas que rotaciona voando
+    // ═══════════════════════════════════════════
+    public static IEnumerator StarProjectile(Vector3 origin, Vector2 direction,
+        float speed, float range, Color color,
+        System.Action<EnemyBase> onHit = null)
+    {
+        var go = new GameObject("VFX_Star");
+        go.transform.position = origin;
+
+        // Estrela de 4 pontas usando 2 LineRenderers cruzados
+        float outerR = 0.18f;
+        float innerR = 0.07f;
+        int   pts    = 9; // 4 pontas + centro
+
+        var lr1 = go.AddComponent<LineRenderer>();
+        lr1.material    = GetMat();
+        lr1.loop        = true;
+        lr1.positionCount = pts;
+        lr1.startWidth  = 0.04f;
+        lr1.endWidth    = 0.04f;
+        lr1.startColor  = lr1.endColor = color;
+        lr1.sortingOrder = 301;
+
+        // Trail
+        var tr = go.AddComponent<TrailRenderer>();
+        tr.material    = GetMat();
+        tr.time        = 0.12f;
+        tr.startWidth  = 0.06f;
+        tr.endWidth    = 0f;
+        tr.startColor  = color;
+        tr.endColor    = new Color(color.r, color.g, color.b, 0f);
+        tr.sortingOrder = 300;
+
+        float traveled = 0f;
+        float rotation = 0f;
+
+        var hitFilter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+        hitFilter.SetLayerMask(LayerMask.GetMask("Enemy"));
+        var hitList = new System.Collections.Generic.List<Collider2D>();
+
+        while (traveled < range)
+        {
+            float step = speed * Time.deltaTime;
+            go.transform.position += (Vector3)(direction * step);
+            traveled  += step;
+            rotation  += 360f * Time.deltaTime * 4f; // rotação rápida
+
+            // Redesenhar a estrela rotacionada
+            for (int i = 0; i < pts; i++)
+            {
+                float baseAngle = (rotation + i * (360f / 4f)) * Mathf.Deg2Rad;
+                float r = (i % 2 == 0) ? outerR : innerR;
+                lr1.SetPosition(i, go.transform.position + new Vector3(
+                    Mathf.Cos(baseAngle) * r,
+                    Mathf.Sin(baseAngle) * r, 0));
+            }
+
+            // Detecção de colisão
+            Physics2D.OverlapCircle(go.transform.position, outerR * 1.2f, hitFilter, hitList);
+            if (hitList.Count > 0)
+            {
+                var eb = hitList[0].GetComponent<EnemyBase>()
+                      ?? hitList[0].GetComponentInParent<EnemyBase>();
+                if (eb != null && !eb.IsDead)
+                {
+                    Object.Destroy(go);
+                    if (onHit != null) onHit(eb);
+                    yield break;
+                }
+            }
             yield return null;
         }
         Object.Destroy(go);
@@ -233,15 +331,15 @@ public static class ProceduralVFX
         tr.sortingOrder = 299;
 
         Vector3 perpDir      = new Vector3(-direction.y, direction.x, 0);
-        float   arrowHeadLen = 0.25f;
-        float   arrowHeadW   = 0.08f;
+        float   arrowHeadLen = 0.075f;  // era 0.25f → reduzido 70%
+        float   arrowHeadW   = 0.024f;  // era 0.08f → reduzido 70%
 
         var tipL = new GameObject("TipL");
         tipL.transform.SetParent(go.transform, false);
         var lrL = tipL.AddComponent<LineRenderer>();
         lrL.material = GetMat();
         lrL.positionCount = 2;
-        lrL.startWidth = 0.12f; lrL.endWidth = 0.04f;
+        lrL.startWidth = 0.036f; lrL.endWidth = 0.012f;  // era 0.12f/0.04f → reduzido 70%
         lrL.startColor = Color.white; lrL.endColor = color;
         lrL.sortingOrder = 300;
 
@@ -250,7 +348,7 @@ public static class ProceduralVFX
         var lrR = tipR.AddComponent<LineRenderer>();
         lrR.material = GetMat();
         lrR.positionCount = 2;
-        lrR.startWidth = 0.12f; lrR.endWidth = 0.04f;
+        lrR.startWidth = 0.036f; lrR.endWidth = 0.012f;  // era 0.12f/0.04f → reduzido 70%
         lrR.startColor = Color.white; lrR.endColor = color;
         lrR.sortingOrder = 300;
 
