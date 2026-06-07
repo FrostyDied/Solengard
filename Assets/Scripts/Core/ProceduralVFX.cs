@@ -16,8 +16,8 @@ public static class ProceduralVFX
     // Usado por: Guerreiro
     // Linha senoidal que vai e volta na direção do ataque
     // ═══════════════════════════════════════════
-    public static IEnumerator Whip(Vector3 origin, Vector2 direction,
-        float length, float duration, Color color, float width = 0.15f,
+    public static IEnumerator Whip(Transform originTransform, Vector2 direction,
+        float length, float duration, Color color, float width = 0.06f,
         int segments = 20, float amplitude = 0.4f)
     {
         var go = new GameObject("VFX_Whip");
@@ -41,14 +41,16 @@ public static class ProceduralVFX
         float elapsed = 0f;
         while (elapsed < duration)
         {
-            float t = elapsed / duration;
-            float reach = t < 0.5f ? t * 2f : (1f - t) * 2f;
+            Vector3 origin  = originTransform.position;
+            float   flicker = amplitude + Random.Range(-0.05f, 0.05f);
+            float   t       = elapsed / duration;
+            float   reach   = t < 0.5f ? t * 2f : (1f - t) * 2f;
 
             for (int i = 0; i < segments; i++)
             {
                 float s = (float)i / (segments - 1);
                 float wave = Mathf.Sin(s * Mathf.PI * 3f + elapsed * 8f)
-                             * amplitude * (1f - s);
+                             * flicker * (1f - s);
                 Vector3 pos = origin
                     + (Vector3)(direction * s * length * reach)
                     + perp * wave;
@@ -76,8 +78,8 @@ public static class ProceduralVFX
 
         var tr = go.AddComponent<TrailRenderer>();
         tr.material = GetMat();
-        tr.time = 0.15f;
-        tr.startWidth = size * 0.8f;
+        tr.time = 0.4f;
+        tr.startWidth = size * 1.2f;
         tr.endWidth = 0f;
         tr.startColor = trailColor;
         tr.endColor = new Color(trailColor.r, trailColor.g, trailColor.b, 0f);
@@ -203,10 +205,12 @@ public static class ProceduralVFX
     // Usado por: Caçador
     // Linha fina e rápida com ponta triangular
     // ═══════════════════════════════════════════
-    public static IEnumerator ArrowStreak(Vector3 origin, Vector2 direction,
+    public static IEnumerator ArrowStreak(Transform originTransform, Vector2 direction,
         float speed, float range, Color color)
     {
+        Vector3 startPos = originTransform.position;
         var go = new GameObject("VFX_Arrow");
+        go.transform.position = startPos;
         var lr = go.AddComponent<LineRenderer>();
         lr.material = GetMat();
         lr.sortingOrder = 300;

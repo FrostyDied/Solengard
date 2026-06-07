@@ -82,10 +82,10 @@ public class PlayerAttack : MonoBehaviour
         _meleeAlt = !_meleeAlt;
 
         StartCoroutine(ProceduralVFX.Whip(
-            transform.position, attackDir,
-            length: attackRange, duration: 0.4f,
-            color: new Color(1f, 0.5f, 0.1f),
-            width: 0.18f, amplitude: 0.5f
+            transform, attackDir,
+            length: attackRange * 0.6f, duration: 0.4f,
+            color: new Color(0.7f, 0.9f, 1f),
+            width: 0.06f, amplitude: 0.5f
         ));
 
         // Cone de 90° (±45° da direção do ataque)
@@ -97,16 +97,23 @@ public class PlayerAttack : MonoBehaviour
     void AttackPaladino()
     {
         Vector2 attackDir = GetAttackDirection();
+        Vector3 swordTip  = transform.position + (Vector3)(attackDir * 0.8f);
 
-        StartCoroutine(ProceduralVFX.SlashArc(
+        StartCoroutine(ProceduralVFX.DaggerFlash(
             transform.position, attackDir,
-            arcDegrees: 180f, radius: attackRange,
-            duration: 0.35f,
+            length: 1.2f,
+            color: new Color(1f, 0.95f, 0.4f),
+            width: 0.12f
+        ));
+        StartCoroutine(ProceduralVFX.SlashArc(
+            swordTip, attackDir,
+            arcDegrees: 120f, radius: attackRange * 0.5f,
+            duration: 0.3f,
             color: new Color(1f, 0.9f, 0.3f),
-            width: 0.25f
+            width: 0.15f
         ));
 
-        ApplyDamageArc(attackDir, 180f);
+        ApplyDamageArc(attackDir, 120f, attackRange * 0.5f);
     }
 
     // ── Assassino (MeleeCone) ─────────────────────────────────────────────────────
@@ -120,12 +127,6 @@ public class PlayerAttack : MonoBehaviour
             attackDir,
             length: attackRange,
             color: new Color(0.9f, 0.1f, 0.1f)
-        ));
-        StartCoroutine(ProceduralVFX.SlashArc(
-            transform.position, attackDir,
-            arcDegrees: 60f, radius: attackRange * 0.8f,
-            duration: 0.15f,
-            color: new Color(0.8f, 0.0f, 0.0f)
         ));
 
         ApplyDamageArc(attackDir, _attackArc);
@@ -151,7 +152,7 @@ public class PlayerAttack : MonoBehaviour
             onHit: hitPos =>
             {
                 StartCoroutine(ProceduralVFX.ExplosionRing(hitPos, new Color(0.4f, 0.6f, 1f), 1.5f, 0.3f));
-                ApplyDamageAtPoint(hitPos, 0.5f);
+                ApplyDamageAtPoint(hitPos, 0.1f);
             }
         ));
     }
@@ -176,7 +177,7 @@ public class PlayerAttack : MonoBehaviour
             onHit: hitPos =>
             {
                 StartCoroutine(ProceduralVFX.ExplosionRing(hitPos, new Color(0.2f, 0.6f, 0.2f), 1.2f, 0.25f));
-                ApplyDamageAtPoint(hitPos, 0.5f);
+                ApplyDamageAtPoint(hitPos, 0.1f);
             }
         ));
     }
@@ -186,12 +187,24 @@ public class PlayerAttack : MonoBehaviour
     void AttackCacador()
     {
         var targets = GetNearestEnemies(_projectileCount);
+        if (targets.Count == 0)
+        {
+            var facing = PlayerController.Instance != null
+                ? PlayerController.Instance.FacingDirection : Vector2.right;
+            StartCoroutine(ProceduralVFX.ArrowStreak(
+                transform, facing,
+                speed: 22f, range: attackRange,
+                color: new Color(0.4f, 0.9f, 1f)
+            ));
+            return;
+        }
+
         foreach (var target in targets)
         {
             Vector2 dirToTarget = ((Vector2)(target.transform.position - transform.position)).normalized;
 
             StartCoroutine(ProceduralVFX.ArrowStreak(
-                transform.position, dirToTarget,
+                transform, dirToTarget,
                 speed: 22f, range: attackRange,
                 color: new Color(0.4f, 0.9f, 1f)
             ));
@@ -222,12 +235,13 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    void ApplyDamageArc(Vector2 dir, float arc)
+    void ApplyDamageArc(Vector2 dir, float arc, float searchRange = -1f)
     {
+        float r = searchRange > 0f ? searchRange : attackRange;
         var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
         filter.SetLayerMask(enemyLayerMask);
         var results = new List<Collider2D>();
-        Physics2D.OverlapCircle(transform.position, attackRange, filter, results);
+        Physics2D.OverlapCircle(transform.position, r, filter, results);
         foreach (var col in results)
         {
             if (col == null) continue;
