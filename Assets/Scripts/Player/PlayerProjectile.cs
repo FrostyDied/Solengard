@@ -12,9 +12,6 @@ public class PlayerProjectile : MonoBehaviour
     int            _frameIndex;
     const float    FRAME_INTERVAL = 1f / 12f;
 
-    Sprite[] _impactFrames;
-    float    _impactScale;
-
     public void Init(float damage, Vector2 dir, float speed, float lifetime = 2.5f)
     {
         _damage = damage;
@@ -30,12 +27,6 @@ public class PlayerProjectile : MonoBehaviour
         if (_sr == null) _sr = GetComponent<SpriteRenderer>();
         if (_frames != null && _frames.Length > 0)
             _sr.sprite = _frames[0];
-    }
-
-    public void SetImpactVFX(Sprite[] frames, float scale)
-    {
-        _impactFrames = frames;
-        _impactScale  = scale;
     }
 
     void Update()
@@ -61,11 +52,6 @@ public class PlayerProjectile : MonoBehaviour
         if (enemy == null) return;
 
         enemy.TakeDamage(_damage);
-
-        bool spawnImpact = !enemy.IsDead && _impactFrames != null && _impactFrames.Length > 0;
-        Debug.Log($"[Hit] {enemy.name} isDead={enemy.IsDead} → spawning={( spawnImpact ? "impactVFX" : "nenhum")}");
-        if (spawnImpact)
-            SpriteVFX.Spawn(_impactFrames, transform.position, 0f, _impactScale, 0.4f);
 
         Destroy(gameObject);
     }
