@@ -78,6 +78,9 @@ public static class SolengardFontSetup
         {
             if (tmpFont != null) text.font = tmpFont;
 
+            // Desativar auto size para garantir que o fontSize seja respeitado
+            text.enableAutoSizing = false;
+
             if (text.gameObject.name.ToLower().Contains("bioma") ||
                 text.gameObject.name.ToLower().Contains("nome"))
             {
