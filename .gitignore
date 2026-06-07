@@ -116,3 +116,9 @@ Assets/Hovl Studio.meta
 
 # Manter só os prefabs e sprites que forem usados nos prefabs
 !Assets/Art/Characters/Enemies/Slime/PNG/
+
+# UI e Fonts - pequenos, incluir no Git
+!Assets/Art/UI/
+!Assets/Art/UI/**
+!Assets/Art/Fonts/
+!Assets/Art/Fonts/**
