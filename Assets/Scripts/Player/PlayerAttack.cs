@@ -81,16 +81,13 @@ public class PlayerAttack : MonoBehaviour
         Vector2 attackDir = _meleeAlt ? -facing : facing;
         _meleeAlt = !_meleeAlt;
 
-        StartCoroutine(ProceduralVFX.SlashArc(
-            transform.position + (Vector3)(attackDir * 0.3f),
-            attackDir, 120f, attackRange * 0.6f, 0.25f,
-            new Color(0.6f, 0.85f, 1f), 0.14f
-        ));
-        StartCoroutine(DelayedSlashArc(
-            0.05f,
-            (Vector3)(-attackDir * 0.2f), // offset relativo, não posição absoluta
-            -attackDir, 120f, attackRange * 0.45f, 0.2f,
-            new Color(0.5f, 0.75f, 1f), 0.11f
+        // Chicote em C com ponta FIXA no player
+        StartCoroutine(ProceduralVFX.WhipChain(
+            transform,          // ponta fixa no player
+            attackDir,
+            length: attackRange * 0.8f,
+            duration: 0.35f,
+            color: new Color(0.6f, 0.85f, 1f)
         ));
 
         ApplyDamageCone(attackDir, 60f);
@@ -100,6 +97,9 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackPaladino()
     {
+        // Só ataca se há inimigo no range
+        if (GetNearestEnemy(attackRange) == null) return;
+
         Vector2 attackDir = GetAttackDirection();
         Vector3 swordTip  = transform.position + (Vector3)(attackDir * 0.8f);
 
@@ -124,39 +124,30 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackAssassino()
     {
-        Vector2   attackDir    = GetAttackDirection();
-        EnemyBase nearestEnemy = GetNearestEnemyInCone(attackDir, _attackArc)
-                              ?? GetNearestEnemy(attackRange * 1.5f);
+        // Só ataca se há inimigo DENTRO do attackRange
+        EnemyBase nearestEnemy = GetNearestEnemyInCone(GetAttackDirection(), _attackArc)
+                              ?? GetNearestEnemy(attackRange); // sem multiplicador
 
-        if (nearestEnemy != null)
-        {
-            // Estrela ninja voa em direção ao inimigo com colisão real
-            float dmg = attackDamage;
-            StartCoroutine(ProceduralVFX.StarProjectile(
-                transform.position,
-                ((Vector2)(nearestEnemy.transform.position - transform.position)).normalized,
-                speed: 14f,
-                range: attackRange,
-                color: new Color(0.9f, 0.1f, 0.1f),
-                onHit: enemy =>
-                {
-                    if (enemy == null || enemy.IsDead) return;
-                    enemy.TakeDamage(dmg);
-                    // Flash de impacto no ponto do inimigo
-                    StartCoroutine(ProceduralVFX.CrossSlash(this,
-                        enemy.transform.position, new Color(0.9f, 0f, 0.8f)));
-                }
-            ));
-        }
-        else
-        {
-            // Sem alvo — flash na direção do movimento
-            StartCoroutine(ProceduralVFX.DaggerFlash(
-                transform.position + (Vector3)(attackDir * 0.3f),
-                attackDir, attackRange,
-                new Color(0.9f, 0.1f, 0.1f), 0.1f
-            ));
-        }
+        if (nearestEnemy == null) return; // sem alvo no range = não ataca
+
+        float   dmg       = attackDamage;
+        Vector2 dirToEnemy = ((Vector2)(nearestEnemy.transform.position
+                               - transform.position)).normalized;
+
+        StartCoroutine(ProceduralVFX.StarProjectile(
+            transform.position,
+            dirToEnemy,
+            speed: 14f,
+            range: attackRange,
+            color: new Color(0.9f, 0.1f, 0.1f),
+            onHit: enemy =>
+            {
+                if (enemy == null || enemy.IsDead) return;
+                enemy.TakeDamage(dmg);
+                StartCoroutine(ProceduralVFX.CrossSlash(this,
+                    enemy.transform.position, new Color(0.9f, 0f, 0.8f)));
+            }
+        ));
     }
 
     // ── Mago (RangedSingle) ───────────────────────────────────────────────────────
@@ -167,8 +158,9 @@ public class PlayerAttack : MonoBehaviour
         if (targets.Count == 0) return;
 
         var target = targets[0];
-        Vector2 dir   = ((Vector2)(target.transform.position - transform.position)).normalized;
-        float   range = Mathf.Min(Vector2.Distance(transform.position, target.transform.position), attackRange);
+        Vector2 dir = ((Vector2)(target.transform.position - transform.position)).normalized;
+        // Usar attackRange fixo — garante que projétil alcança inimigo dentro do range
+        float range = attackRange;
 
         StartCoroutine(ProceduralVFX.EnergyBolt(
             transform.position, dir,

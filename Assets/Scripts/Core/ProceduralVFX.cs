@@ -388,6 +388,64 @@ public static class ProceduralVFX
     }
 
     // ═══════════════════════════════════════════
+    // TIPO 7 — WHIP CHAIN (chicote em C)
+    // Usado por: Guerreiro
+    // Uma ponta FIXA no player, a outra se estende em arco C
+    // ═══════════════════════════════════════════
+    public static IEnumerator WhipChain(Transform playerTransform,
+        Vector2 direction, float length, float duration, Color color)
+    {
+        var go = new GameObject("VFX_Whip");
+        var lr = go.AddComponent<LineRenderer>();
+        lr.material      = GetMat();
+        lr.sortingOrder  = 300;
+        lr.positionCount = 20;
+        lr.startWidth    = 0.08f;
+        lr.endWidth      = 0.02f;
+
+        var grad = new Gradient();
+        grad.SetKeys(
+            new[] { new GradientColorKey(Color.white, 0f),
+                    new GradientColorKey(color, 0.3f),
+                    new GradientColorKey(color * 0.6f, 1f) },
+            new[] { new GradientAlphaKey(1f, 0f),
+                    new GradientAlphaKey(1f, 0.7f),
+                    new GradientAlphaKey(0f, 1f) }
+        );
+        lr.colorGradient = grad;
+
+        Vector3 perp    = new Vector3(-direction.y, direction.x, 0);
+        float   elapsed = 0f;
+        int     segs    = 20;
+
+        while (elapsed < duration && playerTransform != null)
+        {
+            float t     = elapsed / duration;
+            // Extensão: vai de 0 a 1 rapidamente, depois volta
+            float reach = t < 0.4f
+                ? Mathf.SmoothStep(0f, 1f, t / 0.4f)
+                : Mathf.SmoothStep(1f, 0f, (t - 0.4f) / 0.6f);
+
+            Vector3 anchor = playerTransform.position; // ponta fixa no player
+
+            for (int i = 0; i < segs; i++)
+            {
+                float s = (float)i / (segs - 1);
+                // Forma de C: curva perpendicular que abre e fecha
+                float curve = Mathf.Sin(s * Mathf.PI) * reach * 0.6f;
+                Vector3 pt  = anchor
+                    + (Vector3)(direction * s * length * reach)
+                    + perp * curve;
+                lr.SetPosition(i, pt);
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        Object.Destroy(go);
+    }
+
+    // ═══════════════════════════════════════════
     // TIPO 6 — EXPLOSION RING (anel de explosão)
     // Usado por: impactos, poderes especiais
     // Círculo que se expande e desaparece
