@@ -81,14 +81,17 @@ public class PlayerAttack : MonoBehaviour
         Vector2 attackDir = _meleeAlt ? -facing : facing;
         _meleeAlt = !_meleeAlt;
 
-        StartCoroutine(ProceduralVFX.Whip(
-            transform, attackDir,
-            length: attackRange * 0.6f, duration: 0.4f,
-            color: new Color(0.7f, 0.9f, 1f),
-            width: 0.06f, amplitude: 0.5f
+        StartCoroutine(ProceduralVFX.SlashArc(
+            transform.position + (Vector3)(attackDir * 0.3f),
+            attackDir, 90f, attackRange * 0.7f, 0.25f,
+            new Color(0.7f, 0.9f, 1f), 0.12f
+        ));
+        StartCoroutine(ProceduralVFX.DaggerFlash(
+            transform.position, attackDir,
+            length: attackRange * 0.5f,
+            color: new Color(0.8f, 0.95f, 1f), width: 0.08f
         ));
 
-        // Cone de 90° (±45° da direção do ataque)
         ApplyDamageCone(attackDir, 45f);
     }
 
@@ -107,27 +110,38 @@ public class PlayerAttack : MonoBehaviour
         ));
         StartCoroutine(ProceduralVFX.SlashArc(
             swordTip, attackDir,
-            arcDegrees: 120f, radius: attackRange * 0.5f,
+            arcDegrees: 100f, radius: attackRange * 0.35f,
             duration: 0.3f,
             color: new Color(1f, 0.9f, 0.3f),
             width: 0.15f
         ));
 
-        ApplyDamageArc(attackDir, 120f, attackRange * 0.5f);
+        StartCoroutine(PaladinoDamageArc(attackDir, 100f, attackRange * 0.35f, 0.3f));
     }
 
     // ── Assassino (MeleeCone) ─────────────────────────────────────────────────────
 
     void AttackAssassino()
     {
-        Vector2 attackDir = GetAttackDirection();
+        Vector2   attackDir    = GetAttackDirection();
+        EnemyBase nearestEnemy = GetNearestEnemyInCone(attackDir, _attackArc)
+                              ?? GetNearestEnemy(attackRange * 1.5f);
 
         StartCoroutine(ProceduralVFX.DaggerFlash(
-            transform.position + (Vector3)(attackDir * 0.5f),
-            attackDir,
-            length: attackRange,
-            color: new Color(0.9f, 0.1f, 0.1f)
+            transform.position + (Vector3)(attackDir * 0.3f),
+            attackDir, attackRange,
+            new Color(0.9f, 0.1f, 0.1f), 0.1f
         ));
+        StartCoroutine(ProceduralVFX.DaggerFlash(
+            transform.position + (Vector3)(attackDir * 0.1f)
+                + new Vector3(-attackDir.y, attackDir.x, 0) * 0.15f,
+            attackDir, attackRange * 0.7f,
+            new Color(0.6f, 0f, 0.8f), 0.08f
+        ));
+
+        if (nearestEnemy != null)
+            StartCoroutine(ProceduralVFX.CrossSlash(this,
+                nearestEnemy.transform.position, new Color(0.9f, 0f, 0.8f)));
 
         ApplyDamageArc(attackDir, _attackArc);
     }
@@ -146,8 +160,8 @@ public class PlayerAttack : MonoBehaviour
         StartCoroutine(ProceduralVFX.EnergyBolt(
             transform.position, dir,
             speed: 18f, range: range,
-            coreColor:  new Color(0.3f, 0.5f, 1f),
-            trailColor: new Color(0.6f, 0.3f, 1f),
+            coreColor:  new Color(0.2f, 0.6f, 1f),
+            trailColor: new Color(1f, 0.6f, 0.1f),
             size: 0.2f,
             onHit: hitPos =>
             {
@@ -165,19 +179,15 @@ public class PlayerAttack : MonoBehaviour
         if (targets.Count == 0) return;
 
         var target = targets[0];
-        Vector2 dir   = ((Vector2)(target.transform.position - transform.position)).normalized;
-        float   range = Mathf.Min(Vector2.Distance(transform.position, target.transform.position), attackRange);
+        Vector2 dir = ((Vector2)(target.transform.position - transform.position)).normalized;
 
-        StartCoroutine(ProceduralVFX.EnergyBolt(
-            transform.position, dir,
-            speed: 14f, range: range,
-            coreColor:  new Color(0.2f, 0.8f, 0.3f),
-            trailColor: new Color(0.1f, 0.4f, 0.1f),
-            size: 0.18f,
+        StartCoroutine(ProceduralVFX.SkullProjectile(
+            transform.position, dir, 8f, attackRange,
             onHit: hitPos =>
             {
-                StartCoroutine(ProceduralVFX.ExplosionRing(hitPos, new Color(0.2f, 0.6f, 0.2f), 1.2f, 0.25f));
-                ApplyDamageAtPoint(hitPos, 0.1f);
+                ApplyDamageAtPoint(hitPos, 0.3f);
+                StartCoroutine(ProceduralVFX.ExplosionRing(
+                    hitPos, new Color(0.3f, 0.9f, 0.3f), 0.8f, 0.25f));
             }
         ));
     }
@@ -193,7 +203,7 @@ public class PlayerAttack : MonoBehaviour
                 ? PlayerController.Instance.FacingDirection : Vector2.right;
             StartCoroutine(ProceduralVFX.ArrowStreak(
                 transform, facing,
-                speed: 22f, range: attackRange,
+                speed: 12f, range: attackRange,
                 color: new Color(0.4f, 0.9f, 1f)
             ));
             return;
@@ -205,7 +215,7 @@ public class PlayerAttack : MonoBehaviour
 
             StartCoroutine(ProceduralVFX.ArrowStreak(
                 transform, dirToTarget,
-                speed: 22f, range: attackRange,
+                speed: 12f, range: attackRange,
                 color: new Color(0.4f, 0.9f, 1f)
             ));
 
@@ -217,6 +227,32 @@ public class PlayerAttack : MonoBehaviour
     // ── Fallback (Melee360) ───────────────────────────────────────────────────────
 
     void AttackMelee360() => ApplyDamageArc(Vector2.right, 360f);
+
+    IEnumerator PaladinoDamageArc(Vector2 dir, float arc, float maxRadius, float duration)
+    {
+        var hit    = new HashSet<EnemyBase>();
+        var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+        filter.SetLayerMask(enemyLayerMask);
+        var results = new List<Collider2D>();
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            float t = elapsed / duration;
+            float r = maxRadius * (t < 0.4f ? t / 0.4f : 1f);
+            Physics2D.OverlapCircle(transform.position, r * 0.9f, filter, results);
+            foreach (var col in results)
+            {
+                if (col == null) continue;
+                if (!InArc(col.transform.position, arc, dir)) continue;
+                var e = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+                if (e == null || e.IsDead || !hit.Add(e)) continue;
+                if (e.isBoss) Debug.Log($"[PlayerAttack] Acertou boss {e.name} — {attackDamage:F0} dmg");
+                e.TakeDamage(attackDamage);
+            }
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+    }
 
     // ── Helpers de dano ───────────────────────────────────────────────────────────
 

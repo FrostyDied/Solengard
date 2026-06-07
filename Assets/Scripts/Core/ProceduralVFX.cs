@@ -85,15 +85,18 @@ public static class ProceduralVFX
         tr.endColor = new Color(trailColor.r, trailColor.g, trailColor.b, 0f);
         tr.sortingOrder = 299;
 
-        float traveled = 0f;
+        float traveled    = 0f;
+        float currentSize = size * 0.2f;
         while (traveled < range)
         {
             float step = speed * Time.deltaTime;
             go.transform.position += (Vector3)(direction * step);
             traveled += step;
 
-            float pulse = 1f + Mathf.Sin(Time.time * 20f) * 0.15f;
-            core.transform.localScale = Vector3.one * pulse;
+            float growT = Mathf.Clamp01(traveled / (range * 0.6f));
+            currentSize = Mathf.Lerp(size * 0.2f, size, growT);
+            core.transform.localScale = Vector3.one * currentSize;
+            tr.startWidth = currentSize * 0.8f;
 
             yield return null;
         }
@@ -229,14 +232,40 @@ public static class ProceduralVFX
         tr.endColor = new Color(color.r, color.g, color.b, 0f);
         tr.sortingOrder = 299;
 
+        Vector3 perpDir      = new Vector3(-direction.y, direction.x, 0);
+        float   arrowHeadLen = 0.25f;
+        float   arrowHeadW   = 0.08f;
+
+        var tipL = new GameObject("TipL");
+        tipL.transform.SetParent(go.transform, false);
+        var lrL = tipL.AddComponent<LineRenderer>();
+        lrL.material = GetMat();
+        lrL.positionCount = 2;
+        lrL.startWidth = 0.03f; lrL.endWidth = 0f;
+        lrL.startColor = Color.white; lrL.endColor = color;
+        lrL.sortingOrder = 300;
+
+        var tipR = new GameObject("TipR");
+        tipR.transform.SetParent(go.transform, false);
+        var lrR = tipR.AddComponent<LineRenderer>();
+        lrR.material = GetMat();
+        lrR.positionCount = 2;
+        lrR.startWidth = 0.03f; lrR.endWidth = 0f;
+        lrR.startColor = Color.white; lrR.endColor = color;
+        lrR.sortingOrder = 300;
+
         float traveled = 0f;
         while (traveled < range)
         {
-            float step = speed * Time.deltaTime;
+            float   step = speed * Time.deltaTime;
             go.transform.position += (Vector3)(direction * step);
-            Vector3 tip = go.transform.position;
+            Vector3 tip  = go.transform.position;
             lr.SetPosition(0, tip - (Vector3)(direction * 0.4f));
             lr.SetPosition(1, tip);
+            lrL.SetPosition(0, tip);
+            lrL.SetPosition(1, tip - (Vector3)(direction * arrowHeadLen) + perpDir * arrowHeadW);
+            lrR.SetPosition(0, tip);
+            lrR.SetPosition(1, tip - (Vector3)(direction * arrowHeadLen) - perpDir * arrowHeadW);
             traveled += step;
             yield return null;
         }
@@ -285,6 +314,92 @@ public static class ProceduralVFX
     }
 
     // ═══════════════════════════════════════════
+    // TIPO 7 — SKULL PROJECTILE (caveirinha geométrica)
+    // Usado por: Necromante
+    // ═══════════════════════════════════════════
+    public static IEnumerator SkullProjectile(Vector3 origin,
+        Vector2 direction, float speed, float range,
+        System.Action<Vector3> onHit = null)
+    {
+        Color skullColor = new Color(0.5f, 1f, 0.4f);
+        var go = new GameObject("VFX_Skull");
+        go.transform.position = origin;
+
+        CreateCircle(go, 0.12f, skullColor, 300, 12);
+        CreateDot(go, new Vector3(-0.04f, 0.02f, 0), 0.03f, new Color(0f, 0f, 0f, 0.8f));
+        CreateDot(go, new Vector3( 0.04f, 0.02f, 0), 0.03f, new Color(0f, 0f, 0f, 0.8f));
+
+        var mouth = new GameObject("Mouth");
+        mouth.transform.SetParent(go.transform, false);
+        var lrM = mouth.AddComponent<LineRenderer>();
+        lrM.material = GetMat();
+        lrM.useWorldSpace = false;
+        lrM.positionCount = 2;
+        lrM.startWidth = 0.02f; lrM.endWidth = 0.02f;
+        lrM.startColor = lrM.endColor = new Color(0f, 0f, 0f, 0.8f);
+        lrM.sortingOrder = 301;
+        lrM.SetPosition(0, new Vector3(-0.05f, -0.04f, 0));
+        lrM.SetPosition(1, new Vector3( 0.05f, -0.04f, 0));
+
+        var tr = go.AddComponent<TrailRenderer>();
+        tr.material = GetMat();
+        tr.time = 0.3f;
+        tr.startWidth = 0.08f; tr.endWidth = 0f;
+        tr.startColor = skullColor;
+        tr.endColor = new Color(skullColor.r, skullColor.g, skullColor.b, 0f);
+        tr.sortingOrder = 299;
+
+        float traveled    = 0f;
+        float bounceTimer = 0f;
+        while (traveled < range)
+        {
+            float step = speed * Time.deltaTime;
+            bounceTimer += Time.deltaTime;
+
+            float bounce = Mathf.Abs(Mathf.Sin(bounceTimer * 12f)) * 0.05f;
+            go.transform.position += (Vector3)(direction * step)
+                                   + Vector3.up * (bounce - 0.025f);
+            traveled += step;
+
+            var filter = new ContactFilter2D();
+            filter.useTriggers = true;
+            filter.SetLayerMask(LayerMask.GetMask("Enemy"));
+            var hits = new System.Collections.Generic.List<Collider2D>();
+            Physics2D.OverlapCircle(go.transform.position, 0.15f, filter, hits);
+            if (hits.Count > 0)
+            {
+                var eb = hits[0].GetComponent<EnemyBase>()
+                      ?? hits[0].GetComponentInParent<EnemyBase>();
+                if (eb != null && !eb.IsDead)
+                {
+                    Vector3 hitPos = go.transform.position;
+                    Object.Destroy(go);
+                    if (onHit != null) onHit(hitPos);
+                    yield break;
+                }
+            }
+            yield return null;
+        }
+
+        Vector3 finalPos = go.transform.position;
+        Object.Destroy(go);
+        if (onHit != null) onHit(finalPos);
+    }
+
+    // ═══════════════════════════════════════════
+    // TIPO 8 — CROSS SLASH (X de corte)
+    // Usado por: Assassino
+    // ═══════════════════════════════════════════
+    public static IEnumerator CrossSlash(MonoBehaviour host, Vector3 pos, Color color)
+    {
+        var d1 = new Vector2(0.707f,  0.707f);
+        var d2 = new Vector2(0.707f, -0.707f);
+        yield return null;
+        host.StartCoroutine(DaggerFlash(pos, d1, 0.3f, color, 0.06f));
+        host.StartCoroutine(DaggerFlash(pos, d2, 0.3f, color, 0.06f));
+    }
+
+    // ═══════════════════════════════════════════
     // HELPERS INTERNOS
     // ═══════════════════════════════════════════
     static GameObject CreateCircle(GameObject parent, float radius,
@@ -294,6 +409,7 @@ public static class ProceduralVFX
         go.transform.SetParent(parent.transform, false);
         var lr = go.AddComponent<LineRenderer>();
         lr.material = GetMat();
+        lr.useWorldSpace = false;
         lr.loop = true;
         lr.positionCount = segments;
         lr.startWidth = radius * 0.4f;
@@ -308,6 +424,22 @@ public static class ProceduralVFX
                 Mathf.Cos(a) * radius, Mathf.Sin(a) * radius, 0));
         }
         return go;
+    }
+
+    static void CreateDot(GameObject parent, Vector3 localPos, float size, Color color)
+    {
+        var go = new GameObject("Dot");
+        go.transform.SetParent(parent.transform, false);
+        go.transform.localPosition = localPos;
+        var lr = go.AddComponent<LineRenderer>();
+        lr.material = GetMat();
+        lr.useWorldSpace = false;
+        lr.positionCount = 2;
+        lr.startWidth = size; lr.endWidth = size;
+        lr.startColor = lr.endColor = color;
+        lr.sortingOrder = 302;
+        lr.SetPosition(0, Vector3.zero);
+        lr.SetPosition(1, new Vector3(0.001f, 0, 0));
     }
 
     static GameObject CreateExplosion(Vector3 pos, Color color,
