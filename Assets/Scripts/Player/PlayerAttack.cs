@@ -83,16 +83,17 @@ public class PlayerAttack : MonoBehaviour
 
         StartCoroutine(ProceduralVFX.SlashArc(
             transform.position + (Vector3)(attackDir * 0.3f),
-            attackDir, 90f, attackRange * 0.7f, 0.25f,
-            new Color(0.7f, 0.9f, 1f), 0.12f
+            attackDir, 120f, attackRange * 0.6f, 0.25f,
+            new Color(0.6f, 0.85f, 1f), 0.14f
         ));
-        StartCoroutine(ProceduralVFX.DaggerFlash(
-            transform.position, attackDir,
-            length: attackRange * 0.5f,
-            color: new Color(0.8f, 0.95f, 1f), width: 0.08f
+        StartCoroutine(DelayedSlashArc(
+            0.05f,
+            transform.position - (Vector3)(attackDir * 0.2f),
+            -attackDir, 120f, attackRange * 0.45f, 0.2f,
+            new Color(0.5f, 0.75f, 1f), 0.11f
         ));
 
-        ApplyDamageCone(attackDir, 45f);
+        ApplyDamageCone(attackDir, 60f);
     }
 
     // ── Paladino (Melee180) ───────────────────────────────────────────────────────
@@ -110,13 +111,13 @@ public class PlayerAttack : MonoBehaviour
         ));
         StartCoroutine(ProceduralVFX.SlashArc(
             swordTip, attackDir,
-            arcDegrees: 100f, radius: attackRange * 0.35f,
+            arcDegrees: 100f, radius: attackRange * 0.5f,
             duration: 0.3f,
             color: new Color(1f, 0.9f, 0.3f),
             width: 0.15f
         ));
 
-        StartCoroutine(PaladinoDamageArc(attackDir, 100f, attackRange * 0.35f, 0.3f));
+        StartCoroutine(PaladinoDamageArc(attackDir, 100f, attackRange * 0.5f, 0.3f));
     }
 
     // ── Assassino (MeleeCone) ─────────────────────────────────────────────────────
@@ -185,7 +186,7 @@ public class PlayerAttack : MonoBehaviour
             transform.position, dir, 8f, attackRange,
             onHit: hitPos =>
             {
-                ApplyDamageAtPoint(hitPos, 0.3f);
+                ApplyDamageAtPoint(hitPos, 0.5f);
                 StartCoroutine(ProceduralVFX.ExplosionRing(
                     hitPos, new Color(0.3f, 0.9f, 0.3f), 0.8f, 0.25f));
             }
@@ -206,21 +207,33 @@ public class PlayerAttack : MonoBehaviour
                 speed: 12f, range: attackRange,
                 color: new Color(0.4f, 0.9f, 1f)
             ));
+            StartCoroutine(ProceduralVFX.CrescentSlash(
+                transform.position, facing,
+                attackRange * 0.5f, 0.3f, new Color(0.4f, 0.9f, 1f)
+            ));
             return;
         }
 
         foreach (var target in targets)
         {
             Vector2 dirToTarget = ((Vector2)(target.transform.position - transform.position)).normalized;
+            float   dmg         = attackDamage;
 
             StartCoroutine(ProceduralVFX.ArrowStreak(
                 transform, dirToTarget,
                 speed: 12f, range: attackRange,
-                color: new Color(0.4f, 0.9f, 1f)
+                color: new Color(0.4f, 0.9f, 1f),
+                onHit: enemy =>
+                {
+                    if (enemy == null) return;
+                    if (enemy.isBoss) Debug.Log($"[PlayerAttack] Acertou boss {enemy.name} — {dmg:F0} dmg");
+                    enemy.TakeDamage(dmg);
+                }
             ));
-
-            if (target.isBoss) Debug.Log($"[PlayerAttack] Acertou boss {target.name} — {attackDamage:F0} dmg");
-            target.TakeDamage(attackDamage);
+            StartCoroutine(ProceduralVFX.CrescentSlash(
+                transform.position, dirToTarget,
+                attackRange * 0.5f, 0.3f, new Color(0.4f, 0.9f, 1f)
+            ));
         }
     }
 
@@ -252,6 +265,13 @@ public class PlayerAttack : MonoBehaviour
             elapsed += Time.deltaTime;
             yield return null;
         }
+    }
+
+    IEnumerator DelayedSlashArc(float delay, Vector3 origin, Vector2 dir,
+        float arc, float radius, float duration, Color color, float width)
+    {
+        yield return new WaitForSeconds(delay);
+        yield return ProceduralVFX.SlashArc(origin, dir, arc, radius, duration, color, width);
     }
 
     // ── Helpers de dano ───────────────────────────────────────────────────────────

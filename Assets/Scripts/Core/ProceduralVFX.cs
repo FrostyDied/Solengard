@@ -209,7 +209,7 @@ public static class ProceduralVFX
     // Linha fina e rápida com ponta triangular
     // ═══════════════════════════════════════════
     public static IEnumerator ArrowStreak(Transform originTransform, Vector2 direction,
-        float speed, float range, Color color)
+        float speed, float range, Color color, System.Action<EnemyBase> onHit = null)
     {
         Vector3 startPos = originTransform.position;
         var go = new GameObject("VFX_Arrow");
@@ -241,7 +241,7 @@ public static class ProceduralVFX
         var lrL = tipL.AddComponent<LineRenderer>();
         lrL.material = GetMat();
         lrL.positionCount = 2;
-        lrL.startWidth = 0.03f; lrL.endWidth = 0f;
+        lrL.startWidth = 0.12f; lrL.endWidth = 0.04f;
         lrL.startColor = Color.white; lrL.endColor = color;
         lrL.sortingOrder = 300;
 
@@ -250,7 +250,7 @@ public static class ProceduralVFX
         var lrR = tipR.AddComponent<LineRenderer>();
         lrR.material = GetMat();
         lrR.positionCount = 2;
-        lrR.startWidth = 0.03f; lrR.endWidth = 0f;
+        lrR.startWidth = 0.12f; lrR.endWidth = 0.04f;
         lrR.startColor = Color.white; lrR.endColor = color;
         lrR.sortingOrder = 300;
 
@@ -267,6 +267,23 @@ public static class ProceduralVFX
             lrR.SetPosition(0, tip);
             lrR.SetPosition(1, tip - (Vector3)(direction * arrowHeadLen) - perpDir * arrowHeadW);
             traveled += step;
+
+            var hitFilter = new ContactFilter2D();
+            hitFilter.useTriggers = true;
+            hitFilter.SetLayerMask(LayerMask.GetMask("Enemy"));
+            var hitList = new System.Collections.Generic.List<Collider2D>();
+            Physics2D.OverlapCircle(go.transform.position, 0.2f, hitFilter, hitList);
+            if (hitList.Count > 0)
+            {
+                var eb = hitList[0].GetComponent<EnemyBase>()
+                      ?? hitList[0].GetComponentInParent<EnemyBase>();
+                if (eb != null && !eb.IsDead)
+                {
+                    Object.Destroy(go);
+                    if (onHit != null) onHit(eb);
+                    yield break;
+                }
+            }
             yield return null;
         }
         Object.Destroy(go);
@@ -365,7 +382,7 @@ public static class ProceduralVFX
             filter.useTriggers = true;
             filter.SetLayerMask(LayerMask.GetMask("Enemy"));
             var hits = new System.Collections.Generic.List<Collider2D>();
-            Physics2D.OverlapCircle(go.transform.position, 0.15f, filter, hits);
+            Physics2D.OverlapCircle(go.transform.position, 0.35f, filter, hits);
             if (hits.Count > 0)
             {
                 var eb = hits[0].GetComponent<EnemyBase>()
@@ -395,8 +412,64 @@ public static class ProceduralVFX
         var d1 = new Vector2(0.707f,  0.707f);
         var d2 = new Vector2(0.707f, -0.707f);
         yield return null;
-        host.StartCoroutine(DaggerFlash(pos, d1, 0.3f, color, 0.06f));
-        host.StartCoroutine(DaggerFlash(pos, d2, 0.3f, color, 0.06f));
+        host.StartCoroutine(DaggerFlash(pos, d1,  0.8f, color, 0.12f));
+        host.StartCoroutine(DaggerFlash(pos, -d1, 0.8f, color, 0.12f));
+        host.StartCoroutine(DaggerFlash(pos, d2,  0.8f, color, 0.12f));
+        host.StartCoroutine(DaggerFlash(pos, -d2, 0.8f, color, 0.12f));
+        host.StartCoroutine(ExplosionRing(pos, new Color(0.9f, 0f, 0.8f), 0.5f, 0.2f, 0.08f));
+    }
+
+    // ═══════════════════════════════════════════
+    // TIPO 9 — CRESCENT SLASH (meia-lua de vento)
+    // Usado por: Caçador
+    // Arco crescente que expande girando levemente
+    // ═══════════════════════════════════════════
+    public static IEnumerator CrescentSlash(Vector3 origin, Vector2 direction,
+        float radius, float duration, Color color, float width = 0.15f)
+    {
+        var go = new GameObject("VFX_Crescent");
+        var lr = go.AddComponent<LineRenderer>();
+        lr.material = GetMat();
+        lr.sortingOrder = 300;
+        int segments = 40;
+        lr.positionCount = segments;
+
+        float arcDegrees = 120f;
+        float baseAngle  = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        float halfArc    = arcDegrees * 0.5f;
+        float elapsed    = 0f;
+
+        while (elapsed < duration)
+        {
+            float t             = elapsed / duration;
+            float currentRadius = Mathf.Lerp(radius * 0.2f, radius, t);
+            float alpha         = t < 0.5f ? t * 2f : Mathf.Lerp(1f, 0.3f, (t - 0.5f) * 2f);
+            float swingAngle    = Mathf.Lerp(-15f, 15f, t);
+
+            var grad = new Gradient();
+            grad.SetKeys(
+                new[]{ new GradientColorKey(color, 0f), new GradientColorKey(color, 1f) },
+                new[]{ new GradientAlphaKey(0f, 0f),
+                       new GradientAlphaKey(alpha, 0.5f),
+                       new GradientAlphaKey(0f, 1f) }
+            );
+            lr.colorGradient = grad;
+            lr.startWidth = width * (1f - t * 0.4f);
+            lr.endWidth   = lr.startWidth * 0.3f;
+
+            float finalBase = baseAngle + swingAngle;
+            for (int i = 0; i < segments; i++)
+            {
+                float s     = (float)i / (segments - 1);
+                float angle = (finalBase - halfArc + arcDegrees * s) * Mathf.Deg2Rad;
+                lr.SetPosition(i, origin + new Vector3(
+                    Mathf.Cos(angle) * currentRadius,
+                    Mathf.Sin(angle) * currentRadius, 0));
+            }
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        Object.Destroy(go);
     }
 
     // ═══════════════════════════════════════════
