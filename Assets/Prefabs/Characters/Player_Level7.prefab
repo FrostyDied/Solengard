@@ -166,8 +166,6 @@ MonoBehaviour:
   attackDamage: 30
   attackRange: 6.5
   attackCooldown: 0.3
-  slashEffectPrefab: {fileID: 0}
-  slashDuration: 0.18
   enemyLayerMask:
     serializedVersion: 2
     m_Bits: 0

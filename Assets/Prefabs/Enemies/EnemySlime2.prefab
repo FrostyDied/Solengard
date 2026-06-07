@@ -109,7 +109,10 @@ MonoBehaviour:
   stoppingDistance: 0.8
   separationRadius: 2
   separationStrength: 1.5
+  isHeavy: 0
+  isBoss: 0
   contactDamageInterval: 0.5
+  xpValue: 3
   playerTransform: {fileID: 0}
   poolTag: 
 --- !u!50 &3251018617532605855

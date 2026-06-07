@@ -1,0 +1,70 @@
+=== DIAGNÓSTICO DE POSIÇÕES ===
+Timestamp: 16:55:29
+
+PLAYER
+  Posição: (-180.84, 391.42, 0.00)
+  Chunk atual: (-10, 19)
+CÂMERA
+  Posição: (-180.84, 391.42, -10.00)
+  OrthoSize: 12
+  Visível: X[-187,6 a -174,1]
+           Y[379,4 a 403,4]
+CHUNKS ATIVOS: 49
+  Chunk (-9, 19): pos=(-170, 390, 0) props=12 nulos=0 visivel=True
+  Chunk (-10, 20): pos=(-190, 410, 0) props=12 nulos=0 visivel=True
+  Chunk (-9, 18): pos=(-170, 370, 0) props=12 nulos=0 visivel=True
+  Chunk (-9, 17): pos=(-170, 350, 0) props=12 nulos=0 visivel=False
+  Chunk (-9, 16): pos=(-170, 330, 0) props=12 nulos=0 visivel=False
+  Chunk (-10, 19): pos=(-190, 390, 0) props=12 nulos=0 visivel=True
+  Chunk (-12, 22): pos=(-230, 450, 0) props=12 nulos=0 visivel=False
+  Chunk (-10, 18): pos=(-190, 370, 0) props=12 nulos=0 visivel=True
+  Chunk (-11, 21): pos=(-210, 430, 0) props=12 nulos=0 visivel=False
+  Chunk (-10, 17): pos=(-190, 350, 0) props=12 nulos=0 visivel=False
+  Chunk (-10, 16): pos=(-190, 330, 0) props=12 nulos=0 visivel=False
+  Chunk (-13, 22): pos=(-250, 450, 0) props=12 nulos=0 visivel=False
+  Chunk (-11, 20): pos=(-210, 410, 0) props=12 nulos=0 visivel=False
+  Chunk (-12, 21): pos=(-230, 430, 0) props=12 nulos=0 visivel=False
+  Chunk (-11, 19): pos=(-210, 390, 0) props=12 nulos=0 visivel=False
+  Chunk (-12, 20): pos=(-230, 410, 0) props=12 nulos=0 visivel=False
+  Chunk (-11, 18): pos=(-210, 370, 0) props=12 nulos=0 visivel=False
+  Chunk (-11, 17): pos=(-210, 350, 0) props=12 nulos=0 visivel=False
+  Chunk (-11, 16): pos=(-210, 330, 0) props=12 nulos=0 visivel=False
+  Chunk (-12, 19): pos=(-230, 390, 0) props=12 nulos=0 visivel=False
+  Chunk (-12, 18): pos=(-230, 370, 0) props=12 nulos=0 visivel=False
+  Chunk (-7, 22): pos=(-130, 450, 0) props=12 nulos=0 visivel=False
+  Chunk (-8, 22): pos=(-150, 450, 0) props=12 nulos=0 visivel=False
+  Chunk (-13, 21): pos=(-250, 430, 0) props=12 nulos=0 visivel=False
+  Chunk (-13, 20): pos=(-250, 410, 0) props=12 nulos=0 visivel=False
+  Chunk (-9, 22): pos=(-170, 450, 0) props=12 nulos=0 visivel=False
+  Chunk (-13, 19): pos=(-250, 390, 0) props=12 nulos=0 visivel=False
+  Chunk (-7, 21): pos=(-130, 430, 0) props=12 nulos=0 visivel=False
+  Chunk (-12, 17): pos=(-230, 350, 0) props=12 nulos=0 visivel=False
+  Chunk (-13, 18): pos=(-250, 370, 0) props=12 nulos=0 visivel=False
+  Chunk (-7, 20): pos=(-130, 410, 0) props=12 nulos=0 visivel=False
+  Chunk (-8, 21): pos=(-150, 430, 0) props=12 nulos=0 visivel=False
+  Chunk (-7, 16): pos=(-130, 330, 0) props=12 nulos=0 visivel=False
+  Chunk (-10, 22): pos=(-190, 450, 0) props=12 nulos=0 visivel=False
+  Chunk (-13, 17): pos=(-250, 350, 0) props=12 nulos=0 visivel=False
+  Chunk (-12, 16): pos=(-230, 330, 0) props=12 nulos=0 visivel=False
+  Chunk (-8, 16): pos=(-150, 330, 0) props=12 nulos=0 visivel=False
+  Chunk (-11, 22): pos=(-210, 450, 0) props=12 nulos=0 visivel=False
+  Chunk (-9, 21): pos=(-170, 430, 0) props=12 nulos=0 visivel=False
+  Chunk (-8, 20): pos=(-150, 410, 0) props=12 nulos=0 visivel=False
+  Chunk (-7, 19): pos=(-130, 390, 0) props=12 nulos=0 visivel=False
+  Chunk (-7, 17): pos=(-130, 350, 0) props=12 nulos=0 visivel=False
+  Chunk (-8, 17): pos=(-150, 350, 0) props=12 nulos=0 visivel=False
+  Chunk (-13, 16): pos=(-250, 330, 0) props=12 nulos=0 visivel=False
+  Chunk (-7, 18): pos=(-130, 370, 0) props=12 nulos=0 visivel=False
+  Chunk (-10, 21): pos=(-190, 430, 0) props=12 nulos=0 visivel=False
+  Chunk (-9, 20): pos=(-170, 410, 0) props=12 nulos=0 visivel=True
+  Chunk (-8, 19): pos=(-150, 390, 0) props=12 nulos=0 visivel=False
+  Chunk (-8, 18): pos=(-150, 370, 0) props=12 nulos=0 visivel=False
+CHÃO (SimpleArena)
+  Posição: (-192, 384, 0)
+  Escala: (1.0, 1.0, 1.0)
+ENVIRONMENT PROPS NA CENA: 588
+  Veremoth_Bush(Clone) pos=(-156, 358, 0) sprite=Bush_simple2_2 enabled=True sortOrder=-158
+  Veremoth_Mushroom(Clone) pos=(-232, 332, 0) sprite=Beige_green_mushroom1 enabled=True sortOrder=-132
+  Veremoth_Rock(Clone) pos=(-143, 398, 0) sprite=Brown_stone_grass5 enabled=True sortOrder=-198
+  Veremoth_Bush(Clone) pos=(-188, 386, 0) sprite=Bush_simple2_2 enabled=True sortOrder=-186
+  Veremoth_Ruin(Clone) pos=(-132, 335, 0) sprite=Ruin_orange3 enabled=True sortOrder=-135

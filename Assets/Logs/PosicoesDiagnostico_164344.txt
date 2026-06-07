@@ -1,0 +1,11 @@
+=== DIAGNÓSTICO DE POSIÇÕES ===
+Timestamp: 16:43:44
+
+PLAYER: NULL
+CÂMERA
+  Posição: (0.00, 0.00, -10.00)
+  OrthoSize: 5
+  Visível: X[-2,8 a 2,8]
+           Y[-5,0 a 5,0]
+WORLDCHUNKMANAGER: NULL
+ENVIRONMENT PROPS NA CENA: 0

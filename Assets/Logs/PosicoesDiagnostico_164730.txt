@@ -1,0 +1,70 @@
+=== DIAGNÓSTICO DE POSIÇÕES ===
+Timestamp: 16:47:30
+
+PLAYER
+  Posição: (245.29, 36.49, 0.00)
+  Chunk atual: (12, 1)
+CÂMERA
+  Posição: (245.29, 36.49, -10.00)
+  OrthoSize: 12
+  Visível: X[238,5 a 252,0]
+           Y[24,5 a 48,5]
+CHUNKS ATIVOS: 49
+  Chunk (11, 4): pos=(230, 90, 0) props=12 nulos=0 visivel=False
+  Chunk (11, 3): pos=(230, 70, 0) props=12 nulos=0 visivel=False
+  Chunk (11, 2): pos=(230, 50, 0) props=12 nulos=0 visivel=True
+  Chunk (11, 1): pos=(230, 30, 0) props=12 nulos=0 visivel=True
+  Chunk (11, 0): pos=(230, 10, 0) props=12 nulos=0 visivel=True
+  Chunk (14, -1): pos=(290, -10, 0) props=12 nulos=0 visivel=False
+  Chunk (9, 4): pos=(190, 90, 0) props=12 nulos=0 visivel=False
+  Chunk (12, 4): pos=(250, 90, 0) props=12 nulos=0 visivel=False
+  Chunk (12, 3): pos=(250, 70, 0) props=12 nulos=0 visivel=False
+  Chunk (12, 2): pos=(250, 50, 0) props=12 nulos=0 visivel=True
+  Chunk (12, 1): pos=(250, 30, 0) props=12 nulos=0 visivel=True
+  Chunk (12, 0): pos=(250, 10, 0) props=12 nulos=0 visivel=True
+  Chunk (13, -1): pos=(270, -10, 0) props=12 nulos=0 visivel=False
+  Chunk (15, -2): pos=(310, -30, 0) props=12 nulos=0 visivel=False
+  Chunk (14, -2): pos=(290, -30, 0) props=12 nulos=0 visivel=False
+  Chunk (13, 4): pos=(270, 90, 0) props=12 nulos=0 visivel=False
+  Chunk (13, 3): pos=(270, 70, 0) props=12 nulos=0 visivel=False
+  Chunk (13, 2): pos=(270, 50, 0) props=12 nulos=0 visivel=True
+  Chunk (13, 1): pos=(270, 30, 0) props=12 nulos=0 visivel=True
+  Chunk (13, -2): pos=(270, -30, 0) props=12 nulos=0 visivel=False
+  Chunk (12, -1): pos=(250, -10, 0) props=12 nulos=0 visivel=False
+  Chunk (12, -2): pos=(250, -30, 0) props=12 nulos=0 visivel=False
+  Chunk (14, 4): pos=(290, 90, 0) props=12 nulos=0 visivel=False
+  Chunk (14, 3): pos=(290, 70, 0) props=12 nulos=0 visivel=False
+  Chunk (14, 2): pos=(290, 50, 0) props=12 nulos=0 visivel=False
+  Chunk (11, -1): pos=(230, -10, 0) props=12 nulos=0 visivel=False
+  Chunk (11, -2): pos=(230, -30, 0) props=12 nulos=0 visivel=False
+  Chunk (13, 0): pos=(270, 10, 0) props=12 nulos=0 visivel=True
+  Chunk (15, 4): pos=(310, 90, 0) props=12 nulos=0 visivel=False
+  Chunk (15, 3): pos=(310, 70, 0) props=12 nulos=0 visivel=False
+  Chunk (15, 2): pos=(310, 50, 0) props=12 nulos=0 visivel=False
+  Chunk (15, 1): pos=(310, 30, 0) props=12 nulos=0 visivel=False
+  Chunk (10, -1): pos=(210, -10, 0) props=12 nulos=0 visivel=False
+  Chunk (10, -2): pos=(210, -30, 0) props=12 nulos=0 visivel=False
+  Chunk (9, -2): pos=(190, -30, 0) props=12 nulos=0 visivel=False
+  Chunk (9, 3): pos=(190, 70, 0) props=12 nulos=0 visivel=False
+  Chunk (9, 2): pos=(190, 50, 0) props=12 nulos=0 visivel=False
+  Chunk (9, 1): pos=(190, 30, 0) props=12 nulos=0 visivel=False
+  Chunk (9, 0): pos=(190, 10, 0) props=12 nulos=0 visivel=False
+  Chunk (9, -1): pos=(190, -10, 0) props=12 nulos=0 visivel=False
+  Chunk (15, 0): pos=(310, 10, 0) props=12 nulos=0 visivel=False
+  Chunk (14, 1): pos=(290, 30, 0) props=12 nulos=0 visivel=False
+  Chunk (10, 4): pos=(210, 90, 0) props=12 nulos=0 visivel=False
+  Chunk (10, 3): pos=(210, 70, 0) props=12 nulos=0 visivel=False
+  Chunk (10, 2): pos=(210, 50, 0) props=12 nulos=0 visivel=False
+  Chunk (10, 1): pos=(210, 30, 0) props=12 nulos=0 visivel=False
+  Chunk (10, 0): pos=(210, 10, 0) props=12 nulos=0 visivel=False
+  Chunk (15, -1): pos=(310, -10, 0) props=12 nulos=0 visivel=False
+  Chunk (14, 0): pos=(290, 10, 0) props=12 nulos=0 visivel=False
+CHÃO (SimpleArena)
+  Posição: (240, 32, 0)
+  Escala: (1.0, 1.0, 1.0)
+ENVIRONMENT PROPS NA CENA: 588
+  Veremoth_Mushroom(Clone) pos=(286, 65, 0) sprite=Chanterelles2 enabled=True sortOrder=-654
+  Veremoth_Ruin(Clone) pos=(230, -18, 0) sprite=Ruin_orange3 enabled=True sortOrder=177
+  Veremoth_Mushroom(Clone) pos=(303, 11, 0) sprite=Beige_green_mushroom3 enabled=True sortOrder=-110
+  Veremoth_Tree(Clone) pos=(310, -30, 0) sprite=Tree1 enabled=True sortOrder=303
+  Veremoth_Mushroom(Clone) pos=(182, 84, 0) sprite=Beige_green_mushroom1 enabled=True sortOrder=-845

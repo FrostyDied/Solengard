@@ -1,0 +1,205 @@
+RELATÓRIO DE REGRESSÃO — Solengard Backend
+Gerado em: 2026-06-03
+==================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. PLAYER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PlayerController ................ OK
+  - bodyType = Kinematic, gravityScale = 0
+  - Movimento: _rb.position += MoveDir * moveSpeed * Time.fixedDeltaTime
+  - Sem MovePosition (direto no rb.position) — correto para kinematic
+  - Singleton guard OK
+
+PlayerHealth ..................... OK
+  - TakeDamage: guard isInvincible/isDead/timeScale=0 ✓
+  - Die: chama GameManager.TriggerGameOver() ✓
+  - RestoreHealth(current, max): reseta isDead, isInvincible, notifica HUD ✓
+  - Revive: reseta isDead, restaura fração de HP ✓
+  - iframes: 0.8s após cada hit ✓
+
+PlayerAttack ..................... VERIFICAR
+  - attackRange = 6.5f (no código), mas prefab Player_Level1 tem attackRange=3
+    → SyncFromWeapon() pode sobrescrever com valor diferente em runtime
+  - enemyLayerMask: prefab tem m_Bits=0
+    → Awake fallback: if (enemyLayerMask == 0) LayerMask.GetMask("Enemy") → 64 ✓
+  - Detecção: OverlapCircleAll(pos, range, mask) — detecta triggers ✓
+    (Physics2D.m_QueriesHitTriggers = 1 confirmado no ProjectSettings)
+  - SUSPEITA: se SyncFromWeapon() sobrescreve attackRange=3 (do PlayerWeapon),
+    boss pode estar fora do range (bosses ficam a ~8u do player via stoppingDistance=2)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. INIMIGOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EnemyBase ........................ OK
+  - TakeDamage: guard isDead/CanTakeDamage, FlashRed, Die em <=0.01 ✓
+  - Die: VFX, IncrementKill, XPDrop, OnDeathCallback, pool/Destroy ✓
+  - MoveTowardsPlayer: separação via OverlapCircle, flip sprite ✓
+  - CheckContactDamage: dano por proximidade (dist < stoppingDistance),
+    intervalo 0.5s ✓
+  - Collider: isTrigger=true forçado no Awake ✓
+
+Layer dos inimigos ............... OK
+  - Todos os prefabs verificados: m_Layer=6 = "Enemy" ✓
+  - (BossCaveman, BossGiantGoblin, BossVikingLeader, EnemySlime, EnemyGolem,
+    EnemyDarkElf — todos layer 6)
+  - Layer 6 = "Enemy" confirmado no TagManager ✓
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. BOSS — FOCO DO BUG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Layer do boss após SpawnBoss ..... OK (layer não é alterada)
+  - ZoneManager.SpawnBoss() NÃO altera bossGO.layer
+  - Prefab já nasce em layer 6 = "Enemy" ✓
+  - BossAttack.AddComponent NÃO altera layer ✓
+  - BossAttack NÃO altera collider ✓
+
+Collider do boss ................. OK (herdado do prefab, isTrigger=true pelo Awake)
+  - EnemyBase.Awake força isTrigger=true em qualquer Collider2D ✓
+  - queriesHitTriggers=1 → OverlapCircleAll detecta triggers ✓
+
+BossAttack ...................... OK (não interfere no layer/collider)
+  - Usa LayerMask.GetMask("Player") para seus próprios ataques ✓
+  - Não modifica layer, collider, EnemyBase ✓
+
+isBoss flag ..................... VERIFICAR
+  - Caveman/GiantGoblin/VikingLeader: EB.isBoss NÃO é setado em SpawnBoss()
+    → isBoss=false nesses bosses
+    → Log "[Boss] recebeu dano" não aparece (filtrado por isBoss)
+    → O PlayerAttack acerta, mas o log diagnóstico não mostra
+  - DarkElf: isBoss=true setado explicitamente ✓
+
+CAUSA RAIZ MAIS PROVÁVEL ......... attackRange insuficiente
+  - attackRange pode ser 3f (do PlayerWeapon) após SyncFromWeapon()
+  - Boss standalone (Caveman) tem scaleMultiplier=0.225 → pequeno
+  - Boss DarkElf tem stoppingDistance=2.0 → para a 2u do player
+  - attackRange=3 cobre até 3u do player → deveria alcançar
+  - MAS: boss GolemBoss tem scaleMultiplier=3 → bossGO.transform.position
+    é o centro do sprite, que fica bem acima do pé do modelo
+  - OverlapCircle em transform.position do PLAYER vs collider do boss
+    centrado no meio do sprite escalado 3x → pode haver offset
+
+SUSPEITA ALTERNATIVA ............. VERIFICAR
+  - EnemyBase.Awake: se o boss prefab tem collider num filho (GetComponentInChildren),
+    o collider está no filho mas o EnemyBase está na raiz
+  - OverlapCircleAll retorna o Collider2D do filho
+  - h.GetComponent<EnemyBase>() no filho retorna NULL
+  - h.GetComponentInParent<EnemyBase>() retornaria OK, mas PlayerAttack usa GetComponent
+  - → SE o collider está em filho separado do EnemyBase, TakeDamage nunca é chamado
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. ZONEMANAGER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+StartZones ....................... OK
+  - Delega para StartZonesFromCurrent() ✓
+  - testStartZone aplicado antes de delegar ✓
+
+StartZonesFromCurrent ........... OK (corrigido recentemente)
+  - guard IsRunning ✓
+  - IsRunning=true, KillCount=0, StartCoroutine(ZoneLoop()) ✓
+
+RestoreToZone ................... OK (corrigido recentemente)
+  - Seta CurrentZone E chama StartZonesFromCurrent() ✓
+  - Sessão restaurada agora inicia o spawn ✓
+
+SpawnLoop ....................... OK
+  - Budget inicial = _quotaPerMinute[0] = 30
+  - Spawn a cada zone.spawnInterval
+  - Cap: spawnMax*3
+  - Guard: _player != null, zone.enemyPrefabs.Count > 0 ✓
+
+SpawnBoss ....................... OK estruturalmente
+  - validBosses filtrado de nulls ✓
+  - Timeout: se _bossInstances.Count==0 após WaitForSeconds(1f), força _allBossesDefeated ✓
+  - Posicionamento: single boss → GetSpawnPosition(), múltiplos → círculo 8u ✓
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. SPAWN DE INIMIGOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Budget por minuto ............... OK
+  - { 30, 50, 80, 110, 140, 170, 200, 240 }
+  - Primeiro batch de 30 imediato ao iniciar zona ✓
+  - +quota a cada 30s ✓
+
+SpawnEnemy ...................... VERIFICAR
+  - Instancia de zone.enemyPrefabs
+  - NÃO atribui layer — herda do prefab (layer 6 = "Enemy") ✓
+  - NÃO chama _activeEnemies.Add se eb==null (mas adiciona fora do if)
+    → CORRETO: _activeEnemies.Add(enemy) está fora do bloco if(eb!=null)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. CENÁRIO / WORLDCHUNKMANAGER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WorldChunkManager ............... OK
+  - GRID_RADIUS=3 const (não serializável) ✓
+  - Fallback Resources.Load se biomeProps vazio ✓
+  - OnDestroy: limpa chunks e pool ✓
+  - Player re-busca se null/inativo ✓
+
+sortingOrder .................... OK (corrigido)
+  - RoundToInt(-pos.y * 0.1f) + 50 → sempre acima do chão (-100) ✓
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. PHYSICS MATRIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Configurada em SolengardSetup (editor-only, não persiste em runtime)
+
+  Player ↔ Enemy     : IgnoreLayerCollision=true  (sem física entre eles)
+  Enemy  ↔ Enemy     : IgnoreLayerCollision=true  (separação por código)
+  Obstacle ↔ Player  : IgnoreLayerCollision=false (player COLIDE)
+  Obstacle ↔ Enemy   : IgnoreLayerCollision=true  (inimigo atravessa)
+  Ground ↔ *         : IgnoreLayerCollision=true  (chão é decorativo)
+  Effect ↔ Effect    : IgnoreLayerCollision=true
+
+  AVISO: Physics2D.IgnoreLayerCollision() é chamado APENAS durante
+  o Setup (editor), não persiste em PlayerPrefs nem no ProjectSettings.
+  A matriz de colisão precisa ser configurada em runtime também —
+  atualmente não há chamada em Awake/Start de nenhum MonoBehaviour.
+
+  VERIFICAR: se a cena foi carregada sem rodar o Setup, a matriz
+  pode estar com os valores padrão do Unity (sem ignores configurados).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. BUG DO BOSS — RESUMO DAS HIPÓTESES POR PRIORIDADE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HIPÓTESE 1 (MAIS PROVÁVEL) — Collider em filho, GetComponent retorna null:
+  PlayerAttack faz h.GetComponent<EnemyBase>() no Collider2D detectado.
+  Se o Collider2D está num GameObject filho separado do EnemyBase,
+  GetComponent retorna null e TakeDamage não é chamado.
+  FIX: trocar GetComponent<EnemyBase>() por GetComponentInParent<EnemyBase>()
+
+HIPÓTESE 2 — isBoss=false em bosses standalone:
+  Caveman/Goblin/Viking não têm isBoss=true setado em SpawnBoss().
+  Log "[Boss] recebeu dano" não aparece mesmo que TakeDamage seja chamado.
+  O dano pode estar sendo aplicado, mas o log filtra por isBoss.
+  FIX: setar eb.isBoss=true em todos os bosses em SpawnBoss()
+
+HIPÓTESE 3 — attackRange=3 após SyncFromWeapon():
+  PlayerWeapon pode estar com attackRange menor que o padrão 6.5.
+  Verificar PlayerWeapon.attackRange em runtime.
+
+HIPÓTESE 4 — Physics matrix não configurada em runtime:
+  Sem o Setup rodado, o Unity usa colisão padrão.
+  Impacto no boss: baixo (isTrigger=true nos inimigos, queriesHitTriggers=1).
+
+==================================================
+STATUS GERAL:
+  PlayerController  : OK
+  PlayerHealth      : OK
+  PlayerAttack      : VERIFICAR (range, GetComponent vs GetComponentInParent)
+  EnemyBase         : OK
+  ZoneManager       : OK (restauração corrigida)
+  WorldChunkManager : OK
+  Physics Matrix    : VERIFICAR (não aplicada em runtime)
+  Boss layer        : OK (layer 6 = Enemy em todos os prefabs)
+  Boss collider     : OK (isTrigger=true, queriesHitTriggers=1)
+  isBoss flag       : PROBLEMA (standalone bosses não têm isBoss=true)
+==================================================

@@ -109,11 +109,16 @@ MonoBehaviour:
   stoppingDistance: 0.8
   separationRadius: 2
   separationStrength: 1.5
+  isHeavy: 0
+  isBoss: 0
   contactDamageInterval: 0.5
+  xpValue: 3
   playerTransform: {fileID: 0}
   poolTag: 
-  teleportInterval: 5
-  postTeleportIFrames: 0.5
+  dashRange: 4
+  dashSpeed: 12
+  dashDuration: 0.15
+  dashCooldown: 2.5
 --- !u!50 &7285379606072734970
 Rigidbody2D:
   serializedVersion: 5
