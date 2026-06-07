@@ -90,7 +90,9 @@ public class PlayerAttack : MonoBehaviour
             color: new Color(0.6f, 0.85f, 1f)
         ));
 
-        ApplyDamageCone(attackDir, 60f);
+        // Dano só no inimigo mais próximo no cone — não é área
+        var target = GetNearestEnemyInCone(attackDir, 60f);
+        if (target != null) target.TakeDamage(attackDamage);
     }
 
     // ── Paladino (Melee180) ───────────────────────────────────────────────────────
