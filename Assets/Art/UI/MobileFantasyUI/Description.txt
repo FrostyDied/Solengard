@@ -1,0 +1,30 @@
+[NAME] features more than 60 high quality elements made in high resolution. This product contains 
+all interface elements you may need to begin your fantasy game.
+
+<strong>Gui Elements Included :</strong>
+ - Levels Window
+ - Achievemen Window
+ - Character Window & Container
+ - Store Window
+ - Level Complete Window
+ - Menu
+ - Two Spell Frames
+ - Login Box
+ - Settings Window
+ - Controller
+ - Two Action Buttons with Icons
+ - Three Unitframe Bars
+ - Loading Bar
+ - 9 Buttons with Icons (3 variants)
+
+ ! Pushed states of the buttons/elements are named "PRESSED".
+
+File Included: PSD
+
+Fonts:
+Arial (Bold & Black)
+Gadugi (Microsoft Font)
+
+
+If you have any problems feel free to contact me and ask for assistance!
+Regards!
