@@ -41,58 +41,69 @@ public static class SolengardFontSetup
     [MenuItem("Solengard/Setup/Aplicar Fonte Gótica na Lore")]
     static void ApplyGothicFontToLore()
     {
-        // Carregar o TMP font asset
+        // Tentar carregar o TMP font asset gerado
         var tmpFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(TMP_FONT_PATH);
+        
+        // Se não encontrou, tentar pelo nome
         if (tmpFont == null)
         {
-            Debug.LogError($"[FontSetup] TMP Font não encontrado. Execute 'Criar TMP Font Asset' primeiro.");
+            var guids = AssetDatabase.FindAssets("StraightPixelGothic t:TMP_FontAsset");
+            if (guids.Length > 0)
+                tmpFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                    AssetDatabase.GUIDToAssetPath(guids[0]));
+        }
+
+        if (tmpFont == null)
+        {
+            Debug.LogWarning("[FontSetup] TMP Font não encontrado — aplicando tamanhos sem trocar a fonte.");
+            ApplyLoreSizes(null);
             return;
         }
 
-        // Encontrar LoreScreenUI na cena
+        ApplyLoreSizes(tmpFont);
+    }
+
+    static void ApplyLoreSizes(TMP_FontAsset tmpFont)
+    {
         var loreUI = Object.FindFirstObjectByType<LoreScreenUI>();
         if (loreUI == null)
         {
-            Debug.LogError("[FontSetup] LoreScreenUI não encontrado na cena. Execute Rebuild GameScene primeiro.");
+            Debug.LogError("[FontSetup] LoreScreenUI não encontrado na cena.");
             return;
         }
 
-        // Aplicar fonte em todos os TextMeshProUGUI da LoreScreenUI
         var texts = loreUI.GetComponentsInChildren<TextMeshProUGUI>(true);
         int applied = 0;
         foreach (var text in texts)
         {
-            text.font = tmpFont;
+            if (tmpFont != null) text.font = tmpFont;
 
-            // Ajustes visuais por tipo de texto
             if (text.gameObject.name.ToLower().Contains("bioma") ||
                 text.gameObject.name.ToLower().Contains("nome"))
             {
-                text.fontSize = 50f; // era 48 +2
-                text.color    = new Color(0.98f, 0.85f, 0.20f); // dourado
+                text.fontSize  = 50f;
+                text.color     = new Color(0.98f, 0.85f, 0.20f);
                 text.fontStyle = FontStyles.Bold;
             }
             else if (text.gameObject.name.ToLower().Contains("instrucao") ||
                      text.gameObject.name.ToLower().Contains("instrução"))
             {
                 text.fontSize = 18f;
-                text.color    = new Color(0.75f, 0.75f, 0.75f); // cinza claro
+                text.color    = new Color(0.75f, 0.75f, 0.75f);
             }
-            else // textoLore
+            else
             {
-                text.fontSize = 28f; // era 24 +4
-                text.color    = new Color(0.92f, 0.90f, 0.85f); // branco creme
+                text.fontSize = 28f;
+                text.color    = new Color(0.92f, 0.90f, 0.85f);
             }
-
             applied++;
         }
 
-        // Marcar como dirty para salvar
         UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
             UnityEngine.SceneManagement.SceneManager.GetActiveScene());
 
-        Debug.Log($"[FontSetup] Fonte gótica aplicada em {applied} textos da LoreScreenUI");
-        Debug.Log("[FontSetup] Salve a cena com Ctrl+S para preservar as mudanças");
+        string fontMsg = tmpFont != null ? $"fonte: {tmpFont.name}" : "fonte padrão mantida";
+        Debug.Log($"[FontSetup] Aplicado em {applied} textos ({fontMsg}). Ctrl+S para salvar.");
     }
 
     [MenuItem("Solengard/Setup/Aplicar Fonte Gótica em Todos os Menus")]
