@@ -483,7 +483,7 @@ public static class SolengardLayoutSetup
 
             var (slGO,slN)=FindOrCreateUI(tr,"HealthSlider");
             RectTransform fillVidaRT = null;
-            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(16,-8),new(320,36)); fillVidaRT = BuildBar(slGO,"bar_frame_1.png","bar_fill_1.png",new Color(0.2f,0.85f,0.3f)); log.AppendLine("  HealthSlider"); total++; }
+            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(16,-8),new(320,36)); EnsureImage(slGO, new Color(0.1f,0.1f,0.1f,0.8f)); fillVidaRT = BuildBar(slGO, new Color(0.08f,0.08f,0.08f,1f), new Color(0.15f,0.85f,0.2f,1f)); log.AppendLine("  HealthSlider"); total++; }
             else fillVidaRT = slGO.transform.Find("Fill")?.GetComponent<RectTransform>();
 
             var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
@@ -505,7 +505,7 @@ public static class SolengardLayoutSetup
 
             var (xpGO,xpN)=FindOrCreateUI(tr,"XPSlider");
             RectTransform fillXPRT = null;
-            if(xpN){ SetRect(RT(xpGO),new(0,.5f),new(1,.5f),new(.5f,.5f),new(-45,0),new(-90,14)); fillXPRT = BuildBar(xpGO,"bar_frame_2.png","bar_fill_2.png",new Color(0.3f,0.5f,1.0f)); log.AppendLine("  XPSlider"); total++; }
+            if(xpN){ SetRect(RT(xpGO),new(0,.5f),new(1,.5f),new(.5f,.5f),new(-45,0),new(-90,14)); EnsureImage(xpGO, new Color(0.05f,0.05f,0.15f,1f)); fillXPRT = BuildBar(xpGO, new Color(0.05f,0.05f,0.15f,1f), new Color(0.2f,0.4f,1f,1f)); log.AppendLine("  XPSlider"); total++; }
             else fillXPRT = xpGO.transform.Find("Fill")?.GetComponent<RectTransform>();
 
             var (nvGO,nvN)=FindOrCreateUI(tr,"NivelText");
@@ -856,30 +856,27 @@ public static class SolengardLayoutSetup
         return EnsureTMP(lGO,text,size,color);
     }
 
-    static RectTransform BuildBar(GameObject go, string frameName, string fillName, Color fillColor)
+    static RectTransform BuildBar(GameObject go, Color bgColor, Color fillColor)
     {
-        var bg = new GameObject("Background");
+        // Background
+        var bg = new GameObject("BG");
         Undo.RegisterCreatedObjectUndo(bg, "Solengard Layout");
         bg.transform.SetParent(go.transform, false);
-        bg.transform.SetAsFirstSibling();
         var bgImg = bg.AddComponent<Image>();
-        var frameSprite = LoadUI(frameName);
-        if (frameSprite != null) { bgImg.sprite = frameSprite; bgImg.type = Image.Type.Simple; bgImg.color = Color.white; }
-        else bgImg.color = new Color(.1f, .1f, .1f, 0.8f);
+        bgImg.color = bgColor;
         StretchFull(bg.GetComponent<RectTransform>());
 
+        // Fill
         var fill = new GameObject("Fill");
         Undo.RegisterCreatedObjectUndo(fill, "Solengard Layout");
         fill.transform.SetParent(go.transform, false);
         var fillImg = fill.AddComponent<Image>();
-        var fillSprite = LoadUI(fillName);
-        if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Simple; fillImg.color = fillColor; }
-        else fillImg.color = fillColor;
+        fillImg.color = fillColor;
         var fillRT = fill.GetComponent<RectTransform>();
         fillRT.anchorMin = new Vector2(0f, 0f);
         fillRT.anchorMax = new Vector2(1f, 1f);
-        fillRT.offsetMin = new Vector2(4f,  3f);
-        fillRT.offsetMax = new Vector2(-4f, -3f);
+        fillRT.offsetMin = new Vector2(2f, 2f);
+        fillRT.offsetMax = new Vector2(-2f, -2f);
         fillRT.pivot     = new Vector2(0f, 0.5f);
 
         return fillRT;
