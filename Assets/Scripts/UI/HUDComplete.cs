@@ -50,8 +50,16 @@ public class HUDComplete : MonoBehaviour
         pausePanel?.SetActive(false);
         botaoPoderEspecial?.onClick.AddListener(UsarPoderEspecial);
 
+        // Seed inicial — lê estado atual caso eventos já tenham disparado antes do HUD existir
         var xp = XPSystem.Instance;
         if (xp != null) AtualizarNivel(xp.CurrentLevel);
+
+        var ph = FindFirstObjectByType<PlayerHealth>();
+        if (ph != null) AtualizarVida(ph.CurrentHealth, ph.MaxHealth);
+
+        var wt = WaveTimerSystem.Instance;
+        if (wt != null && wt.IsRunning) AtualizarTimer(wt.TimeRemaining);
+        else AtualizarTimer(600f);
     }
 
     void Update()
