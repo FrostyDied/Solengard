@@ -461,7 +461,7 @@ public static class SolengardLayoutSetup
             hudBgRT.anchorMin       = new Vector2(0f, 1f);
             hudBgRT.anchorMax       = new Vector2(1f, 1f);
             hudBgRT.pivot           = new Vector2(0.5f, 1f);
-            hudBgRT.sizeDelta       = new Vector2(0f, 110f);
+            hudBgRT.sizeDelta       = new Vector2(0f, 90f);
             hudBgRT.anchoredPosition = Vector2.zero;
             var hudBgImg = hudBg.AddComponent<Image>();
             var containerSprite = LoadUI("hud_container.png");
@@ -478,7 +478,7 @@ public static class SolengardLayoutSetup
         // TopBar (âncora topo, h=110)
         {
             var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
-            if(isNew){ AnchorTopBar(RT(go),110f); EnsureImage(go,Hex("#00000060")); log.AppendLine("  TopBar"); total++; }
+            if(isNew){ AnchorTopBar(RT(go),90f); EnsureImage(go,Hex("#00000060")); log.AppendLine("  TopBar"); total++; }
             var tr=go.transform;
 
             var (slGO,slN)=FindOrCreateUI(tr,"HealthSlider");
@@ -498,7 +498,7 @@ public static class SolengardLayoutSetup
         // XPBar (faixa fina logo abaixo do TopBar)
         {
             var (go,isNew)=FindOrCreateUI(hudTr,"XPBar");
-            if(isNew){ SetRect(RT(go),new(0,1),new(1,1),new(.5f,1),new(0,-110),new(0,14)); log.AppendLine("  XPBar"); total++; }
+            if(isNew){ SetRect(RT(go),new(0,1),new(1,1),new(.5f,1),new(0,-90),new(0,14)); log.AppendLine("  XPBar"); total++; }
             var tr=go.transform;
 
             var (xpGO,xpN)=FindOrCreateUI(tr,"XPSlider");
@@ -630,17 +630,22 @@ public static class SolengardLayoutSetup
             var (bgGO, bgNew) = FindOrCreateUI(jcTr, "JoystickBackground");
             if (bgNew)
             {
-                // Canto inferior esquerdo, pivot (0,0), offset (80,80)
-                SetRect(RT(bgGO), Vector2.zero, Vector2.zero, Vector2.zero, new Vector2(80f, 80f), new Vector2(200f, 200f));
-                EnsureImage(bgGO, Hex("#80000000"));
+                SetRect(RT(bgGO), Vector2.zero, Vector2.zero, Vector2.zero, new Vector2(80f, 80f), new Vector2(180f, 180f));
+                var bgImg = bgGO.GetComponent<Image>() ?? bgGO.AddComponent<Image>();
+                var joySprite = LoadUI("joystick_complete.png");
+                if (joySprite != null) { bgImg.sprite = joySprite; bgImg.color = new Color(1f, 1f, 1f, 0.7f); }
+                else bgImg.color = new Color(1f, 1f, 1f, 0.15f);
                 log.AppendLine("  JoystickBackground"); total++;
             }
 
             var (knobGO, knobNew) = FindOrCreateUI(bgGO.transform, "JoystickKnob");
             if (knobNew)
             {
-                SetRect(RT(knobGO), new Vector2(.5f,.5f), new Vector2(.5f,.5f), new Vector2(.5f,.5f), Vector2.zero, new Vector2(80f, 80f));
-                EnsureImage(knobGO, Hex("#AAFFFFFF"));
+                SetRect(RT(knobGO), new Vector2(.5f, .5f), new Vector2(.5f, .5f), new Vector2(.5f, .5f), Vector2.zero, new Vector2(70f, 70f));
+                var knobImg = knobGO.GetComponent<Image>() ?? knobGO.AddComponent<Image>();
+                var frameSprite = LoadUI("joystick_frame.png");
+                if (frameSprite != null) { knobImg.sprite = frameSprite; knobImg.color = new Color(1f, 1f, 1f, 0.9f); }
+                else knobImg.color = new Color(1f, 1f, 1f, 0.3f);
                 log.AppendLine("  JoystickKnob"); total++;
             }
 
