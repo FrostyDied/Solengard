@@ -14,35 +14,66 @@ public static class SolengardUISetup
     static void SetupHUD()
     {
         var hud = Object.FindFirstObjectByType<HUDComplete>();
-        if (hud == null) { Debug.LogError("HUDComplete não encontrado"); return; }
+        if (hud == null)
+        {
+            Debug.LogError("[UISetup] HUDComplete não encontrado. Execute Solengard → Rebuild GameScene primeiro.");
+            return;
+        }
 
-        // Container principal do HUD
-        var hudGO = hud.gameObject;
-        var hudImg = hudGO.GetComponent<Image>() ?? hudGO.AddComponent<Image>();
-        hudImg.sprite = Load("hud_container.png");
-        hudImg.type = Image.Type.Sliced;
+        var hudCanvas = hud.gameObject;
 
-        // Barra de Vida — frame + fill
+        // Criar ou encontrar HUDBackground como filho do Canvas
+        var bgTransform = hudCanvas.transform.Find("HUDBackground");
+        if (bgTransform == null)
+        {
+            var bgGO = new GameObject("HUDBackground");
+            bgGO.transform.SetParent(hudCanvas.transform, false);
+            bgGO.transform.SetAsFirstSibling(); // atrás de tudo
+            var rt = bgGO.AddComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            bgTransform = bgGO.transform;
+        }
+        var bgImg = bgTransform.GetComponent<Image>()
+                 ?? bgTransform.gameObject.AddComponent<Image>();
+        bgImg.sprite = Load("hud_container.png");
+        bgImg.type = Image.Type.Sliced;
+        bgImg.color = new Color(1f, 1f, 1f, 0.85f); // leve transparência
+
+        // Aplicar sprite na barra de vida se existir
         if (hud.barraVida != null)
         {
-            // Background da barra (frame)
-            var bg = hud.barraVida.GetComponentInChildren<Image>();
-            if (bg != null) bg.sprite = Load("bar_frame_1.png");
+            // Background da barra (frame vazio)
+            var bgBar = hud.barraVida.transform.Find("Background");
+            if (bgBar != null)
+            {
+                var bgBarImg = bgBar.GetComponent<Image>();
+                if (bgBarImg != null)
+                {
+                    bgBarImg.sprite = Load("bar_frame_1.png");
+                    bgBarImg.type = Image.Type.Sliced;
+                    bgBarImg.color = Color.white;
+                }
+            }
 
             // Fill da barra
-            var fill = hud.barraVida.fillRect?.GetComponent<Image>();
-            if (fill != null)
+            if (hud.barraVida.fillRect != null)
             {
-                fill.sprite = Load("bar_fill_1.png");
-                fill.type = Image.Type.Filled;
-                fill.color = new Color(0.2f, 0.8f, 0.3f); // verde para vida
+                var fillImg = hud.barraVida.fillRect.GetComponent<Image>();
+                if (fillImg != null)
+                {
+                    fillImg.sprite = Load("bar_fill_1.png");
+                    fillImg.type = Image.Type.Filled;
+                    fillImg.color = new Color(0.2f, 0.85f, 0.3f); // verde vida
+                }
             }
         }
 
         EditorUtility.SetDirty(hud);
         UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
             UnityEngine.SceneManagement.SceneManager.GetActiveScene());
-        Debug.Log("[UISetup] HUD configurado com Mobile Fantasy UI");
+        Debug.Log("[UISetup] HUD configurado — HUDBackground criado com Mobile Fantasy UI");
     }
 
     [MenuItem("Solengard/UI/Setup LevelUp")]
