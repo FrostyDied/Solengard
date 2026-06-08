@@ -432,9 +432,11 @@ public static class SolengardLayoutSetup
             hudBg.transform.SetParent(hudGO.transform, false);
             hudBg.transform.SetAsFirstSibling();
             var hudBgRT  = hudBg.AddComponent<RectTransform>();
-            hudBgRT.anchorMin = Vector2.zero;
-            hudBgRT.anchorMax = Vector2.one;
-            hudBgRT.offsetMin = hudBgRT.offsetMax = Vector2.zero;
+            hudBgRT.anchorMin       = new Vector2(0f, 1f);
+            hudBgRT.anchorMax       = new Vector2(1f, 1f);
+            hudBgRT.pivot           = new Vector2(0.5f, 1f);
+            hudBgRT.sizeDelta       = new Vector2(0f, 100f);
+            hudBgRT.anchoredPosition = Vector2.zero;
             var hudBgImg = hudBg.AddComponent<Image>();
             var containerSprite = LoadUI("hud_container.png");
             if (containerSprite != null)
