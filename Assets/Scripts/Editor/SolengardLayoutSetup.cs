@@ -519,25 +519,24 @@ public static class SolengardLayoutSetup
         }
 
         // Barras (HP vermelho, XP azul, Poder verde) — à direita dos boosts
-        float barX=112f; float barW=-barX-536f;
-        string[] barNames={"HealthBar","XPBar","PoderBar"};
-        Color[] barBorders={Hex("#8B6914"),Hex("#3A1A6A"),Hex("#1A5A1A")};
-        Color[] barBGs={new Color(.12f,.04f,.04f,1f),new Color(.06f,.03f,.12f,1f),new Color(.03f,.12f,.03f,1f)};
-        Color[] barFills={new Color(.85f,.15f,.1f,1f),new Color(.2f,.35f,.95f,1f),new Color(.1f,.8f,.2f,1f)};
+        string[] barNames  = { "HealthBar", "XPBar", "PoderBar" };
+        float[]  barWidths = { 700f, 680f, 730f };
+        float[]  barHeights= { 8f,   6f,   5f   };
+        Color[]  barBorders = { Hex("#8B6914"), Hex("#3A1A6A"), Hex("#1A5A1A") };
+        Color[]  barBGs     = { new Color(.12f,.04f,.04f,1f), new Color(.06f,.03f,.12f,1f), new Color(.03f,.12f,.03f,1f) };
+        Color[]  barFills   = { new Color(.85f,.15f,.1f,1f),  new Color(.2f,.35f,.95f,1f),  new Color(.1f,.8f,.2f,1f)   };
         RectTransform fillVidaRT=null, fillXPRT=null, fillPoderRT=null;
         for(int i=0;i<3;i++){
             var (barGO,barN)=FindOrCreateUI(tr,barNames[i]);
             if(barN){
-                float[] barHeights    = {8f, 6f, 5f};
-                float[] barRightsNeg  = {-268f, -288f, -238f};
-                var bRT = RT(barGO);
-                bRT.anchorMin = new Vector2(0f, 1f);
-                bRT.anchorMax = new Vector2(1f, 1f);
-                bRT.pivot     = new Vector2(0f, 1f);
-                bRT.offsetMin = new Vector2(barX, -40f-(i*20f) - barHeights[i]);
-                bRT.offsetMax = new Vector2(barRightsNeg[i], -40f-(i*20f));
-                EnsureImage(barGO,barBorders[i]);
-                var fRT=BuildBar(barGO,barBGs[i],barFills[i]);
+                var bRT=RT(barGO);
+                bRT.anchorMin        = new Vector2(0f,1f);
+                bRT.anchorMax        = new Vector2(0f,1f);
+                bRT.pivot            = new Vector2(0f,1f);
+                bRT.anchoredPosition = new Vector2(112f, -40f-(i*20f));
+                bRT.sizeDelta        = new Vector2(barWidths[i], barHeights[i]);
+                EnsureImage(barGO, barBorders[i]);
+                var fRT=BuildBar(barGO, barBGs[i], barFills[i]);
                 if(i==0) fillVidaRT=fRT;
                 else if(i==1) fillXPRT=fRT;
                 else fillPoderRT=fRT;
