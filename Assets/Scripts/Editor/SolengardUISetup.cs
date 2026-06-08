@@ -41,34 +41,6 @@ public static class SolengardUISetup
         bgImg.type = Image.Type.Sliced;
         bgImg.color = new Color(1f, 1f, 1f, 0.85f); // leve transparência
 
-        // Aplicar sprite na barra de vida se existir
-        if (hud.barraVida != null)
-        {
-            // Background da barra (frame vazio)
-            var bgBar = hud.barraVida.transform.Find("Background");
-            if (bgBar != null)
-            {
-                var bgBarImg = bgBar.GetComponent<Image>();
-                if (bgBarImg != null)
-                {
-                    bgBarImg.sprite = Load("bar_frame_1.png");
-                    bgBarImg.type = Image.Type.Sliced;
-                    bgBarImg.color = Color.white;
-                }
-            }
-
-            // Fill da barra
-            if (hud.barraVida.fillRect != null)
-            {
-                var fillImg = hud.barraVida.fillRect.GetComponent<Image>();
-                if (fillImg != null)
-                {
-                    fillImg.sprite = Load("bar_fill_1.png");
-                    fillImg.type = Image.Type.Filled;
-                    fillImg.color = new Color(0.2f, 0.85f, 0.3f); // verde vida
-                }
-            }
-        }
 
         EditorUtility.SetDirty(hud);
         UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
