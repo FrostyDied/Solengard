@@ -560,7 +560,7 @@ public static class SolengardLayoutSetup
         // Texto vida (sobre a barra HP)
         var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
         if(tvN){
-            SetRect(RT(tvGO),new(0f,1f),new(1f,1f),new(.5f,.5f),new(barX+2f,-36f),new(barW,18f));
+            SetRect(RT(tvGO),new(0f,1f),new(1f,1f),new(.5f,.5f),new(114f,-36f),new(700f,18f));
             var vt=EnsureTMP(tvGO,"",14f,Color.white); vt.alignment=TextAlignmentOptions.Center; vt.fontStyle=FontStyles.Bold;
             log.AppendLine("  VidaText"); total++;
         }
