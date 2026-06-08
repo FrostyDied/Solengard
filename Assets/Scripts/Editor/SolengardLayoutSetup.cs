@@ -423,7 +423,7 @@ public static class SolengardLayoutSetup
             c.sortingOrder = 10;
             var s = hudGO.AddComponent<CanvasScaler>();
             s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            s.referenceResolution = new Vector2(1920f, 1080f);
+            s.referenceResolution = new Vector2(1080f, 1920f);
             s.matchWidthOrHeight  = 0.5f;
         }
         hudGO.AddComponent<GraphicRaycaster>();
@@ -633,7 +633,7 @@ public static class SolengardLayoutSetup
                 c.sortingOrder = 25;
                 var s = pcGO.AddComponent<CanvasScaler>();
                 s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                s.referenceResolution = new Vector2(1920f, 1080f);
+                s.referenceResolution = new Vector2(1080f, 1920f);
                 s.matchWidthOrHeight  = 0.5f;
             }
             pcGO.AddComponent<GraphicRaycaster>();
@@ -684,7 +684,7 @@ public static class SolengardLayoutSetup
                 c.sortingOrder = 20;
                 var s = jcGO.AddComponent<CanvasScaler>();
                 s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                s.referenceResolution = new Vector2(1920f, 1080f);
+                s.referenceResolution = new Vector2(1080f, 1920f);
                 s.matchWidthOrHeight  = 0.5f;
             }
             jcGO.AddComponent<GraphicRaycaster>();
