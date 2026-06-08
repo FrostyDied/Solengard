@@ -461,7 +461,7 @@ public static class SolengardLayoutSetup
             hudBgRT.anchorMin       = new Vector2(0f, 1f);
             hudBgRT.anchorMax       = new Vector2(1f, 1f);
             hudBgRT.pivot           = new Vector2(0.5f, 1f);
-            hudBgRT.sizeDelta       = new Vector2(0f, 90f);
+            hudBgRT.sizeDelta       = new Vector2(0f, 72f);
             hudBgRT.anchoredPosition = Vector2.zero;
             var hudBgImg = hudBg.AddComponent<Image>();
             var containerSprite = LoadUI("hud_container.png");
@@ -478,13 +478,13 @@ public static class SolengardLayoutSetup
         {
         // TopBar — layout RPG: avatar + boosts + barras + timer + pause
         var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
-        if(isNew){ AnchorTopBar(RT(go),86f); EnsureImage(go,Hex("#E6120A0A")); log.AppendLine("  TopBar"); total++; }
+        if(isNew){ AnchorTopBar(RT(go),72f); EnsureImage(go,Hex("#E6120A0A")); log.AppendLine("  TopBar"); total++; }
         var tr=go.transform;
 
         // Avatar (quadrado esquerdo, 76x76)
         var (avGO,avN)=FindOrCreateUI(tr,"Avatar");
         if(avN){
-            SetRect(RT(avGO),new(0f,0f),new(0f,1f),new(0f,.5f),new(6f,0f),new(76f,0f));
+            SetRect(RT(avGO),new(0f,0f),new(0f,1f),new(0f,.5f),new(6f,-4f),new(58f,-8f));
             EnsureImage(avGO,Hex("#2A1A0A"));
             var (brdGO,_)=FindOrCreateUI(avGO.transform,"Border");
             SetRect(RT(brdGO),Vector2.zero,Vector2.one,new(.5f,.5f),Vector2.zero,Vector2.zero);
@@ -505,7 +505,7 @@ public static class SolengardLayoutSetup
         for(int i=0;i<3;i++){
             var (bsGO,bsN)=FindOrCreateUI(tr,$"BoostSlot{i}");
             if(bsN){
-                SetRect(RT(bsGO),new(0f,1f),new(0f,1f),new(0f,1f),new(bx,-4f-(i*26f)),new(22f,22f));
+                SetRect(RT(bsGO),new(0f,1f),new(0f,1f),new(0f,1f),new(bx,-6f-(i*22f)),new(20f,20f));
                 EnsureImage(bsGO,Hex("#2A1A0A"));
                 var (bsBrd,_)=FindOrCreateUI(bsGO.transform,"Border");
                 SetRect(RT(bsBrd),Vector2.zero,Vector2.one,new(.5f,.5f),Vector2.zero,Vector2.zero);
@@ -519,7 +519,7 @@ public static class SolengardLayoutSetup
         }
 
         // Barras (HP vermelho, XP azul, Poder verde) — à direita dos boosts
-        float barX=116f; float barW=-barX-80f;
+        float barX=112f; float barW=-barX-90f;
         string[] barNames={"HealthBar","XPBar","PoderBar"};
         Color[] barBorders={Hex("#8B6914"),Hex("#3A1A6A"),Hex("#1A5A1A")};
         Color[] barBGs={new Color(.12f,.04f,.04f,1f),new Color(.06f,.03f,.12f,1f),new Color(.03f,.12f,.03f,1f)};
@@ -528,7 +528,7 @@ public static class SolengardLayoutSetup
         for(int i=0;i<3;i++){
             var (barGO,barN)=FindOrCreateUI(tr,barNames[i]);
             if(barN){
-                SetRect(RT(barGO),new(0f,1f),new(1f,1f),new(0f,1f),new(barX,-6f-(i*26f)),new(barW,18f));
+                SetRect(RT(barGO),new(0f,1f),new(1f,1f),new(0f,1f),new(barX,-8f-(i*21f)),new(barW,14f));
                 EnsureImage(barGO,barBorders[i]);
                 var fRT=BuildBar(barGO,barBGs[i],barFills[i]);
                 if(i==0) fillVidaRT=fRT;
@@ -545,11 +545,11 @@ public static class SolengardLayoutSetup
 
         // Timer (centro-direita)
         var (tiGO,tiN)=FindOrCreateUI(tr,"TimerText");
-        if(tiN){ SetRect(RT(tiGO),new(1f,.5f),new(1f,.5f),new(1f,.5f),new(-84f,0f),new(76f,60f)); var t=EnsureTMP(tiGO,"10:00",30f,Color.white); t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Center; log.AppendLine("  TimerText"); total++; }
+        if(tiN){ SetRect(RT(tiGO),new(1f,.5f),new(1f,.5f),new(1f,.5f),new(-86f,0f),new(82f,50f)); var t=EnsureTMP(tiGO,"10:00",26f,Color.white); t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Center; log.AppendLine("  TimerText"); total++; }
 
         // Pause (canto superior direito)
         var (pbGO2,pbN2)=FindOrCreateUI(tr,"PauseButton");
-        if(pbN2){ SetRect(RT(pbGO2),new(1f,1f),new(1f,1f),new(1f,1f),new(-4f,-4f),new(72f,72f)); EnsureImage(pbGO2,Hex("#00000060")); EnsureButton(pbGO2); AddLabel(pbGO2,"II",24f,Color.white); log.AppendLine("  PauseButton"); total++; }
+        if(pbN2){ SetRect(RT(pbGO2),new(1f,1f),new(1f,1f),new(1f,1f),new(-4f,-4f),new(52f,52f)); EnsureImage(pbGO2,Hex("#00000060")); EnsureButton(pbGO2); AddLabel(pbGO2,"II",24f,Color.white); log.AppendLine("  PauseButton"); total++; }
 
         // Texto vida (sobre a barra HP)
         var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
