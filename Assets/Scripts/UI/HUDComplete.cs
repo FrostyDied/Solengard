@@ -5,6 +5,15 @@ using System.Collections;
 
 public class HUDComplete : MonoBehaviour
 {
+    [Header("Avatar")]
+    public Image           avatarImagem;
+
+    [Header("Boosts Ativos")]
+    public Image[]         boostSlots = new Image[3];
+
+    [Header("Poder Especial Bar")]
+    public RectTransform   fillPoder;
+
     [Header("Vida")]
     public RectTransform   fillVida;
     public TextMeshProUGUI textoVida;
@@ -57,6 +66,9 @@ public class HUDComplete : MonoBehaviour
 
         var wt = WaveTimerSystem.Instance;
         AtualizarTimer(wt != null && wt.IsRunning ? wt.TimeRemaining : 600f);
+
+        SetFill(fillPoder, 1f);
+        AtualizarAvatar();
     }
 
     void Update()
@@ -81,6 +93,17 @@ public class HUDComplete : MonoBehaviour
         if (textoTimer == null) return;
         textoTimer.text  = $"{Mathf.FloorToInt(segundos/60f):00}:{Mathf.FloorToInt(segundos%60f):00}";
         textoTimer.color = segundos <= 30f ? Color.red : Color.white;
+    }
+
+    void AtualizarAvatar()
+    {
+        if (avatarImagem == null) return;
+        var cls = PlayerClassManager.Instance?.CurrentClass;
+        if (cls == null) return;
+        if (cls.classIcon != null)
+            avatarImagem.sprite = cls.classIcon;
+        else if (cls.idleFrames != null && cls.idleFrames.Length > 0)
+            avatarImagem.sprite = cls.idleFrames[0];
     }
 
     static void SetFill(RectTransform rt, float t)
@@ -119,15 +142,18 @@ public class HUDComplete : MonoBehaviour
     {
         _poderEmCooldown = true;
         if (botaoPoderEspecial != null) botaoPoderEspecial.interactable = false;
+        SetFill(fillPoder, 0f);
         float restante = duracao;
         while (restante > 0f)
         {
             if (textoCooldown != null) textoCooldown.text = Mathf.CeilToInt(restante) + "s";
+            SetFill(fillPoder, 1f - (restante / duracao));
             restante -= Time.deltaTime;
             yield return null;
         }
         _poderEmCooldown = false;
         if (botaoPoderEspecial != null) botaoPoderEspecial.interactable = true;
         if (textoCooldown != null) textoCooldown.text = "";
+        SetFill(fillPoder, 1f);
     }
 }

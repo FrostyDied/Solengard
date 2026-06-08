@@ -475,48 +475,105 @@ public static class SolengardLayoutSetup
             log.AppendLine("  HUDBackground criado"); total++;
         }
 
-        // TopBar (âncora topo, h=110)
-        {
-            var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
-            if(isNew){ AnchorTopBar(RT(go),90f); EnsureImage(go,Hex("#E6120A0A")); log.AppendLine("  TopBar"); total++; }
-            var tr=go.transform;
+        // TopBar — layout RPG: avatar + boosts + barras + timer + pause
+        var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
+        if(isNew){ AnchorTopBar(RT(go),86f); EnsureImage(go,Hex("#E6120A0A")); log.AppendLine("  TopBar"); total++; }
+        var tr=go.transform;
 
-            var (slGO,slN)=FindOrCreateUI(tr,"HealthSlider");
-            RectTransform fillVidaRT = null;
-            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(16,-8),new(300,28)); EnsureImage(slGO, new Color(0.05f,0.03f,0.0f,1f)); fillVidaRT = BuildBar(slGO, new Color(0.55f,0.42f,0.05f,1f), new Color(0.12f,0.04f,0.04f,1f), new Color(0.85f,0.15f,0.1f,1f), new Color(1f,0.4f,0.1f,1f)); log.AppendLine("  HealthSlider"); total++; }
-            else fillVidaRT = slGO.transform.Find("Fill")?.GetComponent<RectTransform>();
-
-            var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
-            if(tvN){ SetRect(RT(tvGO),new(0,.5f),new(0,.5f),new(0,.5f),new(310,0),new(110,38)); EnsureTMP(tvGO,"100/100",20f,Color.white); log.AppendLine("  VidaText"); total++; }
-
-            var (tiGO,tiN)=FindOrCreateUI(tr,"TimerText");
-            if(tiN){ SetRect(RT(tiGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),Vector2.zero,new(150,50)); var t=EnsureTMP(tiGO,"00:00",36f,Color.white); t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Center; log.AppendLine("  TimerText"); total++; }
-
-            if(fillVidaRT != null) TryWire(hudSO,"fillVida", fillVidaRT, log);
-            TryWire(hudSO,"textoVida",  tvGO.GetComponent<TextMeshProUGUI>(),  log);
-            TryWire(hudSO,"textoTimer", tiGO.GetComponent<TextMeshProUGUI>(),  log);
+        // Avatar (quadrado esquerdo, 76x76)
+        var (avGO,avN)=FindOrCreateUI(tr,"Avatar");
+        if(avN){
+            SetRect(RT(avGO),new(0f,0f),new(0f,1f),new(0f,.5f),new(6f,0f),new(76f,0f));
+            EnsureImage(avGO,Hex("#2A1A0A"));
+            var (brdGO,_)=FindOrCreateUI(avGO.transform,"Border");
+            SetRect(RT(brdGO),Vector2.zero,Vector2.one,new(.5f,.5f),Vector2.zero,Vector2.zero);
+            EnsureImage(brdGO,Hex("#8B6914"));
+            var (innerGO,_)=FindOrCreateUI(avGO.transform,"Inner");
+            SetRect(RT(innerGO),Vector2.zero,Vector2.one,new(.5f,.5f),new(2f,2f),new(-4f,-4f));
+            EnsureImage(innerGO,Hex("#1A0E04"));
+            var (imgGO,_)=FindOrCreateUI(avGO.transform,"AvatarImg");
+            SetRect(RT(imgGO),Vector2.zero,Vector2.one,new(.5f,.5f),new(4f,4f),new(-8f,-8f));
+            var avImg=imgGO.GetComponent<Image>()??imgGO.AddComponent<Image>();
+            avImg.preserveAspect=true;
+            TryWire(hudSO,"avatarImagem",avImg,log);
+            log.AppendLine("  Avatar"); total++;
         }
 
-        // XPBar (faixa fina logo abaixo do TopBar)
-        {
-            var (go,isNew)=FindOrCreateUI(hudTr,"XPBar");
-            if(isNew){ SetRect(RT(go),new(0,1),new(1,1),new(.5f,1),new(0,-90),new(0,14)); log.AppendLine("  XPBar"); total++; }
-            var tr=go.transform;
+        // Boost slots (3 quadradinhos 22x22 em coluna vertical à direita do avatar)
+        float bx=88f;
+        for(int i=0;i<3;i++){
+            var (bsGO,bsN)=FindOrCreateUI(tr,$"BoostSlot{i}");
+            if(bsN){
+                SetRect(RT(bsGO),new(0f,1f),new(0f,1f),new(0f,1f),new(bx,-4f-(i*26f)),new(22f,22f));
+                EnsureImage(bsGO,Hex("#2A1A0A"));
+                var (bsBrd,_)=FindOrCreateUI(bsGO.transform,"Border");
+                SetRect(RT(bsBrd),Vector2.zero,Vector2.one,new(.5f,.5f),Vector2.zero,Vector2.zero);
+                EnsureImage(bsBrd,Hex("#5A4010"));
+                var (bsImg,_)=FindOrCreateUI(bsGO.transform,"Icon");
+                SetRect(RT(bsImg),Vector2.zero,Vector2.one,new(.5f,.5f),new(2f,2f),new(-4f,-4f));
+                var bsImgC=bsImg.GetComponent<Image>()??bsImg.AddComponent<Image>();
+                bsImgC.color=new Color(1f,1f,1f,0f);
+                log.AppendLine($"  BoostSlot{i}"); total++;
+            }
+        }
 
-            var (xpGO,xpN)=FindOrCreateUI(tr,"XPSlider");
-            RectTransform fillXPRT = null;
-            if(xpN){ SetRect(RT(xpGO),new(0,.5f),new(1,.5f),new(.5f,.5f),new(-45,0),new(-90,12)); EnsureImage(xpGO, new Color(0.05f,0.03f,0.08f,1f)); fillXPRT = BuildBar(xpGO, new Color(0.4f,0.15f,0.6f,1f), new Color(0.06f,0.03f,0.12f,1f), new Color(0.35f,0.1f,0.9f,1f), new Color(0.6f,0.3f,1f,1f)); log.AppendLine("  XPSlider"); total++; }
-            else fillXPRT = xpGO.transform.Find("Fill")?.GetComponent<RectTransform>();
+        // Barras (HP vermelho, XP azul, Poder verde) — à direita dos boosts
+        float barX=116f; float barW=-barX-80f;
+        string[] barNames={"HealthBar","XPBar","PoderBar"};
+        Color[] barBorders={Hex("#8B6914"),Hex("#3A1A6A"),Hex("#1A5A1A")};
+        Color[] barBGs={new Color(.12f,.04f,.04f,1f),new Color(.06f,.03f,.12f,1f),new Color(.03f,.12f,.03f,1f)};
+        Color[] barFills={new Color(.85f,.15f,.1f,1f),new Color(.2f,.35f,.95f,1f),new Color(.1f,.8f,.2f,1f)};
+        RectTransform fillVidaRT=null, fillXPRT=null, fillPoderRT=null;
+        for(int i=0;i<3;i++){
+            var (barGO,barN)=FindOrCreateUI(tr,barNames[i]);
+            if(barN){
+                SetRect(RT(barGO),new(0f,1f),new(1f,1f),new(0f,1f),new(barX,-6f-(i*26f)),new(barW,18f));
+                EnsureImage(barGO,barBorders[i]);
+                var fRT=BuildBar(barGO,barBGs[i],barFills[i]);
+                if(i==0) fillVidaRT=fRT;
+                else if(i==1) fillXPRT=fRT;
+                else fillPoderRT=fRT;
+                log.AppendLine($"  {barNames[i]}"); total++;
+            } else {
+                var fRT=barGO.transform.Find("Fill")?.GetComponent<RectTransform>();
+                if(i==0) fillVidaRT=fRT;
+                else if(i==1) fillXPRT=fRT;
+                else fillPoderRT=fRT;
+            }
+        }
 
-            var (nvGO,nvN)=FindOrCreateUI(tr,"NivelText");
-            if(nvN){ SetRect(RT(nvGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-5,0),new(80,14)); EnsureTMP(nvGO,"Nv.1",15f,Hex("#AAAAFF")); log.AppendLine("  NivelText"); total++; }
+        // Timer (centro-direita)
+        var (tiGO,tiN)=FindOrCreateUI(tr,"TimerText");
+        if(tiN){ SetRect(RT(tiGO),new(1f,.5f),new(1f,.5f),new(1f,.5f),new(-84f,0f),new(76f,60f)); var t=EnsureTMP(tiGO,"10:00",30f,Color.white); t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Center; log.AppendLine("  TimerText"); total++; }
 
-            var (pbGO,pbN)=FindOrCreateUI(tr,"PauseButton");
-            if(pbN){ SetRect(RT(pbGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-5,0),new(50,14)); EnsureImage(pbGO,Hex("#00000060")); EnsureButton(pbGO); AddLabel(pbGO,"II",16f,Color.white); log.AppendLine("  PauseButton"); total++; }
+        // Pause (canto superior direito)
+        var (pbGO2,pbN2)=FindOrCreateUI(tr,"PauseButton");
+        if(pbN2){ SetRect(RT(pbGO2),new(1f,1f),new(1f,1f),new(1f,1f),new(-4f,-4f),new(72f,72f)); EnsureImage(pbGO2,Hex("#00000060")); EnsureButton(pbGO2); AddLabel(pbGO2,"II",24f,Color.white); log.AppendLine("  PauseButton"); total++; }
 
-            if(fillXPRT != null) TryWire(hudSO,"fillXP", fillXPRT, log);
-            TryWire(hudSO,"textoNivel", nvGO.GetComponent<TextMeshProUGUI>(),  log);
-            TryWire(hudSO,"botaoPause", pbGO.GetComponent<Button>(),           log);
+        // Texto vida (sobre a barra HP)
+        var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
+        if(tvN){
+            SetRect(RT(tvGO),new(0f,1f),new(1f,1f),new(.5f,.5f),new(barX+2f,-6f),new(barW,18f));
+            var vt=EnsureTMP(tvGO,"",14f,Color.white); vt.alignment=TextAlignmentOptions.Center; vt.fontStyle=FontStyles.Bold;
+            log.AppendLine("  VidaText"); total++;
+        }
+
+        if(fillVidaRT!=null)  TryWire(hudSO,"fillVida",  fillVidaRT,  log);
+        if(fillXPRT!=null)    TryWire(hudSO,"fillXP",    fillXPRT,    log);
+        if(fillPoderRT!=null) TryWire(hudSO,"fillPoder",  fillPoderRT, log);
+        TryWire(hudSO,"textoVida",  tvGO.GetComponent<TextMeshProUGUI>(),  log);
+        TryWire(hudSO,"textoTimer", tiGO.GetComponent<TextMeshProUGUI>(),  log);
+        TryWire(hudSO,"botaoPause", pbGO2.GetComponent<Button>(),          log);
+
+        var hudComp=hudGO.GetComponent<HUDComplete>();
+        if(hudComp!=null){
+            var boostImgs=new UnityEngine.UI.Image[3];
+            for(int i=0;i<3;i++){
+                var slot=tr.Find($"BoostSlot{i}/Icon");
+                if(slot!=null) boostImgs[i]=slot.GetComponent<UnityEngine.UI.Image>();
+            }
+            hudComp.boostSlots=boostImgs;
+            UnityEditor.EditorUtility.SetDirty(hudComp);
         }
 
         // PoderEspecial (bottom-right, 100×100)
@@ -856,19 +913,8 @@ public static class SolengardLayoutSetup
         return EnsureTMP(lGO,text,size,color);
     }
 
-    static RectTransform BuildBar(GameObject go, Color borderColor, Color bgColor, Color fillColor, Color fillColorEnd)
+    static RectTransform BuildBar(GameObject go, Color bgColor, Color fillColor)
     {
-        // Outer border (1px larger, darker)
-        var border = new GameObject("Border");
-        Undo.RegisterCreatedObjectUndo(border, "Solengard Layout");
-        border.transform.SetParent(go.transform, false);
-        var borderImg = border.AddComponent<Image>();
-        borderImg.color = borderColor;
-        var borderRT = border.GetComponent<RectTransform>();
-        borderRT.anchorMin = Vector2.zero; borderRT.anchorMax = Vector2.one;
-        borderRT.offsetMin = Vector2.zero; borderRT.offsetMax = Vector2.zero;
-
-        // Background (dark inner)
         var bg = new GameObject("BG");
         Undo.RegisterCreatedObjectUndo(bg, "Solengard Layout");
         bg.transform.SetParent(go.transform, false);
@@ -878,7 +924,6 @@ public static class SolengardLayoutSetup
         bgRT.anchorMin = Vector2.zero; bgRT.anchorMax = Vector2.one;
         bgRT.offsetMin = new Vector2(2f, 2f); bgRT.offsetMax = new Vector2(-2f, -2f);
 
-        // Fill
         var fill = new GameObject("Fill");
         Undo.RegisterCreatedObjectUndo(fill, "Solengard Layout");
         fill.transform.SetParent(go.transform, false);
@@ -890,18 +935,6 @@ public static class SolengardLayoutSetup
         fillRT.offsetMin = new Vector2(3f, 3f);
         fillRT.offsetMax = new Vector2(-3f, -3f);
         fillRT.pivot     = new Vector2(0f, 0.5f);
-
-        // Shine overlay (top half, lighter color for depth)
-        var shine = new GameObject("Shine");
-        Undo.RegisterCreatedObjectUndo(shine, "Solengard Layout");
-        shine.transform.SetParent(go.transform, false);
-        var shineImg = shine.AddComponent<Image>();
-        shineImg.color = new Color(1f, 1f, 1f, 0.08f);
-        var shineRT = shine.GetComponent<RectTransform>();
-        shineRT.anchorMin = new Vector2(0f, 0.5f);
-        shineRT.anchorMax = new Vector2(1f, 1f);
-        shineRT.offsetMin = new Vector2(3f, 0f);
-        shineRT.offsetMax = new Vector2(-3f, -1f);
 
         return fillRT;
     }

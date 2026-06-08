@@ -6,6 +6,8 @@ public class ClassDefinition : ScriptableObject
     [Header("Identidade")]
     public string classId;
     public string displayName;
+    [Tooltip("Ícone/portrait para o HUD. Se null, usa idleFrames[0].")]
+    public Sprite classIcon;
     public string className;
     [TextArea(3, 6)]
     public string lore;
