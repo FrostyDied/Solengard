@@ -519,7 +519,7 @@ public static class SolengardLayoutSetup
         }
 
         // Barras (HP vermelho, XP azul, Poder verde) — à direita dos boosts
-        float barX=112f; float barW=-barX-90f;
+        float barX=112f; float barW=-barX-220f;
         string[] barNames={"HealthBar","XPBar","PoderBar"};
         Color[] barBorders={Hex("#8B6914"),Hex("#3A1A6A"),Hex("#1A5A1A")};
         Color[] barBGs={new Color(.12f,.04f,.04f,1f),new Color(.06f,.03f,.12f,1f),new Color(.03f,.12f,.03f,1f)};
@@ -528,7 +528,8 @@ public static class SolengardLayoutSetup
         for(int i=0;i<3;i++){
             var (barGO,barN)=FindOrCreateUI(tr,barNames[i]);
             if(barN){
-                SetRect(RT(barGO),new(0f,1f),new(1f,1f),new(0f,1f),new(barX,-8f-(i*21f)),new(barW,14f));
+                float[] barHeights = {8f, 6f, 5f};
+                SetRect(RT(barGO),new(0f,1f),new(1f,1f),new(0f,1f),new(barX,-10f-(i*20f)),new(barW,barHeights[i]));
                 EnsureImage(barGO,barBorders[i]);
                 var fRT=BuildBar(barGO,barBGs[i],barFills[i]);
                 if(i==0) fillVidaRT=fRT;
