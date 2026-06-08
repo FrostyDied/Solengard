@@ -126,4 +126,39 @@ public static class SolengardUISetup
             UnityEngine.SceneManagement.SceneManager.GetActiveScene());
         Debug.Log("[UISetup] LevelUp configurado com Mobile Fantasy UI");
     }
+
+    [MenuItem("Solengard/UI/Copiar Sprites UI para Resources")]
+    static void CopiarSpritesParaResources()
+    {
+        string dest = "Assets/Resources/UI/";
+
+        if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+            AssetDatabase.CreateFolder("Assets", "Resources");
+        if (!AssetDatabase.IsValidFolder(dest.TrimEnd('/')))
+            AssetDatabase.CreateFolder("Assets/Resources", "UI");
+
+        string[] sprites = new[]
+        {
+            "bar_frame_1.png",
+            "bar_fill_1.png",
+            "hud_container.png",
+            "complete_container.png",
+            "complete_frame.png",
+            "menu_button.png",
+            "menu_button_pressed.png",
+        };
+
+        int copied = 0, skipped = 0;
+        foreach (var file in sprites)
+        {
+            string src  = EXPORTED + file;
+            string dst  = dest + file;
+            if (AssetDatabase.LoadAssetAtPath<Object>(dst) != null) { skipped++; continue; }
+            if (AssetDatabase.CopyAsset(src, dst)) copied++;
+            else Debug.LogWarning($"[UISetup] Falha ao copiar: {src}");
+        }
+
+        AssetDatabase.Refresh();
+        Debug.Log($"[UISetup] Sprites copiados para Resources/UI — {copied} novos, {skipped} já existiam");
+    }
 }
