@@ -579,23 +579,9 @@ public static class SolengardLayoutSetup
             log.AppendLine("  PauseButton"); total++;
         }
 
-        // VidaText sobre HP bar
-        var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
-        if(tvN){
-            var vRT=RT(tvGO);
-            vRT.anchorMin=new Vector2(0f,1f); vRT.anchorMax=new Vector2(0f,1f);
-            vRT.pivot=new Vector2(0f,1f);
-            vRT.anchoredPosition=new Vector2(148f,-30f);
-            vRT.sizeDelta=new Vector2(320f,18f);
-            var t=EnsureTMP(tvGO,"",13f,Color.white);
-            t.alignment=TextAlignmentOptions.Center; t.fontStyle=FontStyles.Bold;
-            log.AppendLine("  VidaText"); total++;
-        }
-
         if(fillVidaRT!=null)  TryWire(hudSO,"fillVida",  fillVidaRT,  log);
         if(fillXPRT!=null)    TryWire(hudSO,"fillXP",    fillXPRT,    log);
         if(fillPoderRT!=null) TryWire(hudSO,"fillPoder",  fillPoderRT, log);
-        TryWire(hudSO,"textoVida",  tvGO.GetComponent<TextMeshProUGUI>(),  log);
         TryWire(hudSO,"textoTimer", tiGO.GetComponent<TextMeshProUGUI>(),  log);
         TryWire(hudSO,"botaoPause", pbGO2.GetComponent<Button>(),          log);
 
