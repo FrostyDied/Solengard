@@ -475,6 +475,7 @@ public static class SolengardLayoutSetup
             log.AppendLine("  HUDBackground criado"); total++;
         }
 
+        {
         // TopBar — layout RPG: avatar + boosts + barras + timer + pause
         var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
         if(isNew){ AnchorTopBar(RT(go),86f); EnsureImage(go,Hex("#E6120A0A")); log.AppendLine("  TopBar"); total++; }
@@ -574,6 +575,7 @@ public static class SolengardLayoutSetup
             }
             hudComp.boostSlots=boostImgs;
             UnityEditor.EditorUtility.SetDirty(hudComp);
+        }
         }
 
         // PoderEspecial (bottom-right, 100×100)
