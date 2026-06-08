@@ -519,7 +519,7 @@ public static class SolengardLayoutSetup
         }
 
         // Barras (HP vermelho, XP azul, Poder verde) — à direita dos boosts
-        float barX=112f; float barW=-barX-220f;
+        float barX=112f; float barW=-barX-536f;
         string[] barNames={"HealthBar","XPBar","PoderBar"};
         Color[] barBorders={Hex("#8B6914"),Hex("#3A1A6A"),Hex("#1A5A1A")};
         Color[] barBGs={new Color(.12f,.04f,.04f,1f),new Color(.06f,.03f,.12f,1f),new Color(.03f,.12f,.03f,1f)};
@@ -546,11 +546,11 @@ public static class SolengardLayoutSetup
 
         // Timer (centro-direita)
         var (tiGO,tiN)=FindOrCreateUI(tr,"TimerText");
-        if(tiN){ SetRect(RT(tiGO),new(1f,.5f),new(1f,.5f),new(1f,.5f),new(-86f,0f),new(82f,50f)); var t=EnsureTMP(tiGO,"10:00",26f,Color.white); t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Center; log.AppendLine("  TimerText"); total++; }
+        if(tiN){ SetRect(RT(tiGO),new(1f,.5f),new(1f,.5f),new(1f,.5f),new(-44f,0f),new(82f,50f)); var t=EnsureTMP(tiGO,"10:00",26f,Color.white); t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Center; log.AppendLine("  TimerText"); total++; }
 
         // Pause (canto superior direito)
         var (pbGO2,pbN2)=FindOrCreateUI(tr,"PauseButton");
-        if(pbN2){ SetRect(RT(pbGO2),new(1f,1f),new(1f,1f),new(1f,1f),new(-4f,-4f),new(52f,52f)); EnsureImage(pbGO2,Hex("#00000060")); EnsureButton(pbGO2); AddLabel(pbGO2,"II",24f,Color.white); log.AppendLine("  PauseButton"); total++; }
+        if(pbN2){ SetRect(RT(pbGO2),new(1f,0f),new(1f,1f),new(1f,.5f),new(-4f,0f),new(52f,0f)); EnsureImage(pbGO2,Hex("#00000060")); EnsureButton(pbGO2); AddLabel(pbGO2,"II",24f,Color.white); log.AppendLine("  PauseButton"); total++; }
 
         // Texto vida (sobre a barra HP)
         var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
