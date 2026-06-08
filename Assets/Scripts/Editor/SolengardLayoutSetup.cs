@@ -478,13 +478,13 @@ public static class SolengardLayoutSetup
         {
         // TopBar — layout RPG: avatar + boosts + barras + timer + pause
         var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
-        if(isNew){ AnchorTopBar(RT(go),72f); EnsureImage(go,Hex("#E6120A0A")); log.AppendLine("  TopBar"); total++; }
+        if(isNew){ AnchorTopBar(RT(go),72f); EnsureImage(go,Hex("#00000000")); log.AppendLine("  TopBar"); total++; }
         var tr=go.transform;
 
         // Avatar (quadrado esquerdo, 76x76)
         var (avGO,avN)=FindOrCreateUI(tr,"Avatar");
         if(avN){
-            SetRect(RT(avGO),new(0f,0f),new(0f,1f),new(0f,.5f),new(6f,-4f),new(58f,-8f));
+            SetRect(RT(avGO),new(0f,0f),new(0f,1f),new(0f,.5f),new(6f,-34f),new(58f,-8f));
             EnsureImage(avGO,Hex("#2A1A0A"));
             var (brdGO,_)=FindOrCreateUI(avGO.transform,"Border");
             SetRect(RT(brdGO),Vector2.zero,Vector2.one,new(.5f,.5f),Vector2.zero,Vector2.zero);
@@ -505,7 +505,7 @@ public static class SolengardLayoutSetup
         for(int i=0;i<3;i++){
             var (bsGO,bsN)=FindOrCreateUI(tr,$"BoostSlot{i}");
             if(bsN){
-                SetRect(RT(bsGO),new(0f,1f),new(0f,1f),new(0f,1f),new(bx,-6f-(i*22f)),new(20f,20f));
+                SetRect(RT(bsGO),new(0f,1f),new(0f,1f),new(0f,1f),new(bx,-36f-(i*22f)),new(20f,20f));
                 EnsureImage(bsGO,Hex("#2A1A0A"));
                 var (bsBrd,_)=FindOrCreateUI(bsGO.transform,"Border");
                 SetRect(RT(bsBrd),Vector2.zero,Vector2.one,new(.5f,.5f),Vector2.zero,Vector2.zero);
@@ -528,8 +528,14 @@ public static class SolengardLayoutSetup
         for(int i=0;i<3;i++){
             var (barGO,barN)=FindOrCreateUI(tr,barNames[i]);
             if(barN){
-                float[] barHeights = {8f, 6f, 5f};
-                SetRect(RT(barGO),new(0f,1f),new(1f,1f),new(0f,1f),new(barX,-10f-(i*20f)),new(barW,barHeights[i]));
+                float[] barHeights    = {8f, 6f, 5f};
+                float[] barRightsNeg  = {-268f, -288f, -238f};
+                var bRT = RT(barGO);
+                bRT.anchorMin = new Vector2(0f, 1f);
+                bRT.anchorMax = new Vector2(1f, 1f);
+                bRT.pivot     = new Vector2(0f, 1f);
+                bRT.offsetMin = new Vector2(barX, -40f-(i*20f) - barHeights[i]);
+                bRT.offsetMax = new Vector2(barRightsNeg[i], -40f-(i*20f));
                 EnsureImage(barGO,barBorders[i]);
                 var fRT=BuildBar(barGO,barBGs[i],barFills[i]);
                 if(i==0) fillVidaRT=fRT;
@@ -555,7 +561,7 @@ public static class SolengardLayoutSetup
         // Texto vida (sobre a barra HP)
         var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
         if(tvN){
-            SetRect(RT(tvGO),new(0f,1f),new(1f,1f),new(.5f,.5f),new(barX+2f,-6f),new(barW,18f));
+            SetRect(RT(tvGO),new(0f,1f),new(1f,1f),new(.5f,.5f),new(barX+2f,-36f),new(barW,18f));
             var vt=EnsureTMP(tvGO,"",14f,Color.white); vt.alignment=TextAlignmentOptions.Center; vt.fontStyle=FontStyles.Bold;
             log.AppendLine("  VidaText"); total++;
         }
