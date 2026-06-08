@@ -461,7 +461,7 @@ public static class SolengardLayoutSetup
             hudBgRT.anchorMin       = new Vector2(0f, 1f);
             hudBgRT.anchorMax       = new Vector2(1f, 1f);
             hudBgRT.pivot           = new Vector2(0.5f, 1f);
-            hudBgRT.sizeDelta       = new Vector2(0f, 72f);
+            hudBgRT.sizeDelta       = new Vector2(0f, 120f);
             hudBgRT.anchoredPosition = Vector2.zero;
             var hudBgImg = hudBg.AddComponent<Image>();
             var containerSprite = LoadUI("hud_container.png");
@@ -478,7 +478,7 @@ public static class SolengardLayoutSetup
         // TopBar — layout RPG portrait
         {
         var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
-        if(isNew){ AnchorTopBar(RT(go),80f); EnsureImage(go,Hex("#00000000")); log.AppendLine("  TopBar"); total++; }
+        if(isNew){ AnchorTopBar(RT(go),120f); EnsureImage(go,Hex("#00000000")); log.AppendLine("  TopBar"); total++; }
         var tr=go.transform;
 
         // Avatar 96x96
@@ -504,14 +504,14 @@ public static class SolengardLayoutSetup
             log.AppendLine("  Avatar"); total++;
         }
 
-        // 3 Boost slots 28x28 empilhados verticalmente
-        for(int i=0;i<3;i++){
+        // 4 Boost slots 28x28 horizontais acima das barras
+        for(int i=0;i<4;i++){
             var (bsGO,bsN)=FindOrCreateUI(tr,$"BoostSlot{i}");
             if(bsN){
                 var bRT=RT(bsGO);
                 bRT.anchorMin=new Vector2(0f,1f); bRT.anchorMax=new Vector2(0f,1f);
                 bRT.pivot=new Vector2(0f,1f);
-                bRT.anchoredPosition=new Vector2(112f,-30f-(i*32f));
+                bRT.anchoredPosition=new Vector2(112f+(i*32f),-30f);
                 bRT.sizeDelta=new Vector2(28f,28f);
                 var bImg=bsGO.GetComponent<Image>()??bsGO.AddComponent<Image>(); bImg.color=Hex("#5A4010");
                 var (bInner,_)=FindOrCreateUI(bsGO.transform,"Inner");
@@ -527,9 +527,9 @@ public static class SolengardLayoutSetup
         }
 
         // 3 Barras fixas
-        float[] bWidths ={320f,300f,340f};
-        float[] bHeights={10f,10f,10f};
-        float[] bYpos   ={-30f,-46f,-62f};
+        float[] bWidths ={300f,340f,260f};
+        float[] bHeights={14f,16f,11f};
+        float[] bYpos   ={-66f,-86f,-103f};
         Color[] bBorders={Hex("#8B6914"),Hex("#3A1A6A"),Hex("#1A5A1A")};
         Color[] bBGs    ={new Color(.12f,.04f,.04f,1f),new Color(.06f,.03f,.12f,1f),new Color(.03f,.12f,.03f,1f)};
         Color[] bFills  ={new Color(.85f,.15f,.1f,1f),new Color(.2f,.35f,.95f,1f),new Color(.1f,.8f,.2f,1f)};
@@ -601,8 +601,8 @@ public static class SolengardLayoutSetup
 
         var hudComp=hudGO.GetComponent<HUDComplete>();
         if(hudComp!=null){
-            var boostImgs=new UnityEngine.UI.Image[3];
-            for(int i=0;i<3;i++){
+            var boostImgs=new UnityEngine.UI.Image[4];
+            for(int i=0;i<4;i++){
                 var slot=tr.Find($"BoostSlot{i}/Icon");
                 if(slot!=null) boostImgs[i]=slot.GetComponent<UnityEngine.UI.Image>();
             }
