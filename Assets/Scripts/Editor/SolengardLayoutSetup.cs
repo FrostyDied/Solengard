@@ -475,93 +475,120 @@ public static class SolengardLayoutSetup
             log.AppendLine("  HUDBackground criado"); total++;
         }
 
+        // TopBar — layout RPG portrait
         {
-        // TopBar — layout RPG: avatar + boosts + barras + timer + pause
         var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
-        if(isNew){ AnchorTopBar(RT(go),72f); EnsureImage(go,Hex("#00000000")); log.AppendLine("  TopBar"); total++; }
+        if(isNew){ AnchorTopBar(RT(go),80f); EnsureImage(go,Hex("#00000000")); log.AppendLine("  TopBar"); total++; }
         var tr=go.transform;
 
-        // Avatar (quadrado esquerdo, 76x76)
+        // Avatar 96x96
         var (avGO,avN)=FindOrCreateUI(tr,"Avatar");
         if(avN){
-            SetRect(RT(avGO),new(0f,0f),new(0f,1f),new(0f,.5f),new(6f,-34f),new(58f,-8f));
-            EnsureImage(avGO,Hex("#2A1A0A"));
-            var (brdGO,_)=FindOrCreateUI(avGO.transform,"Border");
-            SetRect(RT(brdGO),Vector2.zero,Vector2.one,new(.5f,.5f),Vector2.zero,Vector2.zero);
-            EnsureImage(brdGO,Hex("#8B6914"));
+            var avRT=RT(avGO);
+            avRT.anchorMin=new Vector2(0f,1f); avRT.anchorMax=new Vector2(0f,1f);
+            avRT.pivot=new Vector2(0f,1f);
+            avRT.anchoredPosition=new Vector2(8f,-30f);
+            avRT.sizeDelta=new Vector2(96f,96f);
+            var bgImg=avGO.GetComponent<Image>()??avGO.AddComponent<Image>();
+            bgImg.color=Hex("#8B6914");
             var (innerGO,_)=FindOrCreateUI(avGO.transform,"Inner");
-            SetRect(RT(innerGO),Vector2.zero,Vector2.one,new(.5f,.5f),new(2f,2f),new(-4f,-4f));
-            EnsureImage(innerGO,Hex("#1A0E04"));
+            var iRT=RT(innerGO); iRT.anchorMin=Vector2.zero; iRT.anchorMax=Vector2.one;
+            iRT.offsetMin=new Vector2(3f,3f); iRT.offsetMax=new Vector2(-3f,-3f);
+            var iImg=innerGO.GetComponent<Image>()??innerGO.AddComponent<Image>(); iImg.color=Hex("#1A0E04");
             var (imgGO,_)=FindOrCreateUI(avGO.transform,"AvatarImg");
-            SetRect(RT(imgGO),Vector2.zero,Vector2.one,new(.5f,.5f),new(4f,4f),new(-8f,-8f));
+            var aRT=RT(imgGO); aRT.anchorMin=Vector2.zero; aRT.anchorMax=Vector2.one;
+            aRT.offsetMin=new Vector2(6f,6f); aRT.offsetMax=new Vector2(-6f,-6f);
             var avImg=imgGO.GetComponent<Image>()??imgGO.AddComponent<Image>();
-            avImg.preserveAspect=true;
+            avImg.preserveAspect=true; avImg.color=Color.white;
             TryWire(hudSO,"avatarImagem",avImg,log);
             log.AppendLine("  Avatar"); total++;
         }
 
-        // Boost slots (3 quadradinhos 22x22 em coluna vertical à direita do avatar)
-        float bx=88f;
+        // 3 Boost slots 28x28 empilhados verticalmente
         for(int i=0;i<3;i++){
             var (bsGO,bsN)=FindOrCreateUI(tr,$"BoostSlot{i}");
             if(bsN){
-                SetRect(RT(bsGO),new(0f,1f),new(0f,1f),new(0f,1f),new(bx,-36f-(i*22f)),new(20f,20f));
-                EnsureImage(bsGO,Hex("#2A1A0A"));
-                var (bsBrd,_)=FindOrCreateUI(bsGO.transform,"Border");
-                SetRect(RT(bsBrd),Vector2.zero,Vector2.one,new(.5f,.5f),Vector2.zero,Vector2.zero);
-                EnsureImage(bsBrd,Hex("#5A4010"));
-                var (bsImg,_)=FindOrCreateUI(bsGO.transform,"Icon");
-                SetRect(RT(bsImg),Vector2.zero,Vector2.one,new(.5f,.5f),new(2f,2f),new(-4f,-4f));
-                var bsImgC=bsImg.GetComponent<Image>()??bsImg.AddComponent<Image>();
-                bsImgC.color=new Color(1f,1f,1f,0f);
+                var bRT=RT(bsGO);
+                bRT.anchorMin=new Vector2(0f,1f); bRT.anchorMax=new Vector2(0f,1f);
+                bRT.pivot=new Vector2(0f,1f);
+                bRT.anchoredPosition=new Vector2(112f,-30f-(i*32f));
+                bRT.sizeDelta=new Vector2(28f,28f);
+                var bImg=bsGO.GetComponent<Image>()??bsGO.AddComponent<Image>(); bImg.color=Hex("#5A4010");
+                var (bInner,_)=FindOrCreateUI(bsGO.transform,"Inner");
+                var biRT=RT(bInner); biRT.anchorMin=Vector2.zero; biRT.anchorMax=Vector2.one;
+                biRT.offsetMin=new Vector2(2f,2f); biRT.offsetMax=new Vector2(-2f,-2f);
+                var biImg=bInner.GetComponent<Image>()??bInner.AddComponent<Image>(); biImg.color=Hex("#1A0E04");
+                var (bIcon,_)=FindOrCreateUI(bsGO.transform,"Icon");
+                var bcRT=RT(bIcon); bcRT.anchorMin=Vector2.zero; bcRT.anchorMax=Vector2.one;
+                bcRT.offsetMin=new Vector2(4f,4f); bcRT.offsetMax=new Vector2(-4f,-4f);
+                var bcImg=bIcon.GetComponent<Image>()??bIcon.AddComponent<Image>(); bcImg.color=new Color(1f,1f,1f,0f);
                 log.AppendLine($"  BoostSlot{i}"); total++;
             }
         }
 
-        // Barras (HP vermelho, XP azul, Poder verde) — à direita dos boosts
-        string[] barNames  = { "HealthBar", "XPBar", "PoderBar" };
-        float[]  barWidths = { 700f, 680f, 730f };
-        float[]  barHeights= { 8f,   6f,   5f   };
-        Color[]  barBorders = { Hex("#8B6914"), Hex("#3A1A6A"), Hex("#1A5A1A") };
-        Color[]  barBGs     = { new Color(.12f,.04f,.04f,1f), new Color(.06f,.03f,.12f,1f), new Color(.03f,.12f,.03f,1f) };
-        Color[]  barFills   = { new Color(.85f,.15f,.1f,1f),  new Color(.2f,.35f,.95f,1f),  new Color(.1f,.8f,.2f,1f)   };
-        RectTransform fillVidaRT=null, fillXPRT=null, fillPoderRT=null;
+        // 3 Barras fixas
+        float[] bWidths ={320f,300f,340f};
+        float[] bHeights={10f,10f,10f};
+        float[] bYpos   ={-30f,-46f,-62f};
+        Color[] bBorders={Hex("#8B6914"),Hex("#3A1A6A"),Hex("#1A5A1A")};
+        Color[] bBGs    ={new Color(.12f,.04f,.04f,1f),new Color(.06f,.03f,.12f,1f),new Color(.03f,.12f,.03f,1f)};
+        Color[] bFills  ={new Color(.85f,.15f,.1f,1f),new Color(.2f,.35f,.95f,1f),new Color(.1f,.8f,.2f,1f)};
+        RectTransform fillVidaRT=null,fillXPRT=null,fillPoderRT=null;
+        string[] bNames={"HealthBar","XPBar","PoderBar"};
         for(int i=0;i<3;i++){
-            var (barGO,barN)=FindOrCreateUI(tr,barNames[i]);
+            var (barGO,barN)=FindOrCreateUI(tr,bNames[i]);
             if(barN){
                 var bRT=RT(barGO);
-                bRT.anchorMin        = new Vector2(0f,1f);
-                bRT.anchorMax        = new Vector2(0f,1f);
-                bRT.pivot            = new Vector2(0f,1f);
-                bRT.anchoredPosition = new Vector2(112f, -40f-(i*20f));
-                bRT.sizeDelta        = new Vector2(barWidths[i], barHeights[i]);
-                EnsureImage(barGO, barBorders[i]);
-                var fRT=BuildBar(barGO, barBGs[i], barFills[i]);
-                if(i==0) fillVidaRT=fRT;
-                else if(i==1) fillXPRT=fRT;
-                else fillPoderRT=fRT;
-                log.AppendLine($"  {barNames[i]}"); total++;
+                bRT.anchorMin=new Vector2(0f,1f); bRT.anchorMax=new Vector2(0f,1f);
+                bRT.pivot=new Vector2(0f,1f);
+                bRT.anchoredPosition=new Vector2(148f,bYpos[i]);
+                bRT.sizeDelta=new Vector2(bWidths[i],bHeights[i]);
+                EnsureImage(barGO,bBorders[i]);
+                var fRT=BuildBar(barGO,bBGs[i],bFills[i]);
+                if(i==0)fillVidaRT=fRT; else if(i==1)fillXPRT=fRT; else fillPoderRT=fRT;
+                log.AppendLine($"  {bNames[i]}"); total++;
             } else {
                 var fRT=barGO.transform.Find("Fill")?.GetComponent<RectTransform>();
-                if(i==0) fillVidaRT=fRT;
-                else if(i==1) fillXPRT=fRT;
-                else fillPoderRT=fRT;
+                if(i==0)fillVidaRT=fRT; else if(i==1)fillXPRT=fRT; else fillPoderRT=fRT;
             }
         }
 
-        // Timer (centro-direita)
+        // Timer top-right
         var (tiGO,tiN)=FindOrCreateUI(tr,"TimerText");
-        if(tiN){ SetRect(RT(tiGO),new(1f,.5f),new(1f,.5f),new(1f,.5f),new(-44f,0f),new(82f,50f)); var t=EnsureTMP(tiGO,"10:00",26f,Color.white); t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Center; log.AppendLine("  TimerText"); total++; }
+        if(tiN){
+            var tRT=RT(tiGO);
+            tRT.anchorMin=new Vector2(1f,1f); tRT.anchorMax=new Vector2(1f,1f);
+            tRT.pivot=new Vector2(1f,1f);
+            tRT.anchoredPosition=new Vector2(-68f,-30f);
+            tRT.sizeDelta=new Vector2(120f,40f);
+            var t=EnsureTMP(tiGO,"10:00",28f,Color.white);
+            t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Right;
+            log.AppendLine("  TimerText"); total++;
+        }
 
-        // Pause (canto superior direito)
+        // Pause top-right
         var (pbGO2,pbN2)=FindOrCreateUI(tr,"PauseButton");
-        if(pbN2){ SetRect(RT(pbGO2),new(1f,0f),new(1f,1f),new(1f,.5f),new(-4f,0f),new(52f,0f)); EnsureImage(pbGO2,Hex("#00000060")); EnsureButton(pbGO2); AddLabel(pbGO2,"II",24f,Color.white); log.AppendLine("  PauseButton"); total++; }
+        if(pbN2){
+            var pRT=RT(pbGO2);
+            pRT.anchorMin=new Vector2(1f,1f); pRT.anchorMax=new Vector2(1f,1f);
+            pRT.pivot=new Vector2(1f,1f);
+            pRT.anchoredPosition=new Vector2(-8f,-8f);
+            pRT.sizeDelta=new Vector2(48f,48f);
+            EnsureImage(pbGO2,Hex("#00000080")); EnsureButton(pbGO2);
+            AddLabel(pbGO2,"II",22f,Color.white);
+            log.AppendLine("  PauseButton"); total++;
+        }
 
-        // Texto vida (sobre a barra HP)
+        // VidaText sobre HP bar
         var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
         if(tvN){
-            SetRect(RT(tvGO),new(0f,1f),new(1f,1f),new(.5f,.5f),new(114f,-36f),new(700f,18f));
-            var vt=EnsureTMP(tvGO,"",14f,Color.white); vt.alignment=TextAlignmentOptions.Center; vt.fontStyle=FontStyles.Bold;
+            var vRT=RT(tvGO);
+            vRT.anchorMin=new Vector2(0f,1f); vRT.anchorMax=new Vector2(0f,1f);
+            vRT.pivot=new Vector2(0f,1f);
+            vRT.anchoredPosition=new Vector2(148f,-30f);
+            vRT.sizeDelta=new Vector2(320f,18f);
+            var t=EnsureTMP(tvGO,"",13f,Color.white);
+            t.alignment=TextAlignmentOptions.Center; t.fontStyle=FontStyles.Bold;
             log.AppendLine("  VidaText"); total++;
         }
 
