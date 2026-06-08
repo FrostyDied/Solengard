@@ -858,7 +858,7 @@ public static class SolengardLayoutSetup
         bg.transform.SetParent(go.transform, false);
         var bgImg      = bg.AddComponent<Image>();
         var frameSprite = LoadUI("bar_frame_1.png");
-        if (frameSprite != null) { bgImg.sprite = frameSprite; bgImg.type = Image.Type.Sliced; bgImg.color = Color.white; }
+        if (frameSprite != null) { bgImg.sprite = frameSprite; bgImg.type = Image.Type.Simple; bgImg.color = Color.white; }
         else bgImg.color = new Color(.15f, .0f, .0f, 1f);
         StretchFull(bg.GetComponent<RectTransform>());
 
@@ -883,6 +883,9 @@ public static class SolengardLayoutSetup
         fillRT.offsetMax = Vector2.zero;
         fillRT.pivot = new Vector2(0f, 0.5f);
 
+        bg.transform.SetAsFirstSibling();
+        fa.transform.SetSiblingIndex(1);
+
         var slider = go.AddComponent<Slider>();
         slider.fillRect = fillRT; slider.value = 1f; slider.maxValue = 1f;
         slider.direction = Slider.Direction.LeftToRight;
@@ -894,7 +897,7 @@ public static class SolengardLayoutSetup
         bg.transform.SetParent(go.transform, false);
         var bgImg       = bg.AddComponent<Image>();
         var frameSprite = LoadUI("bar_frame_2.png");
-        if (frameSprite != null) { bgImg.sprite = frameSprite; bgImg.type = Image.Type.Sliced; bgImg.color = Color.white; }
+        if (frameSprite != null) { bgImg.sprite = frameSprite; bgImg.type = Image.Type.Simple; bgImg.color = Color.white; }
         else bgImg.color = new Color(.05f, .05f, .2f, 1f);
         StretchFull(bg.GetComponent<RectTransform>());
 
@@ -918,6 +921,9 @@ public static class SolengardLayoutSetup
         fillRT.offsetMin = Vector2.zero;
         fillRT.offsetMax = Vector2.zero;
         fillRT.pivot = new Vector2(0f, 0.5f);
+
+        bg.transform.SetAsFirstSibling();
+        fa.transform.SetSiblingIndex(1);
 
         var slider = go.AddComponent<Slider>();
         slider.fillRect = fillRT; slider.value = 0f; slider.maxValue = 1f;
