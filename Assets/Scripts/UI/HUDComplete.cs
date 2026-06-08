@@ -3,15 +3,14 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 
-// HUD de gameplay. Attach no "HUD Canvas" gerado pelo SolengardLayoutSetup.
 public class HUDComplete : MonoBehaviour
 {
     [Header("Vida")]
-    public Slider          barraVida;
+    public RectTransform   fillVida;
     public TextMeshProUGUI textoVida;
 
-    [Header("XP / Nível")]
-    public Slider          barraXP;
+    [Header("XP")]
+    public RectTransform   fillXP;
     public TextMeshProUGUI textoNivel;
 
     [Header("Timer")]
@@ -50,29 +49,26 @@ public class HUDComplete : MonoBehaviour
         pausePanel?.SetActive(false);
         botaoPoderEspecial?.onClick.AddListener(UsarPoderEspecial);
 
-        // Seed inicial — lê estado atual caso eventos já tenham disparado antes do HUD existir
-        var xp = XPSystem.Instance;
-        if (xp != null) AtualizarNivel(xp.CurrentLevel);
-
         var ph = FindFirstObjectByType<PlayerHealth>();
         if (ph != null) AtualizarVida(ph.CurrentHealth, ph.MaxHealth);
 
+        var xp = XPSystem.Instance;
+        if (xp != null) { AtualizarNivel(xp.CurrentLevel); SetFill(fillXP, xp.XPProgress); }
+
         var wt = WaveTimerSystem.Instance;
-        if (wt != null && wt.IsRunning) AtualizarTimer(wt.TimeRemaining);
-        else AtualizarTimer(600f);
+        AtualizarTimer(wt != null && wt.IsRunning ? wt.TimeRemaining : 600f);
     }
 
     void Update()
     {
-        if (barraXP == null) return;
         var xp = XPSystem.Instance;
-        if (xp != null) barraXP.value = xp.XPProgress;
+        if (xp != null) SetFill(fillXP, xp.XPProgress);
     }
 
     void AtualizarVida(float atual, float max)
     {
-        if (barraVida != null) barraVida.value = max > 0f ? atual / max : 0f;
-        if (textoVida != null) textoVida.text  = $"{Mathf.CeilToInt(atual)}/{Mathf.CeilToInt(max)}";
+        SetFill(fillVida, max > 0f ? atual / max : 0f);
+        if (textoVida != null) textoVida.text = $"{Mathf.CeilToInt(atual)}/{Mathf.CeilToInt(max)}";
     }
 
     void AtualizarNivel(int nivel)
@@ -83,18 +79,26 @@ public class HUDComplete : MonoBehaviour
     void AtualizarTimer(float segundos)
     {
         if (textoTimer == null) return;
-        int min = Mathf.FloorToInt(segundos / 60f);
-        int seg = Mathf.FloorToInt(segundos % 60f);
-        textoTimer.text  = $"{min:00}:{seg:00}";
-        textoTimer.color = segundos <= 10f ? Color.red : Color.white;
+        textoTimer.text  = $"{Mathf.FloorToInt(segundos/60f):00}:{Mathf.FloorToInt(segundos%60f):00}";
+        textoTimer.color = segundos <= 30f ? Color.red : Color.white;
+    }
+
+    static void SetFill(RectTransform rt, float t)
+    {
+        if (rt == null) return;
+        t = Mathf.Clamp01(t);
+        rt.anchorMin = new Vector2(0f, 0f);
+        rt.anchorMax = new Vector2(t,  1f);
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
     }
 
     void TogglePause()
     {
         if (pausePanel == null) return;
-        bool pausado = !pausePanel.activeSelf;
-        pausePanel.SetActive(pausado);
-        Time.timeScale = pausado ? 0f : 1f;
+        bool p = !pausePanel.activeSelf;
+        pausePanel.SetActive(p);
+        Time.timeScale = p ? 0f : 1f;
     }
 
     void IrParaMenu()
@@ -104,7 +108,6 @@ public class HUDComplete : MonoBehaviour
     }
 
     bool _poderEmCooldown = false;
-
     void UsarPoderEspecial()
     {
         if (_poderEmCooldown) return;
@@ -119,8 +122,7 @@ public class HUDComplete : MonoBehaviour
         float restante = duracao;
         while (restante > 0f)
         {
-            if (textoCooldown != null)
-                textoCooldown.text = Mathf.CeilToInt(restante) + "s";
+            if (textoCooldown != null) textoCooldown.text = Mathf.CeilToInt(restante) + "s";
             restante -= Time.deltaTime;
             yield return null;
         }

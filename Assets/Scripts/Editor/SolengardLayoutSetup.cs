@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -482,7 +482,9 @@ public static class SolengardLayoutSetup
             var tr=go.transform;
 
             var (slGO,slN)=FindOrCreateUI(tr,"HealthSlider");
-            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(20,0),new(340,50)); BuildSlider(slGO); log.AppendLine("  HealthSlider"); total++; }
+            RectTransform fillVidaRT = null;
+            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(16,-8),new(320,36)); fillVidaRT = BuildBar(slGO,"bar_frame_1.png","bar_fill_1.png",new Color(0.2f,0.85f,0.3f)); log.AppendLine("  HealthSlider"); total++; }
+            else fillVidaRT = slGO.transform.Find("Fill")?.GetComponent<RectTransform>();
 
             var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
             if(tvN){ SetRect(RT(tvGO),new(0,.5f),new(0,.5f),new(0,.5f),new(310,0),new(110,38)); EnsureTMP(tvGO,"100/100",20f,Color.white); log.AppendLine("  VidaText"); total++; }
@@ -490,7 +492,7 @@ public static class SolengardLayoutSetup
             var (tiGO,tiN)=FindOrCreateUI(tr,"TimerText");
             if(tiN){ SetRect(RT(tiGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),Vector2.zero,new(150,50)); var t=EnsureTMP(tiGO,"00:00",36f,Color.white); t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Center; log.AppendLine("  TimerText"); total++; }
 
-            TryWire(hudSO,"barraVida",  slGO.GetComponent<Slider>(),           log);
+            if(fillVidaRT != null) TryWire(hudSO,"fillVida", fillVidaRT, log);
             TryWire(hudSO,"textoVida",  tvGO.GetComponent<TextMeshProUGUI>(),  log);
             TryWire(hudSO,"textoTimer", tiGO.GetComponent<TextMeshProUGUI>(),  log);
         }
@@ -502,7 +504,9 @@ public static class SolengardLayoutSetup
             var tr=go.transform;
 
             var (xpGO,xpN)=FindOrCreateUI(tr,"XPSlider");
-            if(xpN){ SetRect(RT(xpGO),new(0,.5f),new(1,.5f),new(.5f,.5f),new(-45,0),new(-90,14)); BuildSliderXP(xpGO); log.AppendLine("  XPSlider"); total++; }
+            RectTransform fillXPRT = null;
+            if(xpN){ SetRect(RT(xpGO),new(0,.5f),new(1,.5f),new(.5f,.5f),new(-45,0),new(-90,14)); fillXPRT = BuildBar(xpGO,"bar_frame_2.png","bar_fill_2.png",new Color(0.3f,0.5f,1.0f)); log.AppendLine("  XPSlider"); total++; }
+            else fillXPRT = xpGO.transform.Find("Fill")?.GetComponent<RectTransform>();
 
             var (nvGO,nvN)=FindOrCreateUI(tr,"NivelText");
             if(nvN){ SetRect(RT(nvGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-5,0),new(80,14)); EnsureTMP(nvGO,"Nv.1",15f,Hex("#AAAAFF")); log.AppendLine("  NivelText"); total++; }
@@ -510,7 +514,7 @@ public static class SolengardLayoutSetup
             var (pbGO,pbN)=FindOrCreateUI(tr,"PauseButton");
             if(pbN){ SetRect(RT(pbGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-5,0),new(50,14)); EnsureImage(pbGO,Hex("#00000060")); EnsureButton(pbGO); AddLabel(pbGO,"II",16f,Color.white); log.AppendLine("  PauseButton"); total++; }
 
-            TryWire(hudSO,"barraXP",    xpGO.GetComponent<Slider>(),           log);
+            if(fillXPRT != null) TryWire(hudSO,"fillXP", fillXPRT, log);
             TryWire(hudSO,"textoNivel", nvGO.GetComponent<TextMeshProUGUI>(),  log);
             TryWire(hudSO,"botaoPause", pbGO.GetComponent<Button>(),           log);
         }
@@ -852,83 +856,33 @@ public static class SolengardLayoutSetup
         return EnsureTMP(lGO,text,size,color);
     }
 
-    static void BuildSlider(GameObject go)
+    static RectTransform BuildBar(GameObject go, string frameName, string fillName, Color fillColor)
     {
-        var bg = new GameObject("Background"); Undo.RegisterCreatedObjectUndo(bg, "Solengard Layout");
+        var bg = new GameObject("Background");
+        Undo.RegisterCreatedObjectUndo(bg, "Solengard Layout");
         bg.transform.SetParent(go.transform, false);
-        var bgImg      = bg.AddComponent<Image>();
-        var frameSprite = LoadUI("bar_frame_1.png");
+        bg.transform.SetAsFirstSibling();
+        var bgImg = bg.AddComponent<Image>();
+        var frameSprite = LoadUI(frameName);
         if (frameSprite != null) { bgImg.sprite = frameSprite; bgImg.type = Image.Type.Simple; bgImg.color = Color.white; }
-        else bgImg.color = new Color(.15f, .0f, .0f, 1f);
+        else bgImg.color = new Color(.1f, .1f, .1f, 0.8f);
         StretchFull(bg.GetComponent<RectTransform>());
 
-        var fa = new GameObject("Fill Area"); Undo.RegisterCreatedObjectUndo(fa, "Solengard Layout");
-        fa.transform.SetParent(go.transform, false);
-        var faRT = fa.AddComponent<RectTransform>();
-        faRT.anchorMin = new Vector2(0f, 0f);
-        faRT.anchorMax = new Vector2(1f, 1f);
-        faRT.offsetMin = new Vector2(5f, 0f);
-        faRT.offsetMax = new Vector2(-5f, 0f);
-
-        var fill = new GameObject("Fill"); Undo.RegisterCreatedObjectUndo(fill, "Solengard Layout");
-        fill.transform.SetParent(fa.transform, false);
-        var fillImg    = fill.AddComponent<Image>();
-        var fillSprite = LoadUI("bar_fill_1.png");
-        if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Simple; fillImg.color = new Color(0.2f, 0.85f, 0.3f); }
-        else fillImg.color = new Color(.8f, .1f, .1f, 1f);
+        var fill = new GameObject("Fill");
+        Undo.RegisterCreatedObjectUndo(fill, "Solengard Layout");
+        fill.transform.SetParent(go.transform, false);
+        var fillImg = fill.AddComponent<Image>();
+        var fillSprite = LoadUI(fillName);
+        if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Simple; fillImg.color = fillColor; }
+        else fillImg.color = fillColor;
         var fillRT = fill.GetComponent<RectTransform>();
         fillRT.anchorMin = new Vector2(0f, 0f);
         fillRT.anchorMax = new Vector2(1f, 1f);
-        fillRT.offsetMin = Vector2.zero;
-        fillRT.offsetMax = Vector2.zero;
-        fillRT.pivot = new Vector2(0f, 0.5f);
+        fillRT.offsetMin = new Vector2(4f,  3f);
+        fillRT.offsetMax = new Vector2(-4f, -3f);
+        fillRT.pivot     = new Vector2(0f, 0.5f);
 
-        bg.transform.SetAsFirstSibling();
-        fa.transform.SetSiblingIndex(1);
-
-        var slider = go.AddComponent<Slider>();
-        slider.fillRect = fillRT; slider.value = 1f; slider.maxValue = 1f;
-        slider.direction = Slider.Direction.LeftToRight;
-    }
-
-    static void BuildSliderXP(GameObject go)
-    {
-        var bg = new GameObject("Background"); Undo.RegisterCreatedObjectUndo(bg, "Solengard Layout");
-        bg.transform.SetParent(go.transform, false);
-        var bgImg       = bg.AddComponent<Image>();
-        var frameSprite = LoadUI("bar_frame_2.png");
-        if (frameSprite != null) { bgImg.sprite = frameSprite; bgImg.type = Image.Type.Simple; bgImg.color = Color.white; }
-        else bgImg.color = new Color(.05f, .05f, .2f, 1f);
-        StretchFull(bg.GetComponent<RectTransform>());
-
-        var fa = new GameObject("Fill Area"); Undo.RegisterCreatedObjectUndo(fa, "Solengard Layout");
-        fa.transform.SetParent(go.transform, false);
-        var faRT = fa.AddComponent<RectTransform>();
-        faRT.anchorMin = new Vector2(0f, 0f);
-        faRT.anchorMax = new Vector2(1f, 1f);
-        faRT.offsetMin = new Vector2(5f, 0f);
-        faRT.offsetMax = new Vector2(-5f, 0f);
-
-        var fill = new GameObject("Fill"); Undo.RegisterCreatedObjectUndo(fill, "Solengard Layout");
-        fill.transform.SetParent(fa.transform, false);
-        var fillImg    = fill.AddComponent<Image>();
-        var fillSprite = LoadUI("bar_fill_2.png");
-        if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Simple; fillImg.color = new Color(0.3f, 0.5f, 1.0f); }
-        else fillImg.color = new Color(.2f, .4f, .9f, 1f);
-        var fillRT = fill.GetComponent<RectTransform>();
-        fillRT.anchorMin = new Vector2(0f, 0f);
-        fillRT.anchorMax = new Vector2(1f, 1f);
-        fillRT.offsetMin = Vector2.zero;
-        fillRT.offsetMax = Vector2.zero;
-        fillRT.pivot = new Vector2(0f, 0.5f);
-
-        bg.transform.SetAsFirstSibling();
-        fa.transform.SetSiblingIndex(1);
-
-        var slider = go.AddComponent<Slider>();
-        slider.fillRect = fillRT; slider.value = 0f; slider.maxValue = 1f;
-        slider.direction = Slider.Direction.LeftToRight;
-        slider.interactable = false;
+        return fillRT;
     }
 
     static void TryWire(SerializedObject so, string prop, Object val, StringBuilder log)
