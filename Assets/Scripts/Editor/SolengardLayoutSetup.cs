@@ -409,12 +409,24 @@ public static class SolengardLayoutSetup
             c.sortingOrder = 10;
             var s = hudGO.AddComponent<CanvasScaler>();
             s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            s.referenceResolution = new Vector2(1080f, 1920f);
+            s.referenceResolution = new Vector2(1920f, 1080f);
             s.matchWidthOrHeight  = 0.5f;
             log.AppendLine("  HUD Canvas criado"); total++;
         }
         if (hudGO.GetComponent<GraphicRaycaster>() == null) { hudGO.AddComponent<GraphicRaycaster>(); log.AppendLine("  HUD Canvas: GraphicRaycaster adicionado"); total++; }
         var hudTr = hudGO.transform;
+
+        // Limpar filhos legados de versões anteriores do Layout Setup
+        string[] legadoNomes = { "SecondRow", "BottomHud", "BannerWave", "TopHudBar" };
+        foreach (var nome in legadoNomes)
+        {
+            var legado = hudTr.Find(nome);
+            if (legado != null)
+            {
+                Undo.DestroyObjectImmediate(legado.gameObject);
+                log.AppendLine($"  Removido legado: {nome}");
+            }
+        }
 
         var hud   = Object.FindFirstObjectByType<HUDComplete>(FindObjectsInactive.Include);
         if (hud == null)
