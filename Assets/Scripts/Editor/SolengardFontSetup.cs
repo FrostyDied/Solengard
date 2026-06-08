@@ -6,7 +6,7 @@ using System.IO;
 public static class SolengardFontSetup
 {
     const string FONT_PATH = "Assets/Art/Fonts/Straight pixel gothic.otf";
-    const string TMP_FONT_PATH = "Assets/Art/Fonts/StraightPixelGothic_TMP.asset";
+    const string TMP_FONT_PATH = "Assets/Art/Fonts/StraightPixelGothic_TMP_v2.asset";
 
     [MenuItem("Solengard/Setup/Criar TMP Font Asset (Fonte Gótica)")]
     static void CreateTMPFontAsset()
