@@ -478,12 +478,12 @@ public static class SolengardLayoutSetup
         // TopBar (âncora topo, h=110)
         {
             var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
-            if(isNew){ AnchorTopBar(RT(go),90f); EnsureImage(go,Hex("#00000060")); log.AppendLine("  TopBar"); total++; }
+            if(isNew){ AnchorTopBar(RT(go),90f); EnsureImage(go,Hex("#E6120A0A")); log.AppendLine("  TopBar"); total++; }
             var tr=go.transform;
 
             var (slGO,slN)=FindOrCreateUI(tr,"HealthSlider");
             RectTransform fillVidaRT = null;
-            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(16,-8),new(320,36)); EnsureImage(slGO, new Color(0.1f,0.1f,0.1f,0.8f)); fillVidaRT = BuildBar(slGO, new Color(0.08f,0.08f,0.08f,1f), new Color(0.15f,0.85f,0.2f,1f)); log.AppendLine("  HealthSlider"); total++; }
+            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(16,-8),new(300,28)); EnsureImage(slGO, new Color(0.05f,0.03f,0.0f,1f)); fillVidaRT = BuildBar(slGO, new Color(0.55f,0.42f,0.05f,1f), new Color(0.12f,0.04f,0.04f,1f), new Color(0.85f,0.15f,0.1f,1f), new Color(1f,0.4f,0.1f,1f)); log.AppendLine("  HealthSlider"); total++; }
             else fillVidaRT = slGO.transform.Find("Fill")?.GetComponent<RectTransform>();
 
             var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
@@ -505,7 +505,7 @@ public static class SolengardLayoutSetup
 
             var (xpGO,xpN)=FindOrCreateUI(tr,"XPSlider");
             RectTransform fillXPRT = null;
-            if(xpN){ SetRect(RT(xpGO),new(0,.5f),new(1,.5f),new(.5f,.5f),new(-45,0),new(-90,14)); EnsureImage(xpGO, new Color(0.05f,0.05f,0.15f,1f)); fillXPRT = BuildBar(xpGO, new Color(0.05f,0.05f,0.15f,1f), new Color(0.2f,0.4f,1f,1f)); log.AppendLine("  XPSlider"); total++; }
+            if(xpN){ SetRect(RT(xpGO),new(0,.5f),new(1,.5f),new(.5f,.5f),new(-45,0),new(-90,12)); EnsureImage(xpGO, new Color(0.05f,0.03f,0.08f,1f)); fillXPRT = BuildBar(xpGO, new Color(0.4f,0.15f,0.6f,1f), new Color(0.06f,0.03f,0.12f,1f), new Color(0.35f,0.1f,0.9f,1f), new Color(0.6f,0.3f,1f,1f)); log.AppendLine("  XPSlider"); total++; }
             else fillXPRT = xpGO.transform.Find("Fill")?.GetComponent<RectTransform>();
 
             var (nvGO,nvN)=FindOrCreateUI(tr,"NivelText");
@@ -856,15 +856,27 @@ public static class SolengardLayoutSetup
         return EnsureTMP(lGO,text,size,color);
     }
 
-    static RectTransform BuildBar(GameObject go, Color bgColor, Color fillColor)
+    static RectTransform BuildBar(GameObject go, Color borderColor, Color bgColor, Color fillColor, Color fillColorEnd)
     {
-        // Background
+        // Outer border (1px larger, darker)
+        var border = new GameObject("Border");
+        Undo.RegisterCreatedObjectUndo(border, "Solengard Layout");
+        border.transform.SetParent(go.transform, false);
+        var borderImg = border.AddComponent<Image>();
+        borderImg.color = borderColor;
+        var borderRT = border.GetComponent<RectTransform>();
+        borderRT.anchorMin = Vector2.zero; borderRT.anchorMax = Vector2.one;
+        borderRT.offsetMin = Vector2.zero; borderRT.offsetMax = Vector2.zero;
+
+        // Background (dark inner)
         var bg = new GameObject("BG");
         Undo.RegisterCreatedObjectUndo(bg, "Solengard Layout");
         bg.transform.SetParent(go.transform, false);
         var bgImg = bg.AddComponent<Image>();
         bgImg.color = bgColor;
-        StretchFull(bg.GetComponent<RectTransform>());
+        var bgRT = bg.GetComponent<RectTransform>();
+        bgRT.anchorMin = Vector2.zero; bgRT.anchorMax = Vector2.one;
+        bgRT.offsetMin = new Vector2(2f, 2f); bgRT.offsetMax = new Vector2(-2f, -2f);
 
         // Fill
         var fill = new GameObject("Fill");
@@ -875,9 +887,21 @@ public static class SolengardLayoutSetup
         var fillRT = fill.GetComponent<RectTransform>();
         fillRT.anchorMin = new Vector2(0f, 0f);
         fillRT.anchorMax = new Vector2(1f, 1f);
-        fillRT.offsetMin = new Vector2(2f, 2f);
-        fillRT.offsetMax = new Vector2(-2f, -2f);
+        fillRT.offsetMin = new Vector2(3f, 3f);
+        fillRT.offsetMax = new Vector2(-3f, -3f);
         fillRT.pivot     = new Vector2(0f, 0.5f);
+
+        // Shine overlay (top half, lighter color for depth)
+        var shine = new GameObject("Shine");
+        Undo.RegisterCreatedObjectUndo(shine, "Solengard Layout");
+        shine.transform.SetParent(go.transform, false);
+        var shineImg = shine.AddComponent<Image>();
+        shineImg.color = new Color(1f, 1f, 1f, 0.08f);
+        var shineRT = shine.GetComponent<RectTransform>();
+        shineRT.anchorMin = new Vector2(0f, 0.5f);
+        shineRT.anchorMax = new Vector2(1f, 1f);
+        shineRT.offsetMin = new Vector2(3f, 0f);
+        shineRT.offsetMax = new Vector2(-3f, -1f);
 
         return fillRT;
     }
