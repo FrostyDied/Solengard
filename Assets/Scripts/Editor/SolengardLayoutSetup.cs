@@ -14,6 +14,10 @@ public static class SolengardLayoutSetup
     const string MAIN_MENU_SCENE = "MainMenu";
     const string GAME_SCENE      = "GameScene";
 
+    static readonly string EXPORTED_UI = "Assets/Art/UI/MobileFantasyUI/Exported/";
+    static Sprite LoadUI(string name) =>
+        AssetDatabase.LoadAssetAtPath<Sprite>(EXPORTED_UI + name);
+
     // ── Menu items ──────────────────────────────────────────────────────────────
 
     [MenuItem("Solengard/Layout MainMenu")]
@@ -420,6 +424,29 @@ public static class SolengardLayoutSetup
         }
         var hudSO = new SerializedObject(hud);
 
+        // Fundo visual do HUD
+        if (hudGO.transform.Find("HUDBackground") == null)
+        {
+            var hudBg    = new GameObject("HUDBackground");
+            Undo.RegisterCreatedObjectUndo(hudBg, "Layout GameScene");
+            hudBg.transform.SetParent(hudGO.transform, false);
+            hudBg.transform.SetAsFirstSibling();
+            var hudBgRT  = hudBg.AddComponent<RectTransform>();
+            hudBgRT.anchorMin = Vector2.zero;
+            hudBgRT.anchorMax = Vector2.one;
+            hudBgRT.offsetMin = hudBgRT.offsetMax = Vector2.zero;
+            var hudBgImg = hudBg.AddComponent<Image>();
+            var containerSprite = LoadUI("hud_container.png");
+            if (containerSprite != null)
+            {
+                hudBgImg.sprite = containerSprite;
+                hudBgImg.type   = Image.Type.Sliced;
+                hudBgImg.color  = new Color(1f, 1f, 1f, 0.9f);
+            }
+            else hudBgImg.color = new Color(0f, 0f, 0f, 0.5f);
+            log.AppendLine("  HUDBackground criado"); total++;
+        }
+
         // TopHudBar
         {
             var (go,isNew)=FindOrCreateUI(hudTr,"TopHudBar");
@@ -789,23 +816,31 @@ public static class SolengardLayoutSetup
 
     static void BuildSlider(GameObject go)
     {
-        var bg=new GameObject("Background"); Undo.RegisterCreatedObjectUndo(bg,"Solengard Layout");
-        bg.transform.SetParent(go.transform,false);
-        var bgImg=bg.AddComponent<Image>(); bgImg.color=new Color(.15f,.0f,.0f,1f);
+        var bg = new GameObject("Background"); Undo.RegisterCreatedObjectUndo(bg, "Solengard Layout");
+        bg.transform.SetParent(go.transform, false);
+        var bgImg      = bg.AddComponent<Image>();
+        var frameSprite = LoadUI("bar_frame_1.png");
+        if (frameSprite != null) { bgImg.sprite = frameSprite; bgImg.type = Image.Type.Sliced; bgImg.color = Color.white; }
+        else bgImg.color = new Color(.15f, .0f, .0f, 1f);
         StretchFull(bg.GetComponent<RectTransform>());
 
-        var fa=new GameObject("Fill Area"); Undo.RegisterCreatedObjectUndo(fa,"Solengard Layout");
-        fa.transform.SetParent(go.transform,false);
+        var fa = new GameObject("Fill Area"); Undo.RegisterCreatedObjectUndo(fa, "Solengard Layout");
+        fa.transform.SetParent(go.transform, false);
         StretchFull(fa.AddComponent<RectTransform>());
 
-        var fill=new GameObject("Fill"); Undo.RegisterCreatedObjectUndo(fill,"Solengard Layout");
-        fill.transform.SetParent(fa.transform,false);
-        var fillImg=fill.AddComponent<Image>(); fillImg.color=new Color(.8f,.1f,.1f,1f);
-        var fillRT=fill.GetComponent<RectTransform>();
-        fillRT.anchorMin=Vector2.zero; fillRT.anchorMax=Vector2.one; fillRT.offsetMin=Vector2.zero; fillRT.offsetMax=Vector2.zero;
+        var fill = new GameObject("Fill"); Undo.RegisterCreatedObjectUndo(fill, "Solengard Layout");
+        fill.transform.SetParent(fa.transform, false);
+        var fillImg    = fill.AddComponent<Image>();
+        var fillSprite = LoadUI("bar_fill_1.png");
+        if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Filled; fillImg.color = new Color(0.2f, 0.85f, 0.3f); }
+        else fillImg.color = new Color(.8f, .1f, .1f, 1f);
+        var fillRT = fill.GetComponent<RectTransform>();
+        fillRT.anchorMin = Vector2.zero; fillRT.anchorMax = Vector2.one;
+        fillRT.offsetMin = fillRT.offsetMax = Vector2.zero;
 
-        var slider=go.AddComponent<Slider>();
-        slider.fillRect=fillRT; slider.value=1f; slider.maxValue=1f; slider.direction=Slider.Direction.LeftToRight;
+        var slider = go.AddComponent<Slider>();
+        slider.fillRect = fillRT; slider.value = 1f; slider.maxValue = 1f;
+        slider.direction = Slider.Direction.LeftToRight;
     }
 
     static void TryWire(SerializedObject so, string prop, Object val, StringBuilder log)
