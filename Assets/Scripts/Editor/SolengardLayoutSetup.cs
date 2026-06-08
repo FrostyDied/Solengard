@@ -15,8 +15,18 @@ public static class SolengardLayoutSetup
     const string GAME_SCENE      = "GameScene";
 
     static readonly string EXPORTED_UI = "Assets/Art/UI/MobileFantasyUI/Exported/";
-    static Sprite LoadUI(string name) =>
-        AssetDatabase.LoadAssetAtPath<Sprite>(EXPORTED_UI + name);
+    static Sprite LoadUI(string name)
+    {
+        var path     = EXPORTED_UI + name;
+        var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer != null && importer.textureType != TextureImporterType.Sprite)
+        {
+            importer.textureType     = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+        }
+        return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+    }
 
     // ── Menu items ──────────────────────────────────────────────────────────────
 
@@ -468,7 +478,7 @@ public static class SolengardLayoutSetup
             var tr=go.transform;
 
             var (slGO,slN)=FindOrCreateUI(tr,"HealthSlider");
-            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(20,0),new(280,40)); BuildSlider(slGO); log.AppendLine("  HealthSlider"); total++; }
+            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(20,0),new(340,50)); BuildSlider(slGO); log.AppendLine("  HealthSlider"); total++; }
 
             var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
             if(tvN){ SetRect(RT(tvGO),new(0,.5f),new(0,.5f),new(0,.5f),new(310,0),new(110,38)); EnsureTMP(tvGO,"100/100",20f,Color.white); log.AppendLine("  VidaText"); total++; }
@@ -476,29 +486,29 @@ public static class SolengardLayoutSetup
             var (tiGO,tiN)=FindOrCreateUI(tr,"TimerText");
             if(tiN){ SetRect(RT(tiGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),Vector2.zero,new(150,50)); var t=EnsureTMP(tiGO,"00:00",36f,Color.white); t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Center; log.AppendLine("  TimerText"); total++; }
 
-            var (pbGO,pbN)=FindOrCreateUI(tr,"PauseButton");
-            if(pbN){ SetRect(RT(pbGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-20,0),new(60,60)); EnsureImage(pbGO,Hex("#00000060")); EnsureButton(pbGO); AddLabel(pbGO,"II",24f,Color.white); log.AppendLine("  PauseButton"); total++; }
-
             TryWire(hudSO,"barraVida",  slGO.GetComponent<Slider>(),           log);
             TryWire(hudSO,"textoVida",  tvGO.GetComponent<TextMeshProUGUI>(),  log);
             TryWire(hudSO,"textoTimer", tiGO.GetComponent<TextMeshProUGUI>(),  log);
-            TryWire(hudSO,"botaoPause", pbGO.GetComponent<Button>(),           log);
         }
 
         // XPBar (faixa fina logo abaixo do TopBar)
         {
             var (go,isNew)=FindOrCreateUI(hudTr,"XPBar");
-            if(isNew){ SetRect(RT(go),new(0,1),new(1,1),new(.5f,1),new(0,-110),new(0,20)); log.AppendLine("  XPBar"); total++; }
+            if(isNew){ SetRect(RT(go),new(0,1),new(1,1),new(.5f,1),new(0,-110),new(0,14)); log.AppendLine("  XPBar"); total++; }
             var tr=go.transform;
 
             var (xpGO,xpN)=FindOrCreateUI(tr,"XPSlider");
-            if(xpN){ SetRect(RT(xpGO),new(0,.5f),new(1,.5f),new(.5f,.5f),new(-45,0),new(-90,20)); BuildSliderXP(xpGO); log.AppendLine("  XPSlider"); total++; }
+            if(xpN){ SetRect(RT(xpGO),new(0,.5f),new(1,.5f),new(.5f,.5f),new(-45,0),new(-90,14)); BuildSliderXP(xpGO); log.AppendLine("  XPSlider"); total++; }
 
             var (nvGO,nvN)=FindOrCreateUI(tr,"NivelText");
-            if(nvN){ SetRect(RT(nvGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-5,0),new(80,20)); EnsureTMP(nvGO,"Nv.1",15f,Hex("#AAAAFF")); log.AppendLine("  NivelText"); total++; }
+            if(nvN){ SetRect(RT(nvGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-5,0),new(80,14)); EnsureTMP(nvGO,"Nv.1",15f,Hex("#AAAAFF")); log.AppendLine("  NivelText"); total++; }
+
+            var (pbGO,pbN)=FindOrCreateUI(tr,"PauseButton");
+            if(pbN){ SetRect(RT(pbGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-5,0),new(50,14)); EnsureImage(pbGO,Hex("#00000060")); EnsureButton(pbGO); AddLabel(pbGO,"II",16f,Color.white); log.AppendLine("  PauseButton"); total++; }
 
             TryWire(hudSO,"barraXP",    xpGO.GetComponent<Slider>(),           log);
             TryWire(hudSO,"textoNivel", nvGO.GetComponent<TextMeshProUGUI>(),  log);
+            TryWire(hudSO,"botaoPause", pbGO.GetComponent<Button>(),           log);
         }
 
         // PoderEspecial (bottom-right, 100×100)
