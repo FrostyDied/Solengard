@@ -435,7 +435,7 @@ public static class SolengardLayoutSetup
             hudBgRT.anchorMin       = new Vector2(0f, 1f);
             hudBgRT.anchorMax       = new Vector2(1f, 1f);
             hudBgRT.pivot           = new Vector2(0.5f, 1f);
-            hudBgRT.sizeDelta       = new Vector2(0f, 100f);
+            hudBgRT.sizeDelta       = new Vector2(0f, 110f);
             hudBgRT.anchoredPosition = Vector2.zero;
             var hudBgImg = hudBg.AddComponent<Image>();
             var containerSprite = LoadUI("hud_container.png");
@@ -449,63 +449,82 @@ public static class SolengardLayoutSetup
             log.AppendLine("  HUDBackground criado"); total++;
         }
 
-        // TopHudBar
+        // TopBar (âncora topo, h=110)
         {
-            var (go,isNew)=FindOrCreateUI(hudTr,"TopHudBar");
-            if(isNew){ AnchorTopBar(RT(go),100f); EnsureImage(go,Hex("#00000060")); log.AppendLine("  TopHudBar"); total++; }
+            var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
+            if(isNew){ AnchorTopBar(RT(go),110f); EnsureImage(go,Hex("#00000060")); log.AppendLine("  TopBar"); total++; }
             var tr=go.transform;
 
             var (slGO,slN)=FindOrCreateUI(tr,"HealthSlider");
-            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(20,-50),new(350,35)); BuildSlider(slGO); log.AppendLine("  HealthSlider"); total++; }
+            if(slN){ SetRect(RT(slGO),new(0,.5f),new(0,.5f),new(0,.5f),new(20,0),new(280,40)); BuildSlider(slGO); log.AppendLine("  HealthSlider"); total++; }
 
-            var (wtGO,wtN)=FindOrCreateUI(tr,"WaveText");
-            if(wtN){ SetRect(RT(wtGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,-50),new(400,60)); var t=EnsureTMP(wtGO,"Wave 1/5",40f,Color.white); t.fontStyle=FontStyles.Bold; log.AppendLine("  WaveText"); total++; }
+            var (tvGO,tvN)=FindOrCreateUI(tr,"VidaText");
+            if(tvN){ SetRect(RT(tvGO),new(0,.5f),new(0,.5f),new(0,.5f),new(310,0),new(110,38)); EnsureTMP(tvGO,"100/100",20f,Color.white); log.AppendLine("  VidaText"); total++; }
 
-            var (dtGO,dtN)=FindOrCreateUI(tr,"DiamondText");
-            if(dtN){ SetRect(RT(dtGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-20,-50),new(250,55)); EnsureTMP(dtGO,"0 DIA",34f,Hex("#FFD700")); log.AppendLine("  DiamondText"); total++; }
-
-            TryWire(hudSO,"barraVida",     slGO.GetComponent<Slider>(),                log);
-            TryWire(hudSO,"textoWave",     wtGO.GetComponent<TextMeshProUGUI>(),       log);
-            TryWire(hudSO,"textoDiamantes",dtGO.GetComponent<TextMeshProUGUI>(),       log);
-        }
-
-        // SecondRow
-        {
-            var (go,isNew)=FindOrCreateUI(hudTr,"SecondRow");
-            if(isNew){ SetRect(RT(go),new(0,1),new(1,1),new(.5f,1),new(0,-100),new(0,60)); log.AppendLine("  SecondRow"); total++; }
-            var tr=go.transform;
-
-            var (scGO,scN)=FindOrCreateUI(tr,"ScoreText");
-            if(scN){ SetRect(RT(scGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),Vector2.zero,new(300,50)); EnsureTMP(scGO,"0",28f,Hex("#AAAAAA")); log.AppendLine("  ScoreText"); total++; }
-
-            { var (c,n)=FindOrCreateUI(tr,"TimerText"); if(n){ SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(200,0),new(200,55)); var t=EnsureTMP(c,"60",36f,Color.white); t.fontStyle=FontStyles.Bold; log.AppendLine("  TimerText (wire manual)"); total++; } }
+            var (tiGO,tiN)=FindOrCreateUI(tr,"TimerText");
+            if(tiN){ SetRect(RT(tiGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),Vector2.zero,new(150,50)); var t=EnsureTMP(tiGO,"00:00",36f,Color.white); t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Center; log.AppendLine("  TimerText"); total++; }
 
             var (pbGO,pbN)=FindOrCreateUI(tr,"PauseButton");
-            if(pbN){ SetRect(RT(pbGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-20,0),new(70,70)); EnsureImage(pbGO,Hex("#00000060")); EnsureButton(pbGO); AddLabel(pbGO,"II",28f,Color.white); log.AppendLine("  PauseButton"); total++; }
+            if(pbN){ SetRect(RT(pbGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-20,0),new(60,60)); EnsureImage(pbGO,Hex("#00000060")); EnsureButton(pbGO); AddLabel(pbGO,"II",24f,Color.white); log.AppendLine("  PauseButton"); total++; }
 
-            TryWire(hudSO,"textoScore",scGO.GetComponent<TextMeshProUGUI>(),log);
-            TryWire(hudSO,"botaoPause",pbGO.GetComponent<Button>(),log);
+            TryWire(hudSO,"barraVida",  slGO.GetComponent<Slider>(),           log);
+            TryWire(hudSO,"textoVida",  tvGO.GetComponent<TextMeshProUGUI>(),  log);
+            TryWire(hudSO,"textoTimer", tiGO.GetComponent<TextMeshProUGUI>(),  log);
+            TryWire(hudSO,"botaoPause", pbGO.GetComponent<Button>(),           log);
         }
 
-        // BottomHud
+        // XPBar (faixa fina logo abaixo do TopBar)
         {
-            var (go,isNew)=FindOrCreateUI(hudTr,"BottomHud");
-            if(isNew){ AnchorBottomBar(RT(go),120f); EnsureImage(go,Hex("#00000060")); log.AppendLine("  BottomHud"); total++; }
+            var (go,isNew)=FindOrCreateUI(hudTr,"XPBar");
+            if(isNew){ SetRect(RT(go),new(0,1),new(1,1),new(.5f,1),new(0,-110),new(0,20)); log.AppendLine("  XPBar"); total++; }
             var tr=go.transform;
 
-            var (mpGO,mpN)=FindOrCreateUI(tr,"MissionPanel");
-            if(mpN){ SetRect(RT(mpGO),new(0,.5f),new(0,.5f),new(0,.5f),new(20,0),new(400,80)); EnsureImage(mpGO,Hex("#00000080")); log.AppendLine("  MissionPanel"); total++; }
-            var mptr=mpGO.transform;
+            var (xpGO,xpN)=FindOrCreateUI(tr,"XPSlider");
+            if(xpN){ SetRect(RT(xpGO),new(0,.5f),new(1,.5f),new(.5f,.5f),new(-45,0),new(-90,20)); BuildSliderXP(xpGO); log.AppendLine("  XPSlider"); total++; }
 
-            var (tmGO,tmN)=FindOrCreateUI(mptr,"TextoMissao");
-            if(tmN){ SetRect(RT(tmGO),new(0,1),new(1,1),new(.5f,1),Vector2.zero,new(0,42)); EnsureTMP(tmGO,"Missão ativa",24f,Color.white); log.AppendLine("  TextoMissao"); total++; }
+            var (nvGO,nvN)=FindOrCreateUI(tr,"NivelText");
+            if(nvN){ SetRect(RT(nvGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-5,0),new(80,20)); EnsureTMP(nvGO,"Nv.1",15f,Hex("#AAAAFF")); log.AppendLine("  NivelText"); total++; }
 
-            var (tpGO,tpN)=FindOrCreateUI(mptr,"TextoProgressoMissao");
-            if(tpN){ SetRect(RT(tpGO),new(0,0),new(1,0),new(.5f,0),Vector2.zero,new(0,36)); EnsureTMP(tpGO,"0/10",22f,Hex("#FFD700")); log.AppendLine("  TextoProgressoMissao"); total++; }
+            TryWire(hudSO,"barraXP",    xpGO.GetComponent<Slider>(),           log);
+            TryWire(hudSO,"textoNivel", nvGO.GetComponent<TextMeshProUGUI>(),  log);
+        }
 
-            TryWire(hudSO,"painelMissao",        mpGO,                                     log);
-            TryWire(hudSO,"textoMissao",         tmGO.GetComponent<TextMeshProUGUI>(),     log);
-            TryWire(hudSO,"textoProgressoMissao",tpGO.GetComponent<TextMeshProUGUI>(),     log);
+        // PoderEspecial (bottom-right, 100×100)
+        {
+            var (go,isNew)=FindOrCreateUI(hudTr,"PoderEspecial");
+            if(isNew)
+            {
+                var rt=RT(go);
+                rt.anchorMin=new Vector2(1,0); rt.anchorMax=new Vector2(1,0); rt.pivot=new Vector2(1,0);
+                rt.sizeDelta=new Vector2(100,100); rt.anchoredPosition=new Vector2(-20,20);
+
+                var bgImg=go.GetComponent<Image>()??go.AddComponent<Image>();
+                var slotSprite=LoadUI("slot_base.png");
+                if(slotSprite!=null){ bgImg.sprite=slotSprite; bgImg.type=Image.Type.Sliced; }
+                else bgImg.color=Hex("#00000080");
+
+                var (icoGO,_)=FindOrCreateUI(go.transform,"Icone");
+                SetRect(RT(icoGO),Vector2.zero,Vector2.one,new Vector2(.5f,.5f),Vector2.zero,new Vector2(-10,-10));
+                var icoImg=icoGO.GetComponent<Image>()??icoGO.AddComponent<Image>();
+                var swordSprite=LoadUI("action_button_sword.png");
+                if(swordSprite!=null) icoImg.sprite=swordSprite;
+                else icoImg.color=Hex("#FFFFFF80");
+
+                EnsureButton(go);
+
+                var (cdGO,_)=FindOrCreateUI(go.transform,"Cooldown");
+                SetRect(RT(cdGO),Vector2.zero,Vector2.one,new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
+                var cdTMP=EnsureTMP(cdGO,"",24f,Color.white);
+                cdTMP.alignment=TextAlignmentOptions.Center;
+                cdTMP.fontStyle=FontStyles.Bold;
+
+                log.AppendLine("  PoderEspecial"); total++;
+            }
+            TryWire(hudSO,"botaoPoderEspecial",go.GetComponent<Button>(),log);
+            var cdT=go.transform.Find("Cooldown");
+            if(cdT!=null) TryWire(hudSO,"textoCooldown",cdT.GetComponent<TextMeshProUGUI>(),log);
+            var icoT=go.transform.Find("Icone");
+            if(icoT!=null) TryWire(hudSO,"imagemPoderEspecial",icoT.GetComponent<Image>(),log);
         }
 
         // PauseCanvas (sortingOrder 25 — acima do HUD e Joystick, abaixo do GameOver)
@@ -551,28 +570,6 @@ public static class SolengardLayoutSetup
             TryWire(hudSO,"pausePanel",             pausePanelGO,                            log);
             TryWire(hudSO,"botaoRetomar",           retomarGO.GetComponent<Button>(),        log);
             TryWire(hudSO,"botaoMenuPrincipalPause",menuPauseGO.GetComponent<Button>(),      log);
-        }
-
-        // BannerWave — overlay centralizado exibido ao iniciar cada wave
-        {
-            var (bwGO, bwN) = FindOrCreateUI(hudTr, "BannerWave");
-            if (bwN)
-            {
-                SetRect(RT(bwGO), new(.5f,.5f), new(.5f,.5f), new(.5f,.5f), new(0f,200f), new(900f,100f));
-                EnsureImage(bwGO, Hex("#1E0A3C80"));
-                bwGO.SetActive(false);
-                log.AppendLine("  BannerWave"); total++;
-            }
-            var (bwtGO, bwtN) = FindOrCreateUI(bwGO.transform, "TextoBannerWave");
-            if (bwtN)
-            {
-                StretchFull(RT(bwtGO));
-                var t = EnsureTMP(bwtGO, "WAVE 1", 48f, Hex("#C8A0FF"));
-                t.fontStyle = FontStyles.Bold;
-                log.AppendLine("  BannerWave/TextoBannerWave"); total++;
-            }
-            TryWire(hudSO, "bannerWave",      bwGO,                                          log);
-            TryWire(hudSO, "textoBannerWave", bwtGO.GetComponent<TextMeshProUGUI>(),         log);
         }
 
         hudSO.ApplyModifiedProperties();
@@ -843,6 +840,36 @@ public static class SolengardLayoutSetup
         var slider = go.AddComponent<Slider>();
         slider.fillRect = fillRT; slider.value = 1f; slider.maxValue = 1f;
         slider.direction = Slider.Direction.LeftToRight;
+    }
+
+    static void BuildSliderXP(GameObject go)
+    {
+        var bg = new GameObject("Background"); Undo.RegisterCreatedObjectUndo(bg, "Solengard Layout");
+        bg.transform.SetParent(go.transform, false);
+        var bgImg       = bg.AddComponent<Image>();
+        var frameSprite = LoadUI("bar_frame_2.png");
+        if (frameSprite != null) { bgImg.sprite = frameSprite; bgImg.type = Image.Type.Sliced; bgImg.color = Color.white; }
+        else bgImg.color = new Color(.05f, .05f, .2f, 1f);
+        StretchFull(bg.GetComponent<RectTransform>());
+
+        var fa = new GameObject("Fill Area"); Undo.RegisterCreatedObjectUndo(fa, "Solengard Layout");
+        fa.transform.SetParent(go.transform, false);
+        StretchFull(fa.AddComponent<RectTransform>());
+
+        var fill = new GameObject("Fill"); Undo.RegisterCreatedObjectUndo(fill, "Solengard Layout");
+        fill.transform.SetParent(fa.transform, false);
+        var fillImg    = fill.AddComponent<Image>();
+        var fillSprite = LoadUI("bar_fill_2.png");
+        if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Filled; fillImg.color = new Color(0.3f, 0.5f, 1.0f); }
+        else fillImg.color = new Color(.2f, .4f, .9f, 1f);
+        var fillRT = fill.GetComponent<RectTransform>();
+        fillRT.anchorMin = Vector2.zero; fillRT.anchorMax = Vector2.one;
+        fillRT.offsetMin = fillRT.offsetMax = Vector2.zero;
+
+        var slider = go.AddComponent<Slider>();
+        slider.fillRect = fillRT; slider.value = 0f; slider.maxValue = 1f;
+        slider.direction = Slider.Direction.LeftToRight;
+        slider.interactable = false;
     }
 
     static void TryWire(SerializedObject so, string prop, Object val, StringBuilder log)

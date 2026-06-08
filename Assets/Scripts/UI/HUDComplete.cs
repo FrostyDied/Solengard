@@ -1,171 +1,123 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
-// HUD completa do gameplay. Substitui ou complementa o HUDManager básico.
-// Attach em um GameObject "HUDComplete" na cena de jogo.
+// HUD de gameplay. Attach no "HUD Canvas" gerado pelo SolengardLayoutSetup.
 public class HUDComplete : MonoBehaviour
 {
     [Header("Vida")]
-    public Slider              barraVida;
-    public TextMeshProUGUI     textoVida;
+    public Slider          barraVida;
+    public TextMeshProUGUI textoVida;
 
-    [Header("Wave")]
-    public TextMeshProUGUI     textoWave;
-    public GameObject          bannerWave;
-    public TextMeshProUGUI     textoBannerWave;
-
-    [Header("Diamantes e Score")]
-    public TextMeshProUGUI     textoDiamantes;
-    public TextMeshProUGUI     textoScore;
-
-    [Header("Missão ativa")]
-    public GameObject          painelMissao;
-    public TextMeshProUGUI     textoMissao;
-    public TextMeshProUGUI     textoProgressoMissao;
+    [Header("XP / Nível")]
+    public Slider          barraXP;
+    public TextMeshProUGUI textoNivel;
 
     [Header("Timer")]
-    public TextMeshProUGUI     textoTimer;
+    public TextMeshProUGUI textoTimer;
 
-    [Header("Botão Pause")]
-    public Button              botaoPause;
+    [Header("Poder Especial")]
+    public Button          botaoPoderEspecial;
+    public TextMeshProUGUI textoCooldown;
+    public Image           imagemPoderEspecial;
 
-    [Header("Painel de Pausa")]
+    [Header("Pause")]
+    public Button          botaoPause;
     [SerializeField] GameObject pausePanel;
     [SerializeField] Button     botaoRetomar;
     [SerializeField] Button     botaoMenuPrincipalPause;
 
-    int ultimaWaveExibida = -1;
-    ScoreSystem scoreSystem;
-
     void OnEnable()
     {
-        PlayerHealth.OnHealthChanged          += AtualizarVida;
-        DiamondSystem.OnDiamondsChanged       += AtualizarDiamantes;
-        GameManager.OnGameStateChanged        += AoMudarEstado;
-        DailyMissionSystem.OnMissionCompleted += AoCompletarMissao;
-        WaveTimerSystem.OnTimerTick           += AtualizarTimer;
+        PlayerHealth.OnHealthChanged += AtualizarVida;
+        XPSystem.OnLevelUp           += AtualizarNivel;
+        WaveTimerSystem.OnTimerTick  += AtualizarTimer;
     }
 
     void OnDisable()
     {
-        PlayerHealth.OnHealthChanged          -= AtualizarVida;
-        DiamondSystem.OnDiamondsChanged       -= AtualizarDiamantes;
-        GameManager.OnGameStateChanged        -= AoMudarEstado;
-        DailyMissionSystem.OnMissionCompleted -= AoCompletarMissao;
-        WaveTimerSystem.OnTimerTick           -= AtualizarTimer;
+        PlayerHealth.OnHealthChanged -= AtualizarVida;
+        XPSystem.OnLevelUp           -= AtualizarNivel;
+        WaveTimerSystem.OnTimerTick  -= AtualizarTimer;
     }
 
     void Start()
     {
-        botaoPause?.onClick.AddListener(PausarJogo);
-        botaoRetomar?.onClick.AddListener(RetormarJogo);
-        botaoMenuPrincipalPause?.onClick.AddListener(IrParaMenuPrincipal);
-        bannerWave?.SetActive(false);
-        painelMissao?.SetActive(false);
+        botaoPause?.onClick.AddListener(TogglePause);
+        botaoRetomar?.onClick.AddListener(TogglePause);
+        botaoMenuPrincipalPause?.onClick.AddListener(IrParaMenu);
         pausePanel?.SetActive(false);
+        botaoPoderEspecial?.onClick.AddListener(UsarPoderEspecial);
 
-        scoreSystem = FindFirstObjectByType<ScoreSystem>();
-        AtualizarDiamantes(DiamondSystem.Instance?.GetBalance() ?? 0);
+        var xp = XPSystem.Instance;
+        if (xp != null) AtualizarNivel(xp.CurrentLevel);
     }
 
     void Update()
     {
-        AtualizarWaveSeMudou();
-        AtualizarScore();
+        if (barraXP == null) return;
+        var xp = XPSystem.Instance;
+        if (xp != null) barraXP.value = xp.XPProgress;
     }
 
-    // ── Handlers de eventos ──────────────────────────────────────────────────────
-
-    void AtualizarVida(float atual, float maxima)
+    void AtualizarVida(float atual, float max)
     {
-        if (barraVida != null) barraVida.value = atual / maxima;
-        if (textoVida != null) textoVida.text  = $"{Mathf.CeilToInt(atual)}/{Mathf.CeilToInt(maxima)}";
+        if (barraVida != null) barraVida.value = max > 0f ? atual / max : 0f;
+        if (textoVida != null) textoVida.text  = $"{Mathf.CeilToInt(atual)}/{Mathf.CeilToInt(max)}";
     }
 
-    void AtualizarDiamantes(int saldo)
+    void AtualizarNivel(int nivel)
     {
-        if (textoDiamantes != null) textoDiamantes.text = saldo.ToString("N0");
+        if (textoNivel != null) textoNivel.text = $"Nv.{nivel}";
     }
 
-    void AtualizarTimer(float t)
+    void AtualizarTimer(float segundos)
     {
         if (textoTimer == null) return;
-        textoTimer.text  = string.Format("{0}:{1:00}", (int)t / 60, (int)t % 60);
-        textoTimer.color = t <= 10f ? Color.red : Color.white;
+        int min = Mathf.FloorToInt(segundos / 60f);
+        int seg = Mathf.FloorToInt(segundos % 60f);
+        textoTimer.text  = $"{min:00}:{seg:00}";
+        textoTimer.color = segundos <= 10f ? Color.red : Color.white;
     }
 
-    void AoMudarEstado(GameState estado)
+    void TogglePause()
     {
-        if (estado == GameState.Playing)  { ultimaWaveExibida = -1; pausePanel?.SetActive(false); }
-        if (estado == GameState.GameOver) pausePanel?.SetActive(false);
+        if (pausePanel == null) return;
+        bool pausado = !pausePanel.activeSelf;
+        pausePanel.SetActive(pausado);
+        Time.timeScale = pausado ? 0f : 1f;
     }
 
-    void AoCompletarMissao(DailyMission missao)
-    {
-        if (textoMissao != null)    textoMissao.text = $"Missão completa: {missao.descricao}";
-        painelMissao?.SetActive(true);
-        StartCoroutine(OcultarMissaoApos(3f));
-    }
-
-    // ── Atualização por polling ──────────────────────────────────────────────────
-
-    void AtualizarWaveSeMudou()
-    {
-        var zm = ZoneManager.Instance;
-        if (zm == null) return;
-        int zona = zm.CurrentZone + 1;
-        if (zona == ultimaWaveExibida) return;
-
-        ultimaWaveExibida = zona;
-        if (textoWave != null) textoWave.text = $"Zona {zona}/5";
-        ShowWaveStartBanner(zona);
-    }
-
-    void AtualizarScore()
-    {
-        if (scoreSystem != null && textoScore != null)
-            textoScore.text = scoreSystem.ScoreAtual.ToString("N0");
-    }
-
-    // ── Banner de início de wave ─────────────────────────────────────────────────
-
-    public void ShowWaveStartBanner(int numeroDaWave)
-    {
-        if (bannerWave == null) return;
-        if (textoBannerWave != null) textoBannerWave.text = $"WAVE {numeroDaWave}";
-        StartCoroutine(AnimarBanner());
-    }
-
-    IEnumerator AnimarBanner()
-    {
-        bannerWave.SetActive(true);
-        yield return new WaitForSeconds(2f);
-        bannerWave.SetActive(false);
-    }
-
-    IEnumerator OcultarMissaoApos(float segundos)
-    {
-        yield return new WaitForSeconds(segundos);
-        painelMissao?.SetActive(false);
-    }
-
-    void PausarJogo()
-    {
-        GameManager.Instance?.PauseGame();
-        pausePanel?.SetActive(true);
-    }
-
-    void RetormarJogo()
-    {
-        GameManager.Instance?.ResumeGame();
-        pausePanel?.SetActive(false);
-    }
-
-    void IrParaMenuPrincipal()
+    void IrParaMenu()
     {
         Time.timeScale = 1f;
         UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+    }
+
+    bool _poderEmCooldown = false;
+
+    void UsarPoderEspecial()
+    {
+        if (_poderEmCooldown) return;
+        Debug.Log("[HUD] Poder especial ativado");
+        StartCoroutine(CooldownPoder(30f));
+    }
+
+    IEnumerator CooldownPoder(float duracao)
+    {
+        _poderEmCooldown = true;
+        if (botaoPoderEspecial != null) botaoPoderEspecial.interactable = false;
+        float restante = duracao;
+        while (restante > 0f)
+        {
+            if (textoCooldown != null)
+                textoCooldown.text = Mathf.CeilToInt(restante) + "s";
+            restante -= Time.deltaTime;
+            yield return null;
+        }
+        _poderEmCooldown = false;
+        if (botaoPoderEspecial != null) botaoPoderEspecial.interactable = true;
+        if (textoCooldown != null) textoCooldown.text = "";
     }
 }
