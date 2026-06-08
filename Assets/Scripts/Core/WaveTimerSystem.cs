@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class WaveTimerSystem : MonoBehaviour
 {
+    public static WaveTimerSystem Instance { get; private set; }
+
     public static event System.Action           OnWaveTimerExpired;
     public static event System.Action<float>    OnTimerTick;
 
@@ -12,6 +14,12 @@ public class WaveTimerSystem : MonoBehaviour
     float    timeRemaining;
     bool     isRunning;
     Coroutine timerCoroutine;
+
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
 
     void OnEnable()  => ZoneManager.OnZoneCompleted += OnWaveCompleted;
     void OnDisable() => ZoneManager.OnZoneCompleted -= OnWaveCompleted;

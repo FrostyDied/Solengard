@@ -153,6 +153,7 @@ public class ZoneManager : MonoBehaviour
             BiomeSystem.Instance?.SetBiome(zone.biome);
             WorldChunkManager.Instance?.SetBiome(CurrentZone);
             OnZoneStarted?.Invoke(CurrentZone);
+            WaveTimerSystem.Instance?.StartTimer();
             Debug.Log($"[Zone] Iniciando zona {CurrentZone + 1}: {zone.nome}");
 
             EnemyBase.GlobalHPMult     = zone.hpMultiplier;
@@ -201,6 +202,7 @@ public class ZoneManager : MonoBehaviour
             }
 
             ClearEnemies();
+            WaveTimerSystem.Instance?.StopTimer();
             OnZoneCompleted?.Invoke(CurrentZone);
 
             var ph = PlayerController.Instance?.GetComponent<PlayerHealth>();
@@ -314,6 +316,7 @@ public class ZoneManager : MonoBehaviour
 
         BossActive        = true;
         BossTimeRemaining = zone.bossTimeLimit;
+        WaveTimerSystem.Instance?.StopTimer();
 
         yield return new WaitForSeconds(2f);
 
