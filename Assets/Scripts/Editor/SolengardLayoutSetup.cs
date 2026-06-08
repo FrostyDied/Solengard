@@ -864,7 +864,11 @@ public static class SolengardLayoutSetup
 
         var fa = new GameObject("Fill Area"); Undo.RegisterCreatedObjectUndo(fa, "Solengard Layout");
         fa.transform.SetParent(go.transform, false);
-        StretchFull(fa.AddComponent<RectTransform>());
+        var faRT = fa.AddComponent<RectTransform>();
+        faRT.anchorMin = new Vector2(0f, 0f);
+        faRT.anchorMax = new Vector2(1f, 1f);
+        faRT.offsetMin = new Vector2(5f, 0f);
+        faRT.offsetMax = new Vector2(-5f, 0f);
 
         var fill = new GameObject("Fill"); Undo.RegisterCreatedObjectUndo(fill, "Solengard Layout");
         fill.transform.SetParent(fa.transform, false);
@@ -873,8 +877,11 @@ public static class SolengardLayoutSetup
         if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Simple; fillImg.color = new Color(0.2f, 0.85f, 0.3f); }
         else fillImg.color = new Color(.8f, .1f, .1f, 1f);
         var fillRT = fill.GetComponent<RectTransform>();
-        fillRT.anchorMin = Vector2.zero; fillRT.anchorMax = Vector2.one;
-        fillRT.offsetMin = fillRT.offsetMax = Vector2.zero;
+        fillRT.anchorMin = new Vector2(0f, 0f);
+        fillRT.anchorMax = new Vector2(1f, 1f);
+        fillRT.offsetMin = Vector2.zero;
+        fillRT.offsetMax = Vector2.zero;
+        fillRT.pivot = new Vector2(0f, 0.5f);
 
         var slider = go.AddComponent<Slider>();
         slider.fillRect = fillRT; slider.value = 1f; slider.maxValue = 1f;
@@ -893,7 +900,11 @@ public static class SolengardLayoutSetup
 
         var fa = new GameObject("Fill Area"); Undo.RegisterCreatedObjectUndo(fa, "Solengard Layout");
         fa.transform.SetParent(go.transform, false);
-        StretchFull(fa.AddComponent<RectTransform>());
+        var faRT = fa.AddComponent<RectTransform>();
+        faRT.anchorMin = new Vector2(0f, 0f);
+        faRT.anchorMax = new Vector2(1f, 1f);
+        faRT.offsetMin = new Vector2(5f, 0f);
+        faRT.offsetMax = new Vector2(-5f, 0f);
 
         var fill = new GameObject("Fill"); Undo.RegisterCreatedObjectUndo(fill, "Solengard Layout");
         fill.transform.SetParent(fa.transform, false);
@@ -902,8 +913,11 @@ public static class SolengardLayoutSetup
         if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Simple; fillImg.color = new Color(0.3f, 0.5f, 1.0f); }
         else fillImg.color = new Color(.2f, .4f, .9f, 1f);
         var fillRT = fill.GetComponent<RectTransform>();
-        fillRT.anchorMin = Vector2.zero; fillRT.anchorMax = Vector2.one;
-        fillRT.offsetMin = fillRT.offsetMax = Vector2.zero;
+        fillRT.anchorMin = new Vector2(0f, 0f);
+        fillRT.anchorMax = new Vector2(1f, 1f);
+        fillRT.offsetMin = Vector2.zero;
+        fillRT.offsetMax = Vector2.zero;
+        fillRT.pivot = new Vector2(0f, 0.5f);
 
         var slider = go.AddComponent<Slider>();
         slider.fillRect = fillRT; slider.value = 0f; slider.maxValue = 1f;
