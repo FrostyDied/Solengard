@@ -478,7 +478,7 @@ public static class SolengardLayoutSetup
         // TopBar — layout RPG portrait
         {
         var (go,isNew)=FindOrCreateUI(hudTr,"TopBar");
-        if(isNew){ AnchorTopBar(RT(go),120f); EnsureImage(go,Hex("#00000000")); log.AppendLine("  TopBar"); total++; }
+        if(isNew){ AnchorTopBar(RT(go),120f); EnsureImage(go,new Color(0,0,0,0)); log.AppendLine("  TopBar"); total++; }
         var tr=go.transform;
 
         // Avatar 96x96
@@ -504,14 +504,14 @@ public static class SolengardLayoutSetup
             log.AppendLine("  Avatar"); total++;
         }
 
-        // 4 Boost slots 28x28 horizontais acima das barras
-        for(int i=0;i<4;i++){
+        // 5 Boost slots 28x28 horizontais acima das barras
+        for(int i=0;i<5;i++){
             var (bsGO,bsN)=FindOrCreateUI(tr,$"BoostSlot{i}");
             if(bsN){
                 var bRT=RT(bsGO);
                 bRT.anchorMin=new Vector2(0f,1f); bRT.anchorMax=new Vector2(0f,1f);
                 bRT.pivot=new Vector2(0f,1f);
-                bRT.anchoredPosition=new Vector2(112f+(i*32f),-30f);
+                bRT.anchoredPosition=new Vector2(148f+(i*32f),-30f);
                 bRT.sizeDelta=new Vector2(28f,28f);
                 var bImg=bsGO.GetComponent<Image>()??bsGO.AddComponent<Image>(); bImg.color=Hex("#5A4010");
                 var (bInner,_)=FindOrCreateUI(bsGO.transform,"Inner");
@@ -528,8 +528,8 @@ public static class SolengardLayoutSetup
 
         // 3 Barras fixas
         float[] bWidths ={300f,340f,260f};
-        float[] bHeights={14f,16f,11f};
-        float[] bYpos   ={-66f,-86f,-103f};
+        float[] bHeights={12f,12f,12f};
+        float[] bYpos   ={-64f,-80f,-96f};
         Color[] bBorders={Hex("#8B6914"),Hex("#3A1A6A"),Hex("#1A5A1A")};
         Color[] bBGs    ={new Color(.12f,.04f,.04f,1f),new Color(.06f,.03f,.12f,1f),new Color(.03f,.12f,.03f,1f)};
         Color[] bFills  ={new Color(.85f,.15f,.1f,1f),new Color(.2f,.35f,.95f,1f),new Color(.1f,.8f,.2f,1f)};
@@ -601,8 +601,8 @@ public static class SolengardLayoutSetup
 
         var hudComp=hudGO.GetComponent<HUDComplete>();
         if(hudComp!=null){
-            var boostImgs=new UnityEngine.UI.Image[4];
-            for(int i=0;i<4;i++){
+            var boostImgs=new UnityEngine.UI.Image[5];
+            for(int i=0;i<5;i++){
                 var slot=tr.Find($"BoostSlot{i}/Icon");
                 if(slot!=null) boostImgs[i]=slot.GetComponent<UnityEngine.UI.Image>();
             }
@@ -970,6 +970,26 @@ public static class SolengardLayoutSetup
         fillRT.offsetMin = new Vector2(3f, 3f);
         fillRT.offsetMax = new Vector2(-3f, -3f);
         fillRT.pivot     = new Vector2(0f, 0.5f);
+
+        // Left cap shadow
+        var capL = new GameObject("CapL");
+        Undo.RegisterCreatedObjectUndo(capL, "Solengard Layout");
+        capL.transform.SetParent(go.transform, false);
+        var capLImg = capL.AddComponent<Image>();
+        capLImg.color = new Color(0f,0f,0f,0.4f);
+        var capLRT = capL.GetComponent<RectTransform>();
+        capLRT.anchorMin = new Vector2(0f,0f); capLRT.anchorMax = new Vector2(0f,1f);
+        capLRT.offsetMin = new Vector2(2f,2f); capLRT.offsetMax = new Vector2(8f,-2f);
+
+        // Right cap shadow
+        var capR = new GameObject("CapR");
+        Undo.RegisterCreatedObjectUndo(capR, "Solengard Layout");
+        capR.transform.SetParent(go.transform, false);
+        var capRImg = capR.AddComponent<Image>();
+        capRImg.color = new Color(0f,0f,0f,0.4f);
+        var capRRT = capR.GetComponent<RectTransform>();
+        capRRT.anchorMin = new Vector2(1f,0f); capRRT.anchorMax = new Vector2(1f,1f);
+        capRRT.offsetMin = new Vector2(-8f,2f); capRRT.offsetMax = new Vector2(-2f,-2f);
 
         return fillRT;
     }

@@ -9,7 +9,7 @@ public class HUDComplete : MonoBehaviour
     public Image           avatarImagem;
 
     [Header("Boosts Ativos")]
-    public Image[]         boostSlots = new Image[4];
+    public Image[]         boostSlots = new Image[5];
 
     [Header("Poder Especial Bar")]
     public RectTransform   fillPoder;
