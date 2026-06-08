@@ -9,7 +9,7 @@ public class WaveTimerSystem : MonoBehaviour
     public static event System.Action<float>    OnTimerTick;
 
     [Header("Configuração")]
-    [SerializeField] float waveDuration = 600f;
+    float waveDuration = 600f;
 
     float    timeRemaining;
     bool     isRunning;

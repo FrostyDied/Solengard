@@ -870,7 +870,7 @@ public static class SolengardLayoutSetup
         fill.transform.SetParent(fa.transform, false);
         var fillImg    = fill.AddComponent<Image>();
         var fillSprite = LoadUI("bar_fill_1.png");
-        if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Filled; fillImg.color = new Color(0.2f, 0.85f, 0.3f); }
+        if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Simple; fillImg.color = new Color(0.2f, 0.85f, 0.3f); }
         else fillImg.color = new Color(.8f, .1f, .1f, 1f);
         var fillRT = fill.GetComponent<RectTransform>();
         fillRT.anchorMin = Vector2.zero; fillRT.anchorMax = Vector2.one;
@@ -899,7 +899,7 @@ public static class SolengardLayoutSetup
         fill.transform.SetParent(fa.transform, false);
         var fillImg    = fill.AddComponent<Image>();
         var fillSprite = LoadUI("bar_fill_2.png");
-        if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Filled; fillImg.color = new Color(0.3f, 0.5f, 1.0f); }
+        if (fillSprite != null) { fillImg.sprite = fillSprite; fillImg.type = Image.Type.Simple; fillImg.color = new Color(0.3f, 0.5f, 1.0f); }
         else fillImg.color = new Color(.2f, .4f, .9f, 1f);
         var fillRT = fill.GetComponent<RectTransform>();
         fillRT.anchorMin = Vector2.zero; fillRT.anchorMax = Vector2.one;
