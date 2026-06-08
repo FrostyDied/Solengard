@@ -410,10 +410,14 @@ public static class SolengardLayoutSetup
 
         // HUD Canvas
         var hudGO = GameObject.Find("HUD Canvas");
-        if (hudGO == null)
+        if (hudGO != null)
         {
-            hudGO = new GameObject("HUD Canvas");
-            Undo.RegisterCreatedObjectUndo(hudGO, "Layout GameScene");
+            Undo.DestroyObjectImmediate(hudGO);
+            log.AppendLine("  HUD Canvas antigo destruído");
+        }
+        hudGO = new GameObject("HUD Canvas");
+        Undo.RegisterCreatedObjectUndo(hudGO, "Layout GameScene");
+        {
             var c = hudGO.AddComponent<Canvas>();
             c.renderMode   = RenderMode.ScreenSpaceOverlay;
             c.sortingOrder = 10;
@@ -421,9 +425,9 @@ public static class SolengardLayoutSetup
             s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             s.referenceResolution = new Vector2(1920f, 1080f);
             s.matchWidthOrHeight  = 0.5f;
-            log.AppendLine("  HUD Canvas criado"); total++;
         }
-        if (hudGO.GetComponent<GraphicRaycaster>() == null) { hudGO.AddComponent<GraphicRaycaster>(); log.AppendLine("  HUD Canvas: GraphicRaycaster adicionado"); total++; }
+        hudGO.AddComponent<GraphicRaycaster>();
+        log.AppendLine("  HUD Canvas criado"); total++;
         var hudTr = hudGO.transform;
 
         // Limpar filhos legados de versões anteriores do Layout Setup
@@ -552,20 +556,24 @@ public static class SolengardLayoutSetup
         // PauseCanvas (sortingOrder 25 — acima do HUD e Joystick, abaixo do GameOver)
         {
             var pcGO = GameObject.Find("PauseCanvas");
-            if (pcGO == null)
+            if (pcGO != null)
             {
-                pcGO = new GameObject("PauseCanvas");
-                Undo.RegisterCreatedObjectUndo(pcGO, "Layout GameScene");
+                Undo.DestroyObjectImmediate(pcGO);
+                log.AppendLine("  PauseCanvas antigo destruído");
+            }
+            pcGO = new GameObject("PauseCanvas");
+            Undo.RegisterCreatedObjectUndo(pcGO, "Layout GameScene");
+            {
                 var c = pcGO.AddComponent<Canvas>();
                 c.renderMode   = RenderMode.ScreenSpaceOverlay;
                 c.sortingOrder = 25;
                 var s = pcGO.AddComponent<CanvasScaler>();
                 s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                s.referenceResolution = new Vector2(1080f, 1920f);
+                s.referenceResolution = new Vector2(1920f, 1080f);
                 s.matchWidthOrHeight  = 0.5f;
-                log.AppendLine("  PauseCanvas criado"); total++;
             }
-            if (pcGO.GetComponent<GraphicRaycaster>() == null) { pcGO.AddComponent<GraphicRaycaster>(); log.AppendLine("  PauseCanvas: GraphicRaycaster adicionado"); total++; }
+            pcGO.AddComponent<GraphicRaycaster>();
+            log.AppendLine("  PauseCanvas criado"); total++;
             var pcTr = pcGO.transform;
 
             var (pausePanelGO,ppNew)=FindOrCreateUI(pcTr,"PausePanel");
@@ -599,20 +607,24 @@ public static class SolengardLayoutSetup
         // Joystick Canvas (sortingOrder 20, acima do HUD)
         {
             var jcGO = GameObject.Find("JoystickCanvas");
-            if (jcGO == null)
+            if (jcGO != null)
             {
-                jcGO = new GameObject("JoystickCanvas");
-                Undo.RegisterCreatedObjectUndo(jcGO, "Layout GameScene");
+                Undo.DestroyObjectImmediate(jcGO);
+                log.AppendLine("  JoystickCanvas antigo destruído");
+            }
+            jcGO = new GameObject("JoystickCanvas");
+            Undo.RegisterCreatedObjectUndo(jcGO, "Layout GameScene");
+            {
                 var c = jcGO.AddComponent<Canvas>();
                 c.renderMode   = RenderMode.ScreenSpaceOverlay;
                 c.sortingOrder = 20;
                 var s = jcGO.AddComponent<CanvasScaler>();
                 s.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                s.referenceResolution = new Vector2(1080f, 1920f);
+                s.referenceResolution = new Vector2(1920f, 1080f);
                 s.matchWidthOrHeight  = 0.5f;
-                log.AppendLine("  JoystickCanvas criado"); total++;
             }
-            if (jcGO.GetComponent<GraphicRaycaster>() == null) { jcGO.AddComponent<GraphicRaycaster>(); log.AppendLine("  JoystickCanvas: GraphicRaycaster adicionado"); total++; }
+            jcGO.AddComponent<GraphicRaycaster>();
+            log.AppendLine("  JoystickCanvas criado"); total++;
             var jcTr = jcGO.transform;
 
             var (bgGO, bgNew) = FindOrCreateUI(jcTr, "JoystickBackground");
