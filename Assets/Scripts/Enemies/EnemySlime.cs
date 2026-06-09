@@ -10,6 +10,7 @@ public class EnemySlime : EnemyBase
         moveSpeed = 1.0f;
         damage    = 4f;
         base.Awake(); // sets currentHealth = maxHealth with correct values
+        transform.localScale = new Vector3(1.6f, 1.6f, 1f);
     }
 
     protected override void OnDie()
