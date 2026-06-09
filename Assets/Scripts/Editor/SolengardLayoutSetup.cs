@@ -842,6 +842,26 @@ public static class SolengardLayoutSetup
             if(icoT!=null) TryWire(hudSO,"imagemPoderEspecial",icoT.GetComponent<Image>(),log);
         }
 
+        // CoverPanel — painel preto que cobre tudo até a Lore terminar
+        {
+            var coverGO = GameObject.Find("CoverPanel");
+            if (coverGO != null) Undo.DestroyObjectImmediate(coverGO);
+            coverGO = new GameObject("CoverPanel");
+            Undo.RegisterCreatedObjectUndo(coverGO, "Layout GameScene");
+            var c = coverGO.AddComponent<Canvas>();
+            c.renderMode   = RenderMode.ScreenSpaceOverlay;
+            c.sortingOrder = 998;
+            coverGO.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+            var coverRT = coverGO.GetComponent<RectTransform>();
+            coverRT.anchorMin = Vector2.zero;
+            coverRT.anchorMax = Vector2.one;
+            var img = coverGO.AddComponent<UnityEngine.UI.Image>();
+            img.color = Color.black;
+            img.raycastTarget = false;
+            coverGO.AddComponent<CoverPanel>();
+            log.AppendLine("  CoverPanel criado"); total++;
+        }
+
         // PauseCanvas (sortingOrder 25 — acima do HUD e Joystick, abaixo do GameOver)
         {
             var pcGO = GameObject.Find("PauseCanvas");

@@ -230,6 +230,7 @@ public class GameManager : MonoBehaviour
         System.Action afterLore = sessaoAtiva
             ? (System.Action)(() =>
               {
+                  CoverPanel.Instance?.Hide();
                   SetState(GameState.Playing);
                   StartCoroutine(FadeFromBlack(() =>
                   {
@@ -239,6 +240,7 @@ public class GameManager : MonoBehaviour
               })
             : () =>
               {
+                  CoverPanel.Instance?.Hide();
                   SetState(GameState.Playing);
                   StartCoroutine(FadeFromBlack(() =>
                   {
