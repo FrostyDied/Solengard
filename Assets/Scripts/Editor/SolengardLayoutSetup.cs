@@ -614,7 +614,7 @@ public static class SolengardLayoutSetup
                 else bgImg.color=Hex("#00000080");
 
                 var (icoGO,_)=FindOrCreateUI(go.transform,"Icone");
-                SetRect(RT(icoGO),Vector2.zero,Vector2.one,new Vector2(.5f,.5f),new Vector2(4f,4f),new Vector2(-8f,-8f));
+                SetRect(RT(icoGO),Vector2.zero,Vector2.one,new Vector2(.5f,.5f),new Vector2(8f,8f),new Vector2(-16f,-16f));
                 var icoImg=icoGO.GetComponent<Image>()??icoGO.AddComponent<Image>();
                 var swordSprite=LoadUI("action_button_sword.png");
                 if(swordSprite!=null){ icoImg.sprite=swordSprite; icoImg.preserveAspect=true; }
