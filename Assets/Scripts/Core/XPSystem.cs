@@ -41,8 +41,6 @@ public class XPSystem : MonoBehaviour
             CurrentXP -= XPToNextLevel;
             CurrentLevel++;
             Debug.Log($"[XP] Level UP! Nível {CurrentLevel}");
-            if (LevelUpsThisZone >= MaxLevelUpsPerZone) continue;
-            LevelUpsThisZone++;
             OnLevelUp?.Invoke(CurrentLevel);
         }
     }
