@@ -244,6 +244,7 @@ public class GameManager : MonoBehaviour
                   {
                       StartCoroutine(SafetyTimeScale());
                       PlayerClassManager.Instance?.ClearBoosts();
+                      PermanentUpgradeSystem.Instance?.ResetarRessurreicao();
                       proceduralArena?.InitializeRun();
                       ZoneManager.Instance?.StartZones();
                   }));

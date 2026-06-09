@@ -14,6 +14,8 @@ public class DifficultyAdaptiveSystem : MonoBehaviour
     bool modifierApplied = false;
 
     public float EnemyHealthModifier { get; private set; } = 1f;
+    public float EnemySpeedModifier  { get; private set; } = 1f;
+    public float EnemyDamageModifier { get; private set; } = 1f;
     public int   EnemyCountReduction { get; private set; } = 0;
 
     void Awake()
@@ -45,6 +47,11 @@ public class DifficultyAdaptiveSystem : MonoBehaviour
             currentWave     = 1;
             deathsThisWave  = 0;
             modifierApplied = false;
+
+            float maldicao = PermanentUpgradeSystem.Instance?.MaldicaoDifficultyBonus ?? 0f;
+            EnemyHealthModifier  = 1f + maldicao;
+            EnemySpeedModifier   = 1f + maldicao * 0.5f;
+            EnemyDamageModifier  = 1f + maldicao * 0.7f;
         }
         else if (state == GameState.GameOver || state == GameState.Victory)
         {
@@ -85,6 +92,8 @@ public class DifficultyAdaptiveSystem : MonoBehaviour
     void ResetModifiers()
     {
         EnemyHealthModifier = 1f;
+        EnemySpeedModifier  = 1f;
+        EnemyDamageModifier = 1f;
         EnemyCountReduction = 0;
     }
 }

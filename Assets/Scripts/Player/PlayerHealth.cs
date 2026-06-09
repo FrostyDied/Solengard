@@ -55,8 +55,18 @@ public class PlayerHealth : MonoBehaviour
 
     void Start()
     {
-        // Notifica a HUD com os valores iniciais assim que a cena carrega
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        StartCoroutine(RegenLoop());
+    }
+
+    IEnumerator RegenLoop()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(1f);
+            var regen = PermanentUpgradeSystem.Instance?.RecuperacaoHPS ?? 0f;
+            if (regen > 0f && !isDead) Heal(regen);
+        }
     }
 
     // ── API pública ─────────────────────────────────────────────────────────────

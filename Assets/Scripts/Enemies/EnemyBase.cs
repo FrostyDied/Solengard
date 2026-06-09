@@ -112,6 +112,15 @@ public class EnemyBase : MonoBehaviour
         currentHealth = maxHealth;
         moveSpeed    *= GlobalSpeedMult;
         damage       *= GlobalDamageMult;
+
+        var diff = DifficultyAdaptiveSystem.Instance;
+        if (diff != null)
+        {
+            maxHealth     *= diff.EnemyHealthModifier;
+            currentHealth  = maxHealth;
+            moveSpeed     *= diff.EnemySpeedModifier;
+            damage        *= diff.EnemyDamageModifier;
+        }
     }
 
     protected virtual void Update()
