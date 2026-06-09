@@ -362,7 +362,7 @@ public class PlayerClassManager : MonoBehaviour
                 {
                     float angle = (float)i / totalFlechas * Mathf.PI * 2f;
                     Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-                    bool piercing = HasBoost("flechas_perfurantes");
+                    bool isPiercing = HasBoost("flechas_perfurantes");
                     float d = dmg;
                     StartCoroutine(ProceduralVFX.ArrowStreak(
                         pc.transform, dir, 20f, range,
