@@ -126,6 +126,19 @@ public class GameManager : MonoBehaviour
         // Initial load path
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "GameScene")
             AutoStart();
+
+        StartCoroutine(CameraSafetyNet());
+    }
+
+    IEnumerator CameraSafetyNet()
+    {
+        yield return new WaitForSeconds(15f);
+        var c = Camera.main;
+        if (c != null && !c.enabled)
+        {
+            Debug.LogWarning("[GameManager] CameraSafetyNet: câmera reativada após timeout");
+            c.enabled = true;
+        }
     }
 
     void AutoStart()
@@ -189,6 +202,10 @@ public class GameManager : MonoBehaviour
 
         if (prevState != GameState.MainMenu && prevState != GameState.GameOver) return;
 
+        // Esconde o jogo até a Lore terminar — câmera reativada no afterLore
+        var mainCam = Camera.main;
+        if (mainCam != null) mainCam.enabled = false;
+
         Application.targetFrameRate  = 60;
         QualitySettings.vSyncCount   = 0;
         Screen.sleepTimeout          = SleepTimeout.NeverSleep;
@@ -230,6 +247,7 @@ public class GameManager : MonoBehaviour
         System.Action afterLore = sessaoAtiva
             ? (System.Action)(() =>
               {
+                  var c = Camera.main; if (c != null) c.enabled = true;
                   SetState(GameState.Playing);
                   StartCoroutine(FadeFromBlack(() =>
                   {
@@ -239,6 +257,7 @@ public class GameManager : MonoBehaviour
               })
             : () =>
               {
+                  var c = Camera.main; if (c != null) c.enabled = true;
                   SetState(GameState.Playing);
                   StartCoroutine(FadeFromBlack(() =>
                   {
