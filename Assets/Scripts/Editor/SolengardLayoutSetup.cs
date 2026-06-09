@@ -329,6 +329,104 @@ public static class SolengardLayoutSetup
             TryWire(mmmSO,field,go,log);
         }
 
+        // ── PainelLoja — abas + conteúdo ─────────────────────────────────────────
+        {
+            var (lojaGO,_) = FindOrCreateUI(canvasTr,"PainelLoja");
+            var lojaTr     = lojaGO.transform;
+
+            // Componente LojaController
+            if (lojaGO.GetComponent<LojaController>() == null) lojaGO.AddComponent<LojaController>();
+            var lojaSO = new UnityEditor.SerializedObject(lojaGO.GetComponent<LojaController>());
+
+            // ── Header ───────────────────────────────────────────────────────────
+            { var (c,n)=FindOrCreateUI(lojaTr,"HeaderLoja"); if(n){ SetRect(RT(c),new(0,1),new(1,1),new(.5f,1),new(0,-45),new(0,90)); EnsureImage(c,Hex("#1A0A2E")); log.AppendLine("  Loja/Header"); total++; }
+              { var (t,tn)=FindOrCreateUI(c.transform,"TituloLoja"); if(tn){ SetRect(RT(t),new(0,0),new(.7f,1),new(0,.5f),new(20,0),Vector2.zero); var tmp=EnsureTMP(t,"LOJA",44f,Color.white); tmp.fontStyle=FontStyles.Bold; total++; } }
+              var (saldoGO,sn)=FindOrCreateUI(c.transform,"TextoSaldo"); if(sn){ SetRect(RT(saldoGO),new(.7f,0),new(1,1),new(1,.5f),new(-20,0),Vector2.zero); EnsureTMP(saldoGO,"💎 0",36f,Hex("#FFD700")); total++; }
+              TryWire(lojaSO,"textoSaldo",saldoGO.GetComponent<TextMeshProUGUI>(),log); }
+
+            // ── Abas ─────────────────────────────────────────────────────────────
+            var (abasGO,an)=FindOrCreateUI(lojaTr,"AbasLoja");
+            if(an){ SetRect(RT(abasGO),new(0,1),new(1,1),new(.5f,1),new(0,-135),new(0,50)); EnsureImage(abasGO,Hex("#110820")); log.AppendLine("  Loja/Abas"); total++; }
+            var abasTr=abasGO.transform;
+
+            var (abaPersonagensGO,apn)=FindOrCreateUI(abasTr,"BtnPersonagens");
+            if(apn){ SetRect(RT(abaPersonagensGO),new(0,0),new(.33f,1),new(.165f,.5f),Vector2.zero,Vector2.zero); EnsureImage(abaPersonagensGO,Hex("#2A1060")); EnsureButton(abaPersonagensGO); AddLabel(abaPersonagensGO,"Personagens",22f,Color.white); total++; }
+
+            var (abaUpgradesGO,aun)=FindOrCreateUI(abasTr,"BtnUpgrades");
+            if(aun){ SetRect(RT(abaUpgradesGO),new(.33f,0),new(.66f,1),new(.495f,.5f),Vector2.zero,Vector2.zero); EnsureImage(abaUpgradesGO,Hex("#1A1060")); EnsureButton(abaUpgradesGO); AddLabel(abaUpgradesGO,"Upgrades",22f,Color.white); total++; }
+
+            var (abaDiamantesGO,adn)=FindOrCreateUI(abasTr,"BtnDiamantes");
+            if(adn){ SetRect(RT(abaDiamantesGO),new(.66f,0),new(1,1),new(.83f,.5f),Vector2.zero,Vector2.zero); EnsureImage(abaDiamantesGO,Hex("#0A1060")); EnsureButton(abaDiamantesGO); AddLabel(abaDiamantesGO,"Diamantes",22f,Color.white); total++; }
+
+            TryWire(lojaSO,"btnAbaPersonagens",abaPersonagensGO.GetComponent<UnityEngine.UI.Button>(),log);
+            TryWire(lojaSO,"btnAbaUpgrades",   abaUpgradesGO.GetComponent<UnityEngine.UI.Button>(),log);
+            TryWire(lojaSO,"btnAbaDiamantes",  abaDiamantesGO.GetComponent<UnityEngine.UI.Button>(),log);
+
+            // ── Aba Personagens ───────────────────────────────────────────────────
+            var (abaPersonasGO,apabn)=FindOrCreateUI(lojaTr,"AbaPersonagens");
+            if(apabn){ SetRect(RT(abaPersonasGO),new(0,0),new(1,1),new(.5f,.5f),new(0,-185),new(0,0)); EnsureImage(abaPersonasGO,Hex("#0D0D1F")); log.AppendLine("  Loja/AbaPersonagens"); total++; }
+            TryWire(lojaSO,"abaPersonagens",abaPersonasGO,log);
+
+            // Cards de personagens (5 classes compráveis)
+            var classesData = LojaController.GetClasses();
+            float cardW=280, cardH=160, startX=-560f, cardSpacingX=280f;
+            for(int i=0;i<classesData.Length;i++)
+            {
+                var (id,nome,preco)=classesData[i];
+                var (card,cn)=FindOrCreateUI(abaPersonasGO.transform,$"CardClasse_{id}");
+                if(cn)
+                {
+                    SetRect(RT(card),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),
+                        new(startX + i*cardSpacingX, 0), new(cardW,cardH));
+                    EnsureImage(card,Hex("#1E1040"));
+                    AddLabel(card,nome,28f,Color.white);
+                    // Botão comprar
+                    var (btn,bn)=FindOrCreateUI(card.transform,$"BtnComprar_{id}");
+                    if(bn){ SetRect(RT(btn),new(0,0),new(1,0),new(.5f,0),new(0,15),new(-20,50)); EnsureImage(btn,Hex("#5A1090")); EnsureButton(btn); AddLabel(btn,$"💎 {preco}",24f,Color.white); total++; }
+                    log.AppendLine($"  Loja/Card_{id}"); total++;
+                }
+            }
+
+            // ── Aba Upgrades ──────────────────────────────────────────────────────
+            var (abaUpsGO,aupn)=FindOrCreateUI(lojaTr,"AbaUpgrades");
+            if(aupn){ SetRect(RT(abaUpsGO),new(0,0),new(1,1),new(.5f,.5f),new(0,-185),new(0,0)); EnsureImage(abaUpsGO,Hex("#0D0D1F")); abaUpsGO.SetActive(false); log.AppendLine("  Loja/AbaUpgrades"); total++; }
+            TryWire(lojaSO,"abaUpgrades",abaUpsGO,log);
+
+            // ── Aba Diamantes ─────────────────────────────────────────────────────
+            var (abaDiasGO,addn)=FindOrCreateUI(lojaTr,"AbaDiamantes");
+            if(addn){ SetRect(RT(abaDiasGO),new(0,0),new(1,1),new(.5f,.5f),new(0,-185),new(0,0)); EnsureImage(abaDiasGO,Hex("#0D0D1F")); abaDiasGO.SetActive(false); log.AppendLine("  Loja/AbaDiamantes"); total++; }
+            TryWire(lojaSO,"abaDiamantes",abaDiasGO,log);
+
+            // Pacotes IAP
+            var pacotes = LojaController.GetPacotes();
+            for(int i=0;i<pacotes.Length;i++)
+            {
+                var (pid,pnome,pdias,ppreco)=pacotes[i];
+                var (card,cn)=FindOrCreateUI(abaDiasGO.transform,$"CardPacote_{i}");
+                if(cn)
+                {
+                    SetRect(RT(card),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),
+                        new(-400f + i*400f, 0), new(360,200));
+                    EnsureImage(card,Hex("#0A1E40"));
+                    AddLabel(card,$"{pnome}\n💎 {pdias}\n{ppreco}",26f,Color.white);
+                    var (btn,bn)=FindOrCreateUI(card.transform,$"BtnPacote_{i}");
+                    if(bn){ SetRect(RT(btn),new(0,0),new(1,0),new(.5f,0),new(0,15),new(-20,55)); EnsureImage(btn,Hex("#1A4A90")); EnsureButton(btn); AddLabel(btn,ppreco,26f,Color.white); total++; }
+                    log.AppendLine($"  Loja/Pacote_{i}"); total++;
+                }
+            }
+
+            // Botão assistir vídeo
+            { var (btn,bn)=FindOrCreateUI(abaDiasGO.transform,"BtnVideo");
+              if(bn){ SetRect(RT(btn),new(.5f,0),new(.5f,0),new(.5f,0),new(0,80),new(400,70)); EnsureImage(btn,Hex("#2A6030")); EnsureButton(btn); AddLabel(btn,"▶ Assistir +50 💎",28f,Color.white); log.AppendLine("  Loja/BtnVideo"); total++; } }
+
+            // Feedback
+            var (fbGO,fbn)=FindOrCreateUI(lojaTr,"TextoFeedback");
+            if(fbn){ SetRect(RT(fbGO),new(0,0),new(1,0),new(.5f,0),new(0,40),new(0,60)); EnsureTMP(fbGO,"",30f,Hex("#FFD700")); fbGO.SetActive(false); log.AppendLine("  Loja/Feedback"); total++; }
+            TryWire(lojaSO,"textoFeedback",fbGO.GetComponent<TextMeshProUGUI>(),log);
+
+            lojaSO.ApplyModifiedProperties();
+        }
+
         // PopupRecompensa
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,"PopupRecompensa");
