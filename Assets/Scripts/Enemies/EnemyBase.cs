@@ -13,9 +13,9 @@ public class EnemyBase : MonoBehaviour
     protected float contactDamage { get => damage; set => damage = value; }
 
     [Header("Movimento")]
-    public float stoppingDistance   = 0.8f;
+    public float stoppingDistance   = 0.3f;
     public float separationRadius   = 2.0f;
-    public float separationStrength = 1.5f;
+    public float separationStrength = 0.6f;
 
     [Header("Tipo")]
     [SerializeField] protected bool isHeavy = false;
@@ -149,8 +149,8 @@ public class EnemyBase : MonoBehaviour
 
         Vector2 toPlayer   = ((Vector2)playerTransform.position - rb.position).normalized;
         Vector2 separation = ComputeSeparation();
-        float   speed      = dist < stoppingDistance * 3f
-                             ? moveSpeed * (dist / (stoppingDistance * 3f))
+        float   speed      = dist < stoppingDistance * 1.5f
+                             ? moveSpeed * (dist / (stoppingDistance * 1.5f))
                              : moveSpeed;
         rb.linearVelocity  = (toPlayer + separation * separationStrength).normalized * speed;
 
