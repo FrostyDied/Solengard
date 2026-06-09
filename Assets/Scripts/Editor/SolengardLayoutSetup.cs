@@ -557,33 +557,19 @@ public static class SolengardLayoutSetup
         var (tiGO,tiN)=FindOrCreateUI(tr,"TimerText");
         if(tiN){
             var tRT=RT(tiGO);
-            tRT.anchorMin=new Vector2(1f,1f); tRT.anchorMax=new Vector2(1f,1f);
-            tRT.pivot=new Vector2(1f,1f);
-            tRT.anchoredPosition=new Vector2(-68f,-30f);
-            tRT.sizeDelta=new Vector2(120f,40f);
-            var t=EnsureTMP(tiGO,"10:00",28f,Color.white);
+            tRT.anchorMin=new Vector2(1f,0f); tRT.anchorMax=new Vector2(1f,1f);
+            tRT.pivot=new Vector2(1f,0.5f);
+            tRT.anchoredPosition=new Vector2(-12f,0f);
+            tRT.sizeDelta=new Vector2(130f,0f);
+            var t=EnsureTMP(tiGO,"10:00",30f,Color.white);
             t.fontStyle=FontStyles.Bold; t.alignment=TextAlignmentOptions.Right;
             log.AppendLine("  TimerText"); total++;
-        }
-
-        // Pause top-right
-        var (pbGO2,pbN2)=FindOrCreateUI(tr,"PauseButton");
-        if(pbN2){
-            var pRT=RT(pbGO2);
-            pRT.anchorMin=new Vector2(1f,1f); pRT.anchorMax=new Vector2(1f,1f);
-            pRT.pivot=new Vector2(1f,1f);
-            pRT.anchoredPosition=new Vector2(-8f,-8f);
-            pRT.sizeDelta=new Vector2(48f,48f);
-            EnsureImage(pbGO2,Hex("#00000080")); EnsureButton(pbGO2);
-            AddLabel(pbGO2,"II",22f,Color.white);
-            log.AppendLine("  PauseButton"); total++;
         }
 
         if(fillVidaRT!=null)  TryWire(hudSO,"fillVida",  fillVidaRT,  log);
         if(fillXPRT!=null)    TryWire(hudSO,"fillXP",    fillXPRT,    log);
         if(fillPoderRT!=null) TryWire(hudSO,"fillPoder",  fillPoderRT, log);
         TryWire(hudSO,"textoTimer", tiGO.GetComponent<TextMeshProUGUI>(),  log);
-        TryWire(hudSO,"botaoPause", pbGO2.GetComponent<Button>(),          log);
 
         var hudComp=hudGO.GetComponent<HUDComplete>();
         if(hudComp!=null){
@@ -595,6 +581,22 @@ public static class SolengardLayoutSetup
             hudComp.boostSlots=boostImgs;
             UnityEditor.EditorUtility.SetDirty(hudComp);
         }
+        }
+
+        // PauseButton — fora da TopBar, canto direito abaixo dela
+        {
+            var (pbGO,pbN)=FindOrCreateUI(hudTr,"PauseButton");
+            if(pbN){
+                var pRT=RT(pbGO);
+                pRT.anchorMin=new Vector2(1f,1f); pRT.anchorMax=new Vector2(1f,1f);
+                pRT.pivot=new Vector2(1f,1f);
+                pRT.anchoredPosition=new Vector2(-8f,-128f);
+                pRT.sizeDelta=new Vector2(48f,48f);
+                EnsureImage(pbGO,Hex("#00000080")); EnsureButton(pbGO);
+                AddLabel(pbGO,"II",22f,Color.white);
+                log.AppendLine("  PauseButton"); total++;
+            }
+            TryWire(hudSO,"botaoPause",hudTr.Find("PauseButton")?.GetComponent<Button>(),log);
         }
 
         // PoderEspecial (bottom-right, 100×100)
@@ -612,10 +614,10 @@ public static class SolengardLayoutSetup
                 else bgImg.color=Hex("#00000080");
 
                 var (icoGO,_)=FindOrCreateUI(go.transform,"Icone");
-                SetRect(RT(icoGO),Vector2.zero,Vector2.one,new Vector2(.5f,.5f),Vector2.zero,new Vector2(-10,-10));
+                SetRect(RT(icoGO),Vector2.zero,Vector2.one,new Vector2(.5f,.5f),new Vector2(4f,4f),new Vector2(-8f,-8f));
                 var icoImg=icoGO.GetComponent<Image>()??icoGO.AddComponent<Image>();
                 var swordSprite=LoadUI("action_button_sword.png");
-                if(swordSprite!=null) icoImg.sprite=swordSprite;
+                if(swordSprite!=null){ icoImg.sprite=swordSprite; icoImg.preserveAspect=true; }
                 else icoImg.color=Hex("#FFFFFF80");
 
                 EnsureButton(go);
