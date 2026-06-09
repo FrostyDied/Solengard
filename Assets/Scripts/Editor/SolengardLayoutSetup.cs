@@ -126,6 +126,10 @@ public static class SolengardLayoutSetup
             // Enforce sibling order: TopBar right after BG (index 0), before all content
             topBarGO.transform.SetSiblingIndex(1);
 
+            var topBarImg = topBarGO.GetComponent<Image>() ?? topBarGO.AddComponent<Image>();
+            var topBarSprite = LoadUI("hud_container.png");
+            if(topBarSprite != null){ topBarImg.sprite = topBarSprite; topBarImg.type = Image.Type.Sliced; topBarImg.color = Color.white; }
+
             var tr = go.transform;
 
             // Warn about legacy elements from CreateMainMenuScene that won't be auto-removed
@@ -229,7 +233,10 @@ public static class SolengardLayoutSetup
         // BotaoOferta — flush to right edge, symmetric to LeftPanel
         { var (bo,boN)=FindReparentOrCreateUI(canvasTr,canvasTr,"BotaoOferta");
           SetRect(RT(bo),new(1,.5f),new(1,.5f),new(1,.5f),new(-5,0),new(110,110));
-          if(boN){ EnsureImage(bo,Hex("#3A1A0A")); EnsureButton(bo); var lbl=AddLabel(bo,"OFERTA\nQUENTE!",22f,Hex("#FF6600")); lbl.textWrappingMode=TMPro.TextWrappingModes.NoWrap; log.AppendLine("  BotaoOferta (borda direita)"); total++; } }
+          if(boN){ EnsureImage(bo,Hex("#3A1A0A")); EnsureButton(bo); var lbl=AddLabel(bo,"OFERTA\nQUENTE!",22f,Hex("#FF6600")); lbl.textWrappingMode=TMPro.TextWrappingModes.NoWrap; log.AppendLine("  BotaoOferta (borda direita)"); total++; }
+          var ofertaImg = bo.GetComponent<Image>() ?? bo.AddComponent<Image>();
+          var ofertaSprite = LoadUI("action_button_base.png");
+          if(ofertaSprite != null){ ofertaImg.sprite = ofertaSprite; ofertaImg.type = Image.Type.Sliced; ofertaImg.color = new Color(1f,0.4f,0f,1f); } }
 
         // PlayButton
         GameObject playButtonGO;
@@ -246,6 +253,9 @@ public static class SolengardLayoutSetup
                 log.AppendLine("  PlayButton"); total++;
             }
             TryWire(mmmSO,"botaoJogar",playButtonGO.GetComponent<Button>(),log);
+            var playImg = playButtonGO.GetComponent<Image>();
+            var playSprite = LoadUI("menu_button.png");
+            if(playSprite != null){ playImg.sprite = playSprite; playImg.type = Image.Type.Sliced; playImg.color = new Color(0.6f,0.1f,1f,1f); }
         }
 
         // BottomTabs
@@ -253,24 +263,36 @@ public static class SolengardLayoutSetup
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,"BottomTabs");
             if(isNew){ AnchorBottomBar(RT(go),140f); EnsureImage(go,Hex("#0D0D1F")); log.AppendLine("  BottomTabs"); total++; }
+            var tabsBgImg = go.GetComponent<Image>() ?? go.AddComponent<Image>();
+            var tabsSprite = LoadUI("hud_separator.png");
+            if(tabsSprite != null){ tabsBgImg.sprite = tabsSprite; tabsBgImg.type = Image.Type.Sliced; tabsBgImg.color = new Color(0.05f,0.05f,0.15f,1f); }
             var hlg=go.GetComponent<HorizontalLayoutGroup>()??go.AddComponent<HorizontalLayoutGroup>();
             hlg.childAlignment=TextAnchor.MiddleCenter; hlg.childControlWidth=true; hlg.childControlHeight=true;
             hlg.childForceExpandWidth=true; hlg.childForceExpandHeight=true; hlg.spacing=0;
             var tr=go.transform;
 
+            var tabMenuSprite = LoadUI("menu_button.png");
+            Color tabNormal = new Color(0.08f,0.05f,0.15f,1f);
+            Color tabActive = new Color(0.35f,0.05f,0.6f,1f);
+
             var (lGO,lN)=FindOrCreateUI(tr,"TabLoja");    tabLojaGO=lGO;
             if(lN){ EnsureImage(lGO,Hex("#0D0D1F")); EnsureButton(lGO); AddLabel(lGO,"LOJA",24f,Color.white);    log.AppendLine("  BottomTabs/TabLoja");    total++; }
+            { var img=lGO.GetComponent<Image>()??lGO.AddComponent<Image>(); if(tabMenuSprite!=null){ img.sprite=tabMenuSprite; img.type=Image.Type.Sliced; img.color=tabNormal; } }
 
             var (mGO,mN)=FindOrCreateUI(tr,"TabMissoes"); tabMissoesGO=mGO;
             if(mN){ EnsureImage(mGO,Hex("#0D0D1F")); EnsureButton(mGO); AddLabel(mGO,"MISSÕES",24f,Color.white); log.AppendLine("  BottomTabs/TabMissoes"); total++; }
+            { var img=mGO.GetComponent<Image>()??mGO.AddComponent<Image>(); if(tabMenuSprite!=null){ img.sprite=tabMenuSprite; img.type=Image.Type.Sliced; img.color=tabNormal; } }
 
             var (tjGO,tjN)=FindOrCreateUI(tr,"TabJogar");
             if(tjN){ EnsureImage(tjGO,Hex("#5A1090")); EnsureButton(tjGO); AddLabel(tjGO,"> JOGAR",24f,Color.white); log.AppendLine("  BottomTabs/TabJogar"); total++; }
+            { var img=tjGO.GetComponent<Image>()??tjGO.AddComponent<Image>(); if(tabMenuSprite!=null){ img.sprite=tabMenuSprite; img.type=Image.Type.Sliced; img.color=tabActive; } }
 
             var (pGO,pN)=FindOrCreateUI(tr,"TabPasse");   tabPasseGO=pGO;
             if(pN){ EnsureImage(pGO,Hex("#0D0D1F")); EnsureButton(pGO); AddLabel(pGO,"PASSE",24f,Color.white);   log.AppendLine("  BottomTabs/TabPasse");   total++; }
+            { var img=pGO.GetComponent<Image>()??pGO.AddComponent<Image>(); if(tabMenuSprite!=null){ img.sprite=tabMenuSprite; img.type=Image.Type.Sliced; img.color=tabNormal; } }
 
-            { var (c,n)=FindOrCreateUI(tr,"TabConfigs"); if(n){ EnsureImage(c,Hex("#0D0D1F")); EnsureButton(c); AddLabel(c,"CONFIG",24f,Color.white); log.AppendLine("  BottomTabs/TabConfigs"); total++; } }
+            { var (c,n)=FindOrCreateUI(tr,"TabConfigs"); if(n){ EnsureImage(c,Hex("#0D0D1F")); EnsureButton(c); AddLabel(c,"CONFIG",24f,Color.white); log.AppendLine("  BottomTabs/TabConfigs"); total++; }
+              var img=c.GetComponent<Image>()??c.AddComponent<Image>(); if(tabMenuSprite!=null){ img.sprite=tabMenuSprite; img.type=Image.Type.Sliced; img.color=tabNormal; } }
 
             TryWire(mmmSO,"botaoLoja",    tabLojaGO.GetComponent<Button>(),    log);
             TryWire(mmmSO,"botaoMissoes", tabMissoesGO.GetComponent<Button>(), log);
@@ -301,6 +323,9 @@ public static class SolengardLayoutSetup
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,"PopupRecompensa");
             if(isNew){ SetRect(RT(go),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),Vector2.zero,new(700,500)); EnsureImage(go,Hex("#1E0A3C")); go.SetActive(false); log.AppendLine("  PopupRecompensa"); total++; }
+            var popupImg = go.GetComponent<Image>() ?? go.AddComponent<Image>();
+            var popupSprite = LoadUI("complete_container.png");
+            if(popupSprite != null){ popupImg.sprite = popupSprite; popupImg.type = Image.Type.Sliced; popupImg.color = Color.white; }
             var tr=go.transform;
 
             { var (c,n)=FindOrCreateUI(tr,"TituloPopup"); if(n){ SetRect(RT(c),new(0,1),new(1,1),new(.5f,1),Vector2.zero,new(0,80)); var t=EnsureTMP(c,"RECOMPENSA DIÁRIA",42f,Color.white); t.fontStyle=FontStyles.Bold; log.AppendLine("  Popup/TituloPopup"); total++; } }
