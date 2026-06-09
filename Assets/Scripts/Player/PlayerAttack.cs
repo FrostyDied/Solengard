@@ -16,6 +16,10 @@ public class PlayerAttack : MonoBehaviour
     float      _attackArc       = 270f;
     int        _projectileCount = 1;
     bool       _meleeAlt;
+    int        _arcanaChargeCount   = 0;
+    bool       _golpeLetal_pendente = false;
+    bool       _rastroVenenosoAtivo = false;
+    bool       _prevFaseSombria     = false;
 
     PlayerWeapon      weapon;
     CharacterAnimator _anim;
@@ -52,6 +56,10 @@ public class PlayerAttack : MonoBehaviour
             Attack();
             _cooldownTimer = attackCooldown;
         }
+        bool faseSombra = PlayerClassManager.Instance?.FaseSombriaAtiva ?? false;
+        if (_prevFaseSombria && !faseSombra && (PlayerClassManager.Instance?.HasBoost("golpe_letal") ?? false))
+            _golpeLetal_pendente = true;
+        _prevFaseSombria = faseSombra;
     }
 
     void Attack()
@@ -76,23 +84,29 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackGuerreiro()
     {
+        var mgr = PlayerClassManager.Instance;
         var facing = PlayerController.Instance != null
             ? PlayerController.Instance.FacingDirection : Vector2.right;
         Vector2 attackDir = _meleeAlt ? -facing : facing;
         _meleeAlt = !_meleeAlt;
 
-        // Chicote em C com ponta FIXA no player
         StartCoroutine(ProceduralVFX.WhipChain(
-            transform,          // ponta fixa no player
-            attackDir,
-            length: attackRange * 0.8f,
-            duration: 0.35f,
+            transform, attackDir,
+            length: attackRange * 0.8f, duration: 0.35f,
             color: new Color(0.6f, 0.85f, 1f)
         ));
 
-        // Dano só no inimigo mais próximo no cone — não é área
-        var target = GetNearestEnemyInCone(attackDir, 60f);
-        if (target != null) target.TakeDamage(attackDamage);
+        float dmg = attackDamage;
+        if (mgr?.HasBoost("sede_sangue") == true)
+            dmg *= 1f + (mgr.SedeSangueStacks * 0.05f);
+
+        if (mgr?.HasBoost("corrente_perfurante") == true)
+            ApplyDamageArc(attackDir, 50f, attackRange * 0.8f, dmg);
+        else
+        {
+            var target = GetNearestEnemyInCone(attackDir, 60f);
+            if (target != null) target.TakeDamage(dmg);
+        }
     }
 
     // ── Paladino (Melee180) ───────────────────────────────────────────────────────
@@ -126,21 +140,23 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackAssassino()
     {
-        // Só ataca se há inimigo DENTRO do attackRange
         EnemyBase nearestEnemy = GetNearestEnemyInCone(GetAttackDirection(), _attackArc)
-                              ?? GetNearestEnemy(attackRange); // sem multiplicador
+                              ?? GetNearestEnemy(attackRange);
+        if (nearestEnemy == null) return;
 
-        if (nearestEnemy == null) return; // sem alvo no range = não ataca
+        var mgr = PlayerClassManager.Instance;
+        float dmg = attackDamage;
+        if ((mgr?.HasBoost("golpe_letal") == true) && _golpeLetal_pendente)
+        {
+            dmg *= 5f;
+            _golpeLetal_pendente = false;
+        }
 
-        float   dmg       = attackDamage;
-        Vector2 dirToEnemy = ((Vector2)(nearestEnemy.transform.position
-                               - transform.position)).normalized;
+        Vector2 dirToEnemy = ((Vector2)(nearestEnemy.transform.position - transform.position)).normalized;
 
         StartCoroutine(ProceduralVFX.StarProjectile(
-            transform.position,
-            dirToEnemy,
-            speed: 14f,
-            range: attackRange,
+            transform.position, dirToEnemy,
+            speed: 14f, range: attackRange,
             color: new Color(0.9f, 0.1f, 0.1f),
             onHit: enemy =>
             {
@@ -150,6 +166,9 @@ public class PlayerAttack : MonoBehaviour
                     enemy.transform.position, new Color(0.9f, 0f, 0.8f)));
             }
         ));
+
+        if ((mgr?.HasBoost("rastro_venenoso") == true) && !_rastroVenenosoAtivo)
+            StartCoroutine(TrailPoison());
     }
 
     // ── Mago (RangedSingle) ───────────────────────────────────────────────────────
@@ -159,9 +178,15 @@ public class PlayerAttack : MonoBehaviour
         var targets = GetNearestEnemies(1);
         if (targets.Count == 0) return;
 
+        var mgr = PlayerClassManager.Instance;
+        _arcanaChargeCount++;
+        float dmg = attackDamage;
+        if ((mgr?.HasBoost("sobrecarga_arcana") == true) && _arcanaChargeCount % 5 == 0)
+            dmg *= 3f;
+        bool fragmentacao = mgr?.HasBoost("fragmentacao") ?? false;
+
         var target = targets[0];
         Vector2 dir = ((Vector2)(target.transform.position - transform.position)).normalized;
-        // Usar attackRange fixo — garante que projétil alcança inimigo dentro do range
         float range = attackRange;
 
         StartCoroutine(ProceduralVFX.EnergyBolt(
@@ -172,7 +197,18 @@ public class PlayerAttack : MonoBehaviour
             size: 0.2f,
             onHit: hitPos =>
             {
-                ApplyDamageAtPoint(hitPos, 0.5f);
+                ApplyDamageAtPointPublic(hitPos, 0.5f, dmg);
+                if (fragmentacao)
+                {
+                    Vector2[] cardinals = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
+                    foreach (var c in cardinals)
+                        StartCoroutine(ProceduralVFX.EnergyBolt(
+                            hitPos, c, speed: 14f, range: range * 0.5f,
+                            coreColor:  new Color(0.4f, 0.7f, 1f),
+                            trailColor: new Color(1f, 0.7f, 0.2f),
+                            size: 0.12f,
+                            onHit: h2 => ApplyDamageAtPointPublic(h2, 0.4f, dmg * 0.3f)));
+                }
             }
         ));
     }
@@ -186,14 +222,15 @@ public class PlayerAttack : MonoBehaviour
 
         var target = targets[0];
         Vector2 dir = ((Vector2)(target.transform.position - transform.position)).normalized;
+        float aoeRadius = (PlayerClassManager.Instance?.HasBoost("caveira_explosiva") == true) ? 1.2f : 0.5f;
 
         StartCoroutine(ProceduralVFX.SkullProjectile(
             transform.position, dir, 8f, attackRange,
             onHit: hitPos =>
             {
-                ApplyDamageAtPoint(hitPos, 0.5f);
+                ApplyDamageAtPointPublic(hitPos, aoeRadius, attackDamage);
                 StartCoroutine(ProceduralVFX.ExplosionRing(
-                    hitPos, new Color(0.3f, 0.9f, 0.3f), 0.8f, 0.25f));
+                    hitPos, new Color(0.3f, 0.9f, 0.3f), aoeRadius * 1.2f, 0.25f));
             }
         ));
     }
@@ -202,6 +239,10 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackCacador()
     {
+        var mgr = PlayerClassManager.Instance;
+        bool flechasPerfurantes = mgr?.HasBoost("flechas_perfurantes") ?? false;
+        float range = attackRange * ((mgr?.HasBoost("olho_aguia") == true) ? 1.4f : 1f);
+
         var targets = GetNearestEnemies(_projectileCount);
         if (targets.Count == 0)
         {
@@ -209,7 +250,7 @@ public class PlayerAttack : MonoBehaviour
                 ? PlayerController.Instance.FacingDirection : Vector2.right;
             StartCoroutine(ProceduralVFX.ArrowStreak(
                 transform, facing,
-                speed: 12f, range: attackRange,
+                speed: 12f, range: range,
                 color: new Color(0.4f, 0.9f, 1f)
             ));
             StartCoroutine(ProceduralVFX.CrescentSlash(
@@ -222,17 +263,30 @@ public class PlayerAttack : MonoBehaviour
         foreach (var target in targets)
         {
             Vector2 dirToTarget = ((Vector2)(target.transform.position - transform.position)).normalized;
-            float   dmg         = attackDamage;
+            float dmg = attackDamage;
 
             StartCoroutine(ProceduralVFX.ArrowStreak(
                 transform, dirToTarget,
-                speed: 12f, range: attackRange,
+                speed: 12f, range: range,
                 color: new Color(0.4f, 0.9f, 1f),
                 onHit: enemy =>
                 {
                     if (enemy == null) return;
                     if (enemy.isBoss) Debug.Log($"[PlayerAttack] Acertou boss {enemy.name} — {dmg:F0} dmg");
                     enemy.TakeDamage(dmg);
+                    if (flechasPerfurantes)
+                    {
+                        Vector3 pierceOrigin = enemy.transform.position + (Vector3)(dirToTarget * 0.8f);
+                        var pf = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+                        pf.SetLayerMask(enemyLayerMask);
+                        var pr = new List<Collider2D>();
+                        Physics2D.OverlapCircle(pierceOrigin, 0.5f, pf, pr);
+                        foreach (var col in pr)
+                        {
+                            var pe = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+                            if (pe != null && !pe.IsDead && pe != enemy) pe.TakeDamage(dmg * 0.7f);
+                        }
+                    }
                 }
             ));
             StartCoroutine(ProceduralVFX.CrescentSlash(
@@ -317,6 +371,24 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
+    void ApplyDamageArc(Vector2 dir, float arc, float searchRange, float damage)
+    {
+        float r = searchRange > 0f ? searchRange : attackRange;
+        var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+        filter.SetLayerMask(enemyLayerMask);
+        var results = new List<Collider2D>();
+        Physics2D.OverlapCircle(transform.position, r, filter, results);
+        var hit = new HashSet<EnemyBase>();
+        foreach (var col in results)
+        {
+            if (col == null) continue;
+            if (arc < 360f && !InArc(col.transform.position, arc, dir)) continue;
+            var enemy = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+            if (enemy == null || enemy.IsDead || !hit.Add(enemy)) continue;
+            enemy.TakeDamage(damage);
+        }
+    }
+
     void ApplyDamageAtPoint(Vector3 hitPos, float radius)
     {
         var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
@@ -342,6 +414,29 @@ public class PlayerAttack : MonoBehaviour
             var enemy = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
             enemy?.TakeDamage(damage);
         }
+    }
+
+    IEnumerator TrailPoison()
+    {
+        _rastroVenenosoAtivo = true;
+        float elapsed = 0f;
+        const float duration = 3f;
+        var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+        filter.SetLayerMask(enemyLayerMask);
+        var results = new List<Collider2D>();
+        while (elapsed < duration)
+        {
+            Physics2D.OverlapCircle(transform.position, 0.8f, filter, results);
+            foreach (var col in results)
+            {
+                var e = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+                if (e != null && !e.IsDead) e.TakeDamage(attackDamage * 0.15f);
+            }
+            results.Clear();
+            elapsed += 0.5f;
+            yield return new WaitForSeconds(0.5f);
+        }
+        _rastroVenenosoAtivo = false;
     }
 
     void DamageCollider(Collider2D col)

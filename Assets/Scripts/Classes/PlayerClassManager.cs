@@ -20,7 +20,7 @@ public class PlayerClassManager : MonoBehaviour
 
     public bool HasBoost(string boostId) => ActiveBoosts.Contains(boostId);
 
-    public void ClearBoosts() => ActiveBoosts.Clear();
+    public void ClearBoosts() { ActiveBoosts.Clear(); SedeSangueStacks = 0; }
 
     public void ActivateSpecialPower()
     {
@@ -58,12 +58,18 @@ public class PlayerClassManager : MonoBehaviour
             new Color(1f, 0.1f, 0.05f, 0.8f), 0.6f, CurrentClass.specialDuration));
 
         bool ativo = true;
-        System.Action onKill = () => { if (ativo && ph != null) ph.Heal(5f); };
+        _furiaSanguinariaAtiva = true;
+        System.Action onKill = () => {
+            if (!ativo) return;
+            if (ph != null) ph.Heal(5f);
+            if (HasBoost("sede_sangue")) SedeSangueStacks++;
+        };
         EnemyBase.OnEnemyDied += onKill;
 
         yield return new UnityEngine.WaitForSeconds(CurrentClass.specialDuration);
 
         ativo = false;
+        _furiaSanguinariaAtiva = false;
         EnemyBase.OnEnemyDied -= onKill;
         pa.attackDamage   = origDamage;
         pa.attackCooldown = origCooldown;
@@ -133,6 +139,10 @@ public class PlayerClassManager : MonoBehaviour
     }
     bool _faseSombriaAtiva = false;
     public bool FaseSombriaAtiva => _faseSombriaAtiva;
+
+    bool _furiaSanguinariaAtiva = false;
+    public bool FuriaSanguinariaAtiva => _furiaSanguinariaAtiva;
+    public int SedeSangueStacks { get; private set; } = 0;
 
     // ── NECROMANTE — Maldição em Área ─────────────────────────────────────────
     System.Collections.IEnumerator Special_MaldicaoEmArea()
@@ -376,9 +386,15 @@ public class PlayerClassManager : MonoBehaviour
 
         if (CurrentClass == null) { Debug.LogError("[ClassManager] CurrentClass é null — LoadSelectedClass falhou?"); return; }
 
+        var perm = PermanentUpgradeSystem.Instance;
+
         var health = playerGO.GetComponent<PlayerHealth>();
         if (health != null)
+        {
             health.SetMaxHealth(CurrentClass.maxHP);
+            float vidaBonus = (perm?.GetBonus(PermanentUpgradeId.VidaMaxima) ?? 1f) - 1f;
+            if (vidaBonus > 0f) health.AumentarVidaMax(health.MaxHealth * vidaBonus);
+        }
 
         var attack = playerGO.GetComponent<PlayerAttack>();
         if (attack != null)
@@ -391,11 +407,14 @@ public class PlayerClassManager : MonoBehaviour
                 CurrentClass.attackType,
                 CurrentClass.attackArc,
                 CurrentClass.projectileCount);
+            attack.attackDamage   *= perm?.GetBonus(PermanentUpgradeId.Poder)  ?? 1f;
+            attack.attackRange    *= perm?.GetBonus(PermanentUpgradeId.Area)   ?? 1f;
+            attack.attackCooldown /= perm?.GetBonus(PermanentUpgradeId.Recarga) ?? 1f;
         }
 
         var controller = playerGO.GetComponent<PlayerController>();
         if (controller != null)
-            controller.SetMoveSpeed(CurrentClass.moveSpeed);
+            controller.SetMoveSpeed(CurrentClass.moveSpeed * (perm?.GetBonus(PermanentUpgradeId.Movimento) ?? 1f));
 
         playerGO.transform.localScale = Vector3.one * CurrentClass.worldScale;
 
