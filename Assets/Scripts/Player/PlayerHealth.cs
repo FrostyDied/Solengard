@@ -30,6 +30,7 @@ public class PlayerHealth : MonoBehaviour
     bool      isInvincible = false;
     bool      isDead = false;
     Coroutine iFrameCoroutine;
+    bool      _adrenalineActive = false;
 
     // ── Propriedades de leitura ─────────────────────────────────────────────────
 
@@ -64,8 +65,10 @@ public class PlayerHealth : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(1f);
-            var regen = PermanentUpgradeSystem.Instance?.RecuperacaoHPS ?? 0f;
-            if (regen > 0f && !isDead) Heal(regen);
+            if (isDead) continue;
+            float regen = PermanentUpgradeSystem.Instance?.RecuperacaoHPS ?? 0f;
+            if (PlayerClassManager.Instance?.HasBoost("aura_curadora") == true) regen += 2f;
+            if (regen > 0f) Heal(regen);
         }
     }
 
@@ -76,7 +79,10 @@ public class PlayerHealth : MonoBehaviour
     {
         if (Time.timeScale == 0f || isInvincible || isDead) return;
 
-        Debug.Log($"[PlayerHealth] TakeDamage({amount}) — HP: {currentHealth:F0}/{maxHealth:F0}");
+        if (PlayerClassManager.Instance?.HasBoost("pele_ferro") == true && currentHealth / maxHealth < 0.30f)
+            amount *= 0.80f;
+
+        Debug.Log($"[PlayerHealth] TakeDamage({amount:F1}) — HP: {currentHealth:F0}/{maxHealth:F0}");
 
         currentHealth = Mathf.Max(currentHealth - amount, 0f);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
@@ -98,6 +104,8 @@ public class PlayerHealth : MonoBehaviour
         {
             if (iFrameCoroutine != null) StopCoroutine(iFrameCoroutine);
             iFrameCoroutine = StartCoroutine(IFrameRoutine());
+            if (PlayerClassManager.Instance?.HasBoost("adrenalina") == true && !_adrenalineActive)
+                StartCoroutine(AdrenalineBoost());
         }
     }
 
@@ -189,6 +197,24 @@ public class PlayerHealth : MonoBehaviour
         isInvincible = true;
         yield return new WaitForSeconds(iframeDuration);
         isInvincible = false;
+    }
+
+    IEnumerator AdrenalineBoost()
+    {
+        _adrenalineActive = true;
+        var pc = PlayerController.Instance;
+        var pa = GetComponent<PlayerAttack>();
+        float origSpeed  = pc != null ? pc.moveSpeed : 0f;
+        float origDamage = pa != null ? pa.attackDamage : 0f;
+        if (pc != null) pc.SetMoveSpeed(origSpeed * 1.6f);
+        if (pa != null) pa.attackDamage *= 1.4f;
+        var sr = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
+        if (sr) sr.color = new Color(1f, 0.5f, 0.1f, 1f);
+        yield return new WaitForSeconds(3f);
+        if (pc != null) pc.SetMoveSpeed(origSpeed);
+        if (pa != null) pa.attackDamage = origDamage;
+        if (sr) sr.color = Color.white;
+        _adrenalineActive = false;
     }
 
     void ResetAnim()

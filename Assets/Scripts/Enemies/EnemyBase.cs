@@ -284,6 +284,8 @@ public class EnemyBase : MonoBehaviour
         Debug.Log($"[Die] {name} spawning SpawnDeath");
         VFXManager.Instance?.SpawnDeath(transform.position, deathType);
         GameManager.Instance?.IncrementKill();
+        if (PlayerClassManager.Instance?.HasBoost("alma_drenada") == true)
+            PlayerController.Instance?.GetComponent<PlayerHealth>()?.Heal(3f);
         XPDrop.SpawnAt(transform.position, xpValue);
         OnDie();
         OnDeathCallback?.Invoke();

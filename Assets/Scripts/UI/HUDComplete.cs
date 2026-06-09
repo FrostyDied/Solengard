@@ -157,6 +157,9 @@ public class HUDComplete : MonoBehaviour
         if (_poderEmCooldown) return;
         PlayerClassManager.Instance?.ActivateSpecialPower();
         var cooldown = PlayerClassManager.Instance?.CurrentClass?.specialCooldown ?? 30f;
+        if (PlayerClassManager.Instance?.HasBoost("fluxo_magico") == true &&
+            PlayerClassManager.Instance?.CurrentClass?.classId == "mage")
+            cooldown *= 0.6f;
         StartCoroutine(CooldownPoder(cooldown));
     }
 
