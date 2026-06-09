@@ -5,7 +5,7 @@ public class XPSystem : MonoBehaviour
     public static XPSystem Instance { get; private set; }
 
     [Header("XP necessário por nível")]
-    [SerializeField] int[] xpTable = { 120, 180, 250, 350, 475, 625, 800, 1000, 1200, 1500 };
+    [SerializeField] int[] xpTable = { 50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600 };
 
     public int CurrentLevel      { get; private set; } = 1;
     public int CurrentXP         { get; private set; } = 0;

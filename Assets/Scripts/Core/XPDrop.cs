@@ -60,8 +60,6 @@ public class XPDrop : MonoBehaviour
             _sr.color = new Color(0.9f, 0.97f, 1f, pulse);
         }
 
-        _timer -= Time.deltaTime;
-        if (_timer <= 0f) Destroy(gameObject);
     }
 
     void Collect()
@@ -77,8 +75,12 @@ public class XPDrop : MonoBehaviour
         go.transform.position = pos;
 
         var sr = go.AddComponent<SpriteRenderer>();
-        if (_cachedSprite == null) _cachedSprite = MakeCrystalSprite();
-        sr.sprite       = _cachedSprite;
+        if (_cachedSprite == null)
+        {
+            _cachedSprite = Resources.Load<Sprite>("Icons/moeda");
+            if (_cachedSprite == null) _cachedSprite = MakeCrystalSprite();
+        }
+        sr.sprite = _cachedSprite;
         sr.sortingOrder = 5;
 
         var rb = go.AddComponent<Rigidbody2D>();

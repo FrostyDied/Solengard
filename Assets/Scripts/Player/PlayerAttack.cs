@@ -84,6 +84,7 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackGuerreiro()
     {
+        if (GetNearestEnemy(attackRange) == null) return;
         var mgr = PlayerClassManager.Instance;
         var facing = PlayerController.Instance != null
             ? PlayerController.Instance.FacingDirection : Vector2.right;
@@ -239,6 +240,7 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackCacador()
     {
+        if (GetNearestEnemy(attackRange) == null) return;
         var mgr = PlayerClassManager.Instance;
         bool flechasPerfurantes = mgr?.HasBoost("flechas_perfurantes") ?? false;
         float range = attackRange * ((mgr?.HasBoost("olho_aguia") == true) ? 1.4f : 1f);
