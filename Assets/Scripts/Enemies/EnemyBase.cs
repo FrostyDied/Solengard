@@ -25,7 +25,7 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] float contactDamageInterval = 0.5f;
 
     [Header("XP Drop")]
-    [SerializeField] int xpValue = 5;
+    int xpValue = 5;
 
     [Header("Referências")]
     // Deixe vazio para usar busca automática em Awake
