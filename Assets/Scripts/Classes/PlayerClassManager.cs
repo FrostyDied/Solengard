@@ -365,11 +365,11 @@ public class PlayerClassManager : MonoBehaviour
                     bool piercing = HasBoost("flechas_perfurantes");
                     float d = dmg;
                     StartCoroutine(ProceduralVFX.ArrowStreak(
-                        pc.transform.position, dir, 20f, range,
+                        pc.transform, dir, 20f, range,
                         new Color(0.6f, 1f, 0.3f),
-                        onHit: hitPos => {
-                            UnityEngine.Object.FindFirstObjectByType<PlayerAttack>()
-                                ?.ApplyDamageAtPointPublic(hitPos, piercing ? 0.8f : 0.3f, d * 2.5f);
+                        onHit: enemy => {
+                            if (enemy == null || enemy.IsDead) return;
+                            enemy.TakeDamage(d * 2.5f);
                         }));
                 }
             }
