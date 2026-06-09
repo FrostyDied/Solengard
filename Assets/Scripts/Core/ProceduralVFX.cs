@@ -454,7 +454,9 @@ public static class ProceduralVFX
         float maxRadius, float duration, float width = 0.15f)
     {
         var go = new GameObject("VFX_Ring");
+        go.transform.position = center;
         var lr = go.AddComponent<LineRenderer>();
+        lr.useWorldSpace = true;
         lr.material = GetMat();
         lr.loop = true;
         lr.positionCount = 32;
