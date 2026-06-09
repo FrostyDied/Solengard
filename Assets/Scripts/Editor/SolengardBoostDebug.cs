@@ -31,18 +31,25 @@ public class SolengardBoostDebug : EditorWindow
                 PlayerClassManager.Instance?.AddBoost(b);
 
         GUILayout.Space(5);
-        GUILayout.Label("── Boosts de Classe ──", EditorStyles.boldLabel);
-        string[] classBoosts = {
-            "corrente_perfurante","sede_sangue","pele_ferro",
-            "sobrecarga_arcana","fragmentacao","fluxo_magico",
-            "golpe_letal","rastro_venenoso","adrenalina",
-            "alma_drenada","caveira_explosiva","maldicao_ampliada",
-            "consagracao","luz_cegante","aura_curadora",
-            "flechas_perfurantes","olho_aguia","rajada_dupla"
+        var currentClass = PlayerClassManager.Instance?.CurrentClass?.classId ?? "";
+        GUILayout.Label($"── Boosts de Classe ({currentClass}) ──", EditorStyles.boldLabel);
+
+        var boostsByClass = new System.Collections.Generic.Dictionary<string, string[]>
+        {
+            { "warrior",     new[]{ "corrente_perfurante", "sede_sangue", "pele_ferro" } },
+            { "mage",        new[]{ "sobrecarga_arcana", "fragmentacao", "fluxo_magico" } },
+            { "assassin",    new[]{ "golpe_letal", "rastro_venenoso", "adrenalina" } },
+            { "necromancer", new[]{ "alma_drenada", "caveira_explosiva", "maldicao_ampliada" } },
+            { "paladin",     new[]{ "consagracao", "luz_cegante", "aura_curadora" } },
+            { "hunter",      new[]{ "flechas_perfurantes", "olho_aguia", "rajada_dupla" } },
         };
-        foreach (var b in classBoosts)
-            if (GUILayout.Button($"Aplicar: {b}"))
-                PlayerClassManager.Instance?.AddBoost(b);
+
+        if (boostsByClass.TryGetValue(currentClass, out var boosts))
+            foreach (var b in boosts)
+                if (GUILayout.Button($"Aplicar: {b}"))
+                    PlayerClassManager.Instance?.AddBoost(b);
+        else
+            GUILayout.Label("Nenhuma classe selecionada");
 
         GUILayout.Space(5);
         GUILayout.Label("── Especiais por Classe ──", EditorStyles.boldLabel);
