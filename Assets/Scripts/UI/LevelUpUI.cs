@@ -163,7 +163,7 @@ public class LevelUpUI : MonoBehaviour
         // Recuperação de Emergência — cura % do HP máximo (aparece só se HP < 60%)
         {
             var ph = PlayerController.Instance?.GetComponent<PlayerHealth>();
-            if (ph != null && ph.CurrentHealth / ph.MaxHealth < 0.60f)
+            if (ph != null && ph.CurrentHealth / ph.MaxHealth < 0.60f && UnityEngine.Random.value < 0.25f)
             {
                 int nivel = GetBoostLevel("recuperacao");
                 if (nivel < 3)
