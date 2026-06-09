@@ -330,6 +330,20 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
+    public void ApplyDamageAtPointPublic(Vector3 hitPos, float radius, float damage)
+    {
+        var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+        filter.SetLayerMask(enemyLayerMask);
+        var results = new List<Collider2D>();
+        Physics2D.OverlapCircle(hitPos, radius, filter, results);
+        foreach (var col in results)
+        {
+            if (col == null) continue;
+            var enemy = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+            enemy?.TakeDamage(damage);
+        }
+    }
+
     void DamageCollider(Collider2D col)
     {
         var enemy = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();

@@ -292,6 +292,19 @@ public class EnemyBase : MonoBehaviour
             Destroy(gameObject);
     }
 
+    public void ApplyStun(float duration)
+    {
+        StartCoroutine(StunRoutine(duration));
+    }
+
+    System.Collections.IEnumerator StunRoutine(float duration)
+    {
+        float origSpeed = moveSpeed;
+        moveSpeed = 0f;
+        yield return new WaitForSeconds(duration);
+        if (!IsDead) moveSpeed = origSpeed;
+    }
+
     // Sobrescreva em subclasses para efeitos de morte específicos (drops, animações, etc.)
     protected virtual void OnDie() { }
 

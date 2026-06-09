@@ -696,4 +696,41 @@ public static class ProceduralVFX
         }
         return go;
     }
+
+    public static System.Collections.IEnumerator PulsingRing(
+        System.Func<Vector3> getPos, Color color, float radius, float duration)
+    {
+        var go = new GameObject("VFX_PulsingRing");
+        var lr = go.AddComponent<LineRenderer>();
+        lr.material      = GetMat();
+        lr.loop          = true;
+        lr.positionCount = 32;
+        lr.useWorldSpace = true;
+        lr.sortingOrder  = 299;
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            float pulse = 0.5f + 0.5f * Mathf.Sin(elapsed * 8f);
+            float r     = radius * (0.9f + 0.1f * pulse);
+            float alpha = 0.4f + 0.3f * pulse;
+            float w     = 0.06f + 0.03f * pulse;
+
+            lr.startWidth = w; lr.endWidth = w;
+            lr.startColor = new Color(color.r, color.g, color.b, alpha);
+            lr.endColor   = lr.startColor;
+
+            Vector3 center = getPos();
+            go.transform.position = center;
+            for (int i = 0; i < 32; i++)
+            {
+                float angle = (float)i / 32 * Mathf.PI * 2f;
+                lr.SetPosition(i, center + new Vector3(
+                    Mathf.Cos(angle) * r, Mathf.Sin(angle) * r, 0));
+            }
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        Object.Destroy(go);
+    }
 }
