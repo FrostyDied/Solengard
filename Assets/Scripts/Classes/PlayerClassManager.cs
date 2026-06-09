@@ -47,15 +47,21 @@ public class PlayerClassManager : MonoBehaviour
 
         float origDamage   = pa.attackDamage;
         float origCooldown = pa.attackCooldown;
-        float origSpeed    = pc.moveSpeed;
+        float duracao      = 10f;
 
         pa.attackDamage   *= 1.5f;
         pa.attackCooldown *= 0.5f;
         if (sr) sr.color   = new Color(1f, 0.2f, 0.1f, 1f);
 
+        float maxRadius = Camera.main != null ? Camera.main.orthographicSize * 0.7f : 9f;
+        StartCoroutine(ExpandingDamageRing(
+            pc.transform.position,
+            new Color(1f, 0.1f, 0.05f, 0.9f),
+            maxRadius, 1.5f, pa.attackDamage));
+
         StartCoroutine(ProceduralVFX.PulsingRing(
             () => pc != null ? pc.transform.position : Vector3.zero,
-            new Color(1f, 0.1f, 0.05f, 0.8f), 2.5f, CurrentClass.specialDuration));
+            new Color(1f, 0.1f, 0.05f, 0.6f), 1.5f, duracao));
 
         bool ativo = true;
         _furiaSanguinariaAtiva = true;
@@ -66,14 +72,13 @@ public class PlayerClassManager : MonoBehaviour
         };
         EnemyBase.OnEnemyDied += onKill;
 
-        yield return new UnityEngine.WaitForSeconds(CurrentClass.specialDuration);
+        yield return new UnityEngine.WaitForSeconds(duracao);
 
         ativo = false;
         _furiaSanguinariaAtiva = false;
         EnemyBase.OnEnemyDied -= onKill;
         pa.attackDamage   = origDamage;
         pa.attackCooldown = origCooldown;
-        pc.SetMoveSpeed(origSpeed);
         if (sr) sr.color  = Color.white;
     }
 
@@ -116,22 +121,27 @@ public class PlayerClassManager : MonoBehaviour
     {
         var pc = PlayerController.Instance;
         var ph = pc?.GetComponent<PlayerHealth>();
+        var pa = pc?.GetComponent<PlayerAttack>();
         var sr = pc?.GetComponent<SpriteRenderer>() ?? pc?.GetComponentInChildren<SpriteRenderer>();
         if (pc == null) yield break;
 
-        float origSpeed     = pc.moveSpeed;
-        bool origInvincible = ph != null && ph.IsInvincible;
+        float origSpeed      = pc.moveSpeed;
+        bool  origInvincible = ph != null && ph.IsInvincible;
+        float duracao        = 10f;
+
+        float maxRadius = Camera.main != null ? Camera.main.orthographicSize * 0.7f : 9f;
+        float dmg = pa != null ? pa.attackDamage * 2f : 20f;
+        StartCoroutine(ExpandingDamageRing(
+            pc.transform.position,
+            new Color(0.5f, 0f, 1f, 0.9f),
+            maxRadius, 1.2f, dmg));
 
         if (sr) sr.color = new Color(0.5f, 0.1f, 0.8f, 0.4f);
         if (ph != null) ph.IsInvincible = true;
         pc.SetMoveSpeed(origSpeed * 1.8f);
         _faseSombriaAtiva = true;
 
-        StartCoroutine(ProceduralVFX.PulsingRing(
-            () => pc != null ? pc.transform.position : Vector3.zero,
-            new Color(0.4f, 0f, 0.8f, 0.6f), 0.4f, CurrentClass.specialDuration));
-
-        yield return new UnityEngine.WaitForSeconds(CurrentClass.specialDuration);
+        yield return new UnityEngine.WaitForSeconds(duracao);
 
         _faseSombriaAtiva = false;
         if (sr) sr.color = Color.white;
@@ -246,6 +256,57 @@ public class PlayerClassManager : MonoBehaviour
             elapsed += 0.5f;
             yield return new UnityEngine.WaitForSeconds(0.5f);
         }
+    }
+
+    System.Collections.IEnumerator ExpandingDamageRing(
+        Vector3 center, Color color, float maxRadius, float expandTime, float damage)
+    {
+        var go = new UnityEngine.GameObject("VFX_ExpandRing");
+        var lr = go.AddComponent<UnityEngine.LineRenderer>();
+        lr.material      = ProceduralVFX.GetPublicMat();
+        lr.loop          = true;
+        lr.positionCount = 48;
+        lr.useWorldSpace = true;
+        lr.sortingOrder  = 300;
+
+        var hitEnemies = new System.Collections.Generic.HashSet<EnemyBase>();
+        float elapsed = 0f;
+
+        while (elapsed < expandTime)
+        {
+            float t     = elapsed / expandTime;
+            float r     = UnityEngine.Mathf.Lerp(0.1f, maxRadius, t);
+            float alpha = 1f - t * 0.3f;
+            float width = UnityEngine.Mathf.Lerp(0.3f, 0.08f, t);
+
+            lr.startWidth = width; lr.endWidth = width;
+            lr.startColor = new UnityEngine.Color(color.r, color.g, color.b, alpha);
+            lr.endColor   = lr.startColor;
+
+            for (int i = 0; i < 48; i++)
+            {
+                float angle = (float)i / 48 * UnityEngine.Mathf.PI * 2f;
+                lr.SetPosition(i, center + new Vector3(
+                    UnityEngine.Mathf.Cos(angle) * r,
+                    UnityEngine.Mathf.Sin(angle) * r, 0));
+            }
+
+            var cols = UnityEngine.Physics2D.OverlapCircleAll(center, r + 0.3f);
+            foreach (var col in cols)
+            {
+                var eb = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+                if (eb != null && !eb.IsDead && !hitEnemies.Contains(eb))
+                {
+                    hitEnemies.Add(eb);
+                    eb.TakeDamage(damage);
+                }
+            }
+
+            elapsed += UnityEngine.Time.deltaTime;
+            yield return null;
+        }
+
+        UnityEngine.Object.Destroy(go);
     }
 
     // ── CAÇADOR — Chuva de Flechas ────────────────────────────────────────────

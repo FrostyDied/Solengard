@@ -4,12 +4,13 @@ using System.Collections;
 public static class ProceduralVFX
 {
     static Material _mat;
-    static Material GetMat()
+    public static Material GetMat()
     {
         if (_mat == null)
             _mat = new Material(Shader.Find("Sprites/Default"));
         return _mat;
     }
+    public static Material GetPublicMat() => GetMat();
 
     // ═══════════════════════════════════════════
     // TIPO 1 — WHIP (chicote de energia)

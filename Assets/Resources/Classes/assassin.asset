@@ -27,7 +27,7 @@ MonoBehaviour:
   projectileCount: 1
   specialName: "Evas\xE3o Sombria"
   specialCooldown: 45
-  specialDuration: 3
+  specialDuration: 10
   specialType: 2
   spriteFolder: Assets/Art/Characters/Hero/Assassino/Assassino
   pixelsPerUnit: 32

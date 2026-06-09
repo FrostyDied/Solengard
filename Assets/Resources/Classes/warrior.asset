@@ -27,7 +27,7 @@ MonoBehaviour:
   projectileCount: 1
   specialName: "F\xFAria Sangu\xEDnea"
   specialCooldown: 45
-  specialDuration: 5
+  specialDuration: 10
   specialType: 0
   spriteFolder: Assets/Art/Characters/Hero/Cavaleiro/Level1-3/PNG/Swordsman_lvl1/Without_shadow
   pixelsPerUnit: 32
