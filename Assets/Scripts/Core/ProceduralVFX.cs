@@ -677,6 +677,7 @@ public static class ProceduralVFX
         float size, float duration)
     {
         var go = new GameObject("VFX_Impact");
+        go.transform.position = pos;
         for (int i = 0; i < 3; i++)
         {
             var ring = new GameObject($"Ring{i}");
