@@ -9,8 +9,19 @@ public class SolengardBoostDebug : EditorWindow
     void OnGUI()
     {
         GUILayout.Label("── Poderes Especiais ──", EditorStyles.boldLabel);
-        if (GUILayout.Button("Guerreiro — Fúria Sanguinária"))
+        if (GUILayout.Button("Ativar Especial da Classe Atual"))
             PlayerClassManager.Instance?.ActivateSpecialPower();
+
+        GUILayout.Space(3);
+        GUILayout.Label("── Trocar Classe ──", EditorStyles.boldLabel);
+        string[] classes = { "warrior", "mage", "assassin", "necromancer", "paladin", "hunter" };
+        string[] classNames = { "Guerreiro", "Mago", "Assassino", "Necromante", "Paladino", "Caçador" };
+        for (int i = 0; i < classes.Length; i++)
+            if (GUILayout.Button($"Selecionar: {classNames[i]}"))
+            {
+                PlayerClassManager.Instance?.SelectClass(classes[i]);
+                PlayerClassManager.Instance?.ActivateSpecialPower();
+            }
 
         GUILayout.Space(5);
         GUILayout.Label("── Boosts Base ──", EditorStyles.boldLabel);
