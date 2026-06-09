@@ -185,8 +185,7 @@ public class GameManager : MonoBehaviour
         _gameStarted = true;
 
         var prevState = currentState;
-        SetState(GameState.Playing); // seta Playing ANTES de qualquer return
-        Debug.Log($"[GameManager] StartGame — prevState={prevState} → Playing");
+        Debug.Log($"[GameManager] StartGame — prevState={prevState}");
 
         if (prevState != GameState.MainMenu && prevState != GameState.GameOver) return;
 
@@ -229,17 +228,25 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GameManager] StartGame loreUI={loreUI != null} config={config != null} sessao={sessaoAtiva}");
 
         System.Action afterLore = sessaoAtiva
-            ? (System.Action)(() => StartCoroutine(FadeFromBlack(() =>
+            ? (System.Action)(() =>
               {
-                  StartCoroutine(SafetyTimeScale());
-                  RestoreSession(sessaoData);
-              })))
-            : () => StartCoroutine(FadeFromBlack(() =>
+                  SetState(GameState.Playing);
+                  StartCoroutine(FadeFromBlack(() =>
+                  {
+                      StartCoroutine(SafetyTimeScale());
+                      RestoreSession(sessaoData);
+                  }));
+              })
+            : () =>
               {
-                  StartCoroutine(SafetyTimeScale());
-                  proceduralArena?.InitializeRun();
-                  ZoneManager.Instance?.StartZones();
-              }));
+                  SetState(GameState.Playing);
+                  StartCoroutine(FadeFromBlack(() =>
+                  {
+                      StartCoroutine(SafetyTimeScale());
+                      proceduralArena?.InitializeRun();
+                      ZoneManager.Instance?.StartZones();
+                  }));
+              };
 
         if (loreUI != null && config != null)
             StartCoroutine(loreUI.ShowLore(config, afterLore));
