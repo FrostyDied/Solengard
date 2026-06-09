@@ -94,7 +94,7 @@ public class PermanentUpgradeSystem : MonoBehaviour
     public bool IsMaxLevel(PermanentUpgradeId id) =>
         GetLevel(id) >= System.Array.Find(Upgrades, u => u.id == id)?.maxLevel;
 
-    public PermanentUpgradeData GetData(PermanentUpgradeId id) =>
+    public static PermanentUpgradeData GetData(PermanentUpgradeId id) =>
         System.Array.Find(Upgrades, u => u.id == id);
 
     // Retorna total de dificuldade extra da Maldição (0.0 a 0.5)
