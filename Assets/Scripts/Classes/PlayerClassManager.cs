@@ -55,7 +55,7 @@ public class PlayerClassManager : MonoBehaviour
 
         StartCoroutine(ProceduralVFX.PulsingRing(
             () => pc != null ? pc.transform.position : Vector3.zero,
-            new Color(1f, 0.1f, 0.05f, 0.8f), 0.6f, CurrentClass.specialDuration));
+            new Color(1f, 0.1f, 0.05f, 0.8f), 2.5f, CurrentClass.specialDuration));
 
         bool ativo = true;
         _furiaSanguinariaAtiva = true;
@@ -87,8 +87,9 @@ public class PlayerClassManager : MonoBehaviour
         if (sr) sr.color = Color.white * 2f;
 
         var pa    = pc.GetComponent<PlayerAttack>();
-        float dmg   = pa != null ? pa.attackDamage : 20f;
-        float range = pa != null ? pa.attackRange  : 8f;
+        float dmg   = pa != null ? pa.attackDamage * 3f : 60f;
+        float camRange = Camera.main != null ? Mathf.Max(Camera.main.orthographicSize, Camera.main.orthographicSize * Camera.main.aspect) * 1.5f : 20f;
+        float range = camRange;
 
         for (int i = 0; i < 8; i++)
         {
@@ -170,8 +171,9 @@ public class PlayerClassManager : MonoBehaviour
                     Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
                     float d     = pa.attackDamage;
                     float r     = pa.attackRange;
+                    float skullRange = Camera.main != null ? Mathf.Max(Camera.main.orthographicSize, Camera.main.orthographicSize * Camera.main.aspect) * 1.5f : 20f;
                     StartCoroutine(ProceduralVFX.SkullProjectile(
-                        pc.transform.position, dir, 10f, r,
+                        pc.transform.position, dir, 10f, skullRange,
                         onHit: hitPos => {
                             float aoeRadius = HasBoost("caveira_explosiva") ? 1.2f : 0.6f;
                             pa.ApplyDamageAtPointPublic(hitPos, aoeRadius, d);
@@ -198,7 +200,7 @@ public class PlayerClassManager : MonoBehaviour
         if (sr) sr.color = new Color(1f, 0.95f, 0.4f, 1f);
 
         float stunDuration = HasBoost("luz_cegante") ? 4f : 2f;
-        float radius = 4f;
+        float radius = Camera.main != null ? Mathf.Max(Camera.main.orthographicSize, Camera.main.orthographicSize * Camera.main.aspect) * 1.5f : 20f;
 
         StartCoroutine(ProceduralVFX.ExplosionRing(
             pc.transform.position, new Color(1f, 0.9f, 0.2f), radius, 0.6f));
@@ -211,7 +213,7 @@ public class PlayerClassManager : MonoBehaviour
             var eb = h.GetComponent<EnemyBase>() ?? h.GetComponentInParent<EnemyBase>();
             if (eb != null && !eb.IsDead)
             {
-                eb.TakeDamage(pa.attackDamage * 3f);
+                eb.TakeDamage(pa.attackDamage * 8f);
                 eb.ApplyStun(stunDuration);
             }
         }
@@ -262,7 +264,8 @@ public class PlayerClassManager : MonoBehaviour
         float nextShot = 0f;
         bool  dupla    = HasBoost("rajada_dupla");
         float dmg      = pa.attackDamage;
-        float range    = pa.attackRange * (HasBoost("olho_aguia") ? 1.4f : 1f);
+        float camRange = Camera.main != null ? Mathf.Max(Camera.main.orthographicSize, Camera.main.orthographicSize * Camera.main.aspect) * 1.5f : 20f;
+        float range    = camRange * (HasBoost("olho_aguia") ? 1.4f : 1f);
         bool  piercing = HasBoost("flechas_perfurantes");
 
         Vector2 baseDir = pc.FacingDirection != Vector2.zero ? pc.FacingDirection : Vector2.up;
@@ -274,7 +277,7 @@ public class PlayerClassManager : MonoBehaviour
                 float t     = count == 1 ? 0f : (float)i / (count - 1) - 0.5f;
                 float a     = Mathf.Atan2(center.y, center.x) + t * spread * Mathf.Deg2Rad;
                 Vector2 dir = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
-                float d = dmg;
+                float d = dmg * 2.5f;
                 StartCoroutine(ProceduralVFX.ArrowStreak(
                     pc.transform, dir, 20f, range,
                     new Color(0.6f, 1f, 0.3f),

@@ -5,7 +5,8 @@ public enum PermanentUpgradeId
 {
     Poder, Armadura, VidaMaxima, Recuperacao, Recarga,
     Area, Velocidade, Duracao, Quantidade, Movimento,
-    Magnetismo, Sorte, Crescimento, Riqueza, Maldicao, Ressurreicao
+    Magnetismo, Sorte, Crescimento, Riqueza, Maldicao, Ressurreicao,
+    PoderEspecial
 }
 
 [System.Serializable]
@@ -42,6 +43,7 @@ public class PermanentUpgradeSystem : MonoBehaviour
         new() { id=PermanentUpgradeId.Riqueza,       nome="Riqueza",      descricao="Diamantes ganhos +10% por nível",               maxLevel=4, diamondCostPerLevel=200,   incrementoPerLevel=0.10f  },
         new() { id=PermanentUpgradeId.Maldicao,      nome="Maldição",     descricao="+10% dificuldade e +10% recompensas por nível", maxLevel=4, diamondCostPerLevel=1700,  incrementoPerLevel=0.10f  },
         new() { id=PermanentUpgradeId.Ressurreicao,  nome="Ressurreição", descricao="Revive uma vez por run com 50% HP",             maxLevel=1, diamondCostPerLevel=10000, incrementoPerLevel=1f     },
+        new() { id=PermanentUpgradeId.PoderEspecial, nome="Poder Especial", descricao="Reduz cooldown do especial em 5s por nível", maxLevel=3, diamondCostPerLevel=800, incrementoPerLevel=5f },
     };
 
     void Awake()

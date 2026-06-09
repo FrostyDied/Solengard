@@ -156,7 +156,11 @@ public class HUDComplete : MonoBehaviour
     {
         if (_poderEmCooldown) return;
         PlayerClassManager.Instance?.ActivateSpecialPower();
-        var cooldown = PlayerClassManager.Instance?.CurrentClass?.specialCooldown ?? 30f;
+        var cooldown = PlayerClassManager.Instance?.CurrentClass?.specialCooldown ?? 45f;
+        // Upgrade permanente: -5s por nível (máx -15s)
+        float reducao = (PermanentUpgradeSystem.Instance?.GetLevel(PermanentUpgradeId.PoderEspecial) ?? 0) * 5f;
+        cooldown = Mathf.Max(cooldown - reducao, 30f);
+        // Fluxo Mágico (Mago): -40% adicional
         if (PlayerClassManager.Instance?.HasBoost("fluxo_magico") == true &&
             PlayerClassManager.Instance?.CurrentClass?.classId == "mage")
             cooldown *= 0.6f;

@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -26,7 +26,7 @@ MonoBehaviour:
   attackArc: 270
   projectileCount: 1
   specialName: Chuva de Flechas
-  specialCooldown: 12
+  specialCooldown: 45
   specialDuration: 3
   specialType: 5
   spriteFolder: "Assets/Art/Characters/Hero/Ca\xE7ador/Ca\xE7ador"
