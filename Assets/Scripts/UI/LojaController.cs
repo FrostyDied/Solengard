@@ -83,7 +83,7 @@ public class LojaController : MonoBehaviour
         var sys = PermanentUpgradeSystem.Instance;
         if (sys == null) return;
         if (sys.IsMaxLevel(id)) { Feedback("Nível máximo!"); return; }
-        var data = sys.GetData(id);
+        var data = PermanentUpgradeSystem.GetData(id);
         if (data == null) return;
         if (sys.TryPurchase(id))
             Feedback($"{data.nome} melhorado!");
