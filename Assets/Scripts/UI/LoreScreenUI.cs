@@ -34,7 +34,7 @@ public class LoreScreenUI : MonoBehaviour
             background.color = c;
         }
 
-        if (canvasGroup != null) canvasGroup.alpha = 0f;
+        if (canvasGroup != null) canvasGroup.alpha = 1f;
         if (lorePanel != null) lorePanel.SetActive(true);
     }
 
