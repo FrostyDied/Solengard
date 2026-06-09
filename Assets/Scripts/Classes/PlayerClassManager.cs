@@ -54,10 +54,10 @@ public class PlayerClassManager : MonoBehaviour
         if (sr) sr.color   = new Color(1f, 0.2f, 0.1f, 1f);
 
         float maxRadius = Camera.main != null ? Camera.main.orthographicSize * 0.7f : 9f;
-        StartCoroutine(ExpandingDamageRing(
-            pc.transform.position,
+        StartCoroutine(RepeatingExpandRing(
+            () => pc != null ? pc.transform.position : Vector3.zero,
             new Color(1f, 0.1f, 0.05f, 0.9f),
-            maxRadius, 1.5f, pa.attackDamage));
+            maxRadius, 1.5f, pa.attackDamage, 3, 3f));
 
         StartCoroutine(ProceduralVFX.PulsingRing(
             () => pc != null ? pc.transform.position : Vector3.zero,
@@ -91,29 +91,39 @@ public class PlayerClassManager : MonoBehaviour
         var sr = pc.GetComponent<SpriteRenderer>() ?? pc.GetComponentInChildren<SpriteRenderer>();
         if (sr) sr.color = Color.white * 2f;
 
-        var pa    = pc.GetComponent<PlayerAttack>();
-        float dmg   = pa != null ? pa.attackDamage * 3f : 60f;
-        float camRange = Camera.main != null ? Mathf.Max(Camera.main.orthographicSize, Camera.main.orthographicSize * Camera.main.aspect) * 1.5f : 20f;
-        float range = camRange;
+        var pa = pc.GetComponent<PlayerAttack>();
+        float dmg = pa != null ? pa.attackDamage * 3f : 60f;
+        float range = Camera.main != null ? Mathf.Max(Camera.main.orthographicSize, Camera.main.orthographicSize * Camera.main.aspect) * 1.5f : 20f;
 
-        for (int i = 0; i < 8; i++)
+        for (int burst = 0; burst < 2; burst++)
         {
-            float angle = i * (360f / 8) * Mathf.Deg2Rad;
-            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-            StartCoroutine(ProceduralVFX.EnergyBolt(
-                pc.transform.position, dir,
-                speed: 14f, range: range,
-                coreColor:  new Color(0.8f, 0.4f, 1f),
-                trailColor: new Color(1f, 0.8f, 1f),
-                size: 0.35f,
-                onHit: hitPos => pa?.ApplyDamageAtPointPublic(hitPos, 1.2f, dmg * 1.5f)));
+            if (burst > 0) yield return new UnityEngine.WaitForSeconds(3f);
+
+            if (sr) sr.color = Color.white * 2f;
+
+            for (int i = 0; i < 8; i++)
+            {
+                float angle = i * (360f / 8) * Mathf.Deg2Rad;
+                Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                float d = dmg;
+                StartCoroutine(ProceduralVFX.EnergyBolt(
+                    pc.transform.position, dir,
+                    speed: 14f, range: range,
+                    coreColor:  new Color(0.8f, 0.4f, 1f),
+                    trailColor: new Color(1f, 0.8f, 1f),
+                    size: 0.35f,
+                    onHit: hitPos => {
+                        UnityEngine.Object.FindFirstObjectByType<PlayerAttack>()
+                            ?.ApplyDamageAtPointPublic(hitPos, 1.2f, d * 1.5f);
+                    }));
+            }
+
+            StartCoroutine(ProceduralVFX.ExplosionRing(
+                pc.transform.position, new Color(0.8f, 0.4f, 1f), 3f, 0.5f));
+
+            yield return new UnityEngine.WaitForSeconds(0.1f);
+            if (sr) sr.color = Color.white;
         }
-
-        StartCoroutine(ProceduralVFX.ExplosionRing(
-            pc.transform.position, new Color(0.8f, 0.4f, 1f), 3f, 0.5f));
-
-        yield return new UnityEngine.WaitForSeconds(0.1f);
-        if (sr) sr.color = Color.white;
     }
 
     // ── ASSASSINO — Fase Sombria ──────────────────────────────────────────────
@@ -175,9 +185,9 @@ public class PlayerClassManager : MonoBehaviour
             if (elapsed >= nextShot)
             {
                 nextShot = elapsed + interval;
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < 8; i++)
                 {
-                    float angle = i * (360f / 5) * Mathf.Deg2Rad;
+                    float angle = i * (360f / 8) * Mathf.Deg2Rad;
                     Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
                     float d     = pa.attackDamage;
                     float r     = pa.attackRange;
@@ -309,6 +319,19 @@ public class PlayerClassManager : MonoBehaviour
         UnityEngine.Object.Destroy(go);
     }
 
+    System.Collections.IEnumerator RepeatingExpandRing(
+        System.Func<Vector3> getCenter, Color color,
+        float maxRadius, float expandTime, float damage,
+        int repeats, float interval)
+    {
+        for (int i = 0; i < repeats; i++)
+        {
+            if (i > 0) yield return new UnityEngine.WaitForSeconds(interval);
+            yield return StartCoroutine(ExpandingDamageRing(
+                getCenter(), color, maxRadius, expandTime, damage));
+        }
+    }
+
     // ── CAÇADOR — Chuva de Flechas ────────────────────────────────────────────
     System.Collections.IEnumerator Special_ChuvaDeFlechas()
     {
@@ -329,36 +352,25 @@ public class PlayerClassManager : MonoBehaviour
         float range    = camRange * (HasBoost("olho_aguia") ? 1.4f : 1f);
         bool  piercing = HasBoost("flechas_perfurantes");
 
-        Vector2 baseDir = pc.FacingDirection != Vector2.zero ? pc.FacingDirection : Vector2.up;
-
-        void DispararCone(Vector2 center, float spread, int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                float t     = count == 1 ? 0f : (float)i / (count - 1) - 0.5f;
-                float a     = Mathf.Atan2(center.y, center.x) + t * spread * Mathf.Deg2Rad;
-                Vector2 dir = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
-                float d = dmg * 2.5f;
-                StartCoroutine(ProceduralVFX.ArrowStreak(
-                    pc.transform, dir, 20f, range,
-                    new Color(0.6f, 1f, 0.3f),
-                    onHit: enemy => {
-                        if (enemy == null || enemy.IsDead) return;
-                        enemy.TakeDamage(d);
-                    }));
-            }
-        }
-
         while (elapsed < duracao)
         {
             if (elapsed >= nextShot)
             {
                 nextShot = elapsed + interval;
-                DispararCone(baseDir, 120f, 8);
-                if (dupla)
+                int totalFlechas = dupla ? 16 : 8;
+                for (int i = 0; i < totalFlechas; i++)
                 {
-                    float perpAngle = Mathf.Atan2(baseDir.y, baseDir.x) + 60f * Mathf.Deg2Rad;
-                    DispararCone(new Vector2(Mathf.Cos(perpAngle), Mathf.Sin(perpAngle)), 90f, 8);
+                    float angle = (float)i / totalFlechas * Mathf.PI * 2f;
+                    Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                    bool piercing = HasBoost("flechas_perfurantes");
+                    float d = dmg;
+                    StartCoroutine(ProceduralVFX.ArrowStreak(
+                        pc.transform.position, dir, 20f, range,
+                        new Color(0.6f, 1f, 0.3f),
+                        onHit: hitPos => {
+                            UnityEngine.Object.FindFirstObjectByType<PlayerAttack>()
+                                ?.ApplyDamageAtPointPublic(hitPos, piercing ? 0.8f : 0.3f, d * 2.5f);
+                        }));
                 }
             }
             elapsed += UnityEngine.Time.deltaTime;
