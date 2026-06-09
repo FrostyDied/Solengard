@@ -14,7 +14,7 @@ public class EnemyBase : MonoBehaviour
 
     [Header("Movimento")]
     public float stoppingDistance   = 0.3f;
-    public float separationRadius   = 2.0f;
+    public float separationRadius   = 0.5f;
     public float separationStrength = 0.6f;
 
     [Header("Tipo")]
@@ -149,10 +149,11 @@ public class EnemyBase : MonoBehaviour
 
         Vector2 toPlayer   = ((Vector2)playerTransform.position - rb.position).normalized;
         Vector2 separation = ComputeSeparation();
-        float   speed      = dist < stoppingDistance * 1.5f
-                             ? moveSpeed * (dist / (stoppingDistance * 1.5f))
-                             : moveSpeed;
-        rb.linearVelocity  = (toPlayer + separation * separationStrength).normalized * speed;
+        Vector2 desired = toPlayer + separation * separationStrength;
+        // Garante que separação nunca inverta a direção de aproximação
+        if (Vector2.Dot(desired.normalized, toPlayer) < 0.1f)
+            desired = toPlayer;
+        rb.linearVelocity = desired.normalized * moveSpeed;
 
         var anim = GetComponent<CharacterAnimator>();
         if (anim != null) anim.SetState(CharacterAnimator.State.Walk);
