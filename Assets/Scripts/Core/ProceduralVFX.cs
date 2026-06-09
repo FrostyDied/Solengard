@@ -113,8 +113,6 @@ public static class ProceduralVFX
                     Vector3 hitPos = go.transform.position;
                     Object.Destroy(go);
                     if (onHit != null) onHit(hitPos);
-                    var explosion = CreateExplosion(hitPos, coreColor, size * 3f, 0.3f);
-                    Object.Destroy(explosion, 0.35f);
                     yield break;
                 }
             }
@@ -122,11 +120,7 @@ public static class ProceduralVFX
             yield return null;
         }
 
-        Vector3 endPos = go.transform.position;
         Object.Destroy(go);
-        // Sem inimigo atingido — explosão no ponto final mas sem dano
-        var endExplosion = CreateExplosion(endPos, coreColor, size * 2f, 0.2f);
-        Object.Destroy(endExplosion, 0.25f);
     }
 
     // ═══════════════════════════════════════════
