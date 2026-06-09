@@ -36,7 +36,6 @@ public class XPSystem : MonoBehaviour
     public void AddXP(int amount)
     {
         CurrentXP += amount;
-        Debug.Log($"[XP] +{amount} | Total: {CurrentXP}/{XPToNextLevel} | Nível: {CurrentLevel}");
         while (CurrentXP >= XPToNextLevel)
         {
             CurrentXP -= XPToNextLevel;
