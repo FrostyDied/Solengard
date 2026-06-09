@@ -108,7 +108,7 @@ public class LevelUpUI : MonoBehaviour
                 var pc = PlayerController.Instance;
                 if (pc != null)
                 {
-                    float[] mults = { 1.015f, 1.03f, 1.045f };
+                    float[] mults = { 1.02f, 1.04f, 1.06f };
                     pc.SetMoveSpeed(pc.moveSpeed * mults[Mathf.Min(GetBoostLevel("vel") - 1, 2)]);
                 }
                 NotifyDifficultyBoost("vel");
@@ -123,7 +123,6 @@ public class LevelUpUI : MonoBehaviour
                     float[] mults = { 0.03f, 0.06f, 0.09f };
                     float bonus = ph.MaxHealth * mults[Mathf.Min(GetBoostLevel("vida") - 1, 2)];
                     ph.AumentarVidaMax(bonus);
-                    ph.Heal(bonus);
                 }
                 NotifyDifficultyBoost("vida");
             });
