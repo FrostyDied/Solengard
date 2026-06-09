@@ -172,7 +172,8 @@ public class PlayerAttack : MonoBehaviour
             size: 0.2f,
             onHit: hitPos =>
             {
-                StartCoroutine(ProceduralVFX.ExplosionRing(hitPos, new Color(0.4f, 0.6f, 1f), 1.5f, 0.3f));
+                Debug.Log($"[AttackMago] hitPos={hitPos}");
+                StartCoroutine(ProceduralVFX.ExplosionRing(hitPos, new Color(0.4f, 0.6f, 1f), 0.1f, 0.05f));
                 ApplyDamageAtPoint(hitPos, 0.5f); // era 0.1f — raio maior para garantir hit
             }
         ));
