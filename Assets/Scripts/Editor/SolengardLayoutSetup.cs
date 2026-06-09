@@ -91,12 +91,16 @@ public static class SolengardLayoutSetup
         };
         foreach(var s in spritesMenu) LoadUI(s); // força reimport via TextureImporter
 
-        // Canvas
+        // Canvas — destroy-and-recreate para forçar reaplicação de sprites
         var canvasGO = GameObject.Find("Canvas");
-        if (canvasGO == null)
+        if (canvasGO != null)
         {
-            canvasGO = new GameObject("Canvas");
-            Undo.RegisterCreatedObjectUndo(canvasGO, "Layout MainMenu");
+            Undo.DestroyObjectImmediate(canvasGO);
+            log.AppendLine("  Canvas antigo destruído");
+        }
+        canvasGO = new GameObject("Canvas");
+        Undo.RegisterCreatedObjectUndo(canvasGO, "Layout MainMenu");
+        {
             var c = canvasGO.AddComponent<Canvas>();
             c.renderMode = RenderMode.ScreenSpaceOverlay;
             var s = canvasGO.AddComponent<CanvasScaler>();
