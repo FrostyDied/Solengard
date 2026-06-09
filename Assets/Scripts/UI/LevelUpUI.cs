@@ -21,6 +21,17 @@ public class LevelUpUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI[]   optionNames;
     [SerializeField] TextMeshProUGUI[]   optionDescs;
 
+    readonly Dictionary<string, int> _boostLevels = new();
+
+    public void ResetBoostLevels() => _boostLevels.Clear();
+
+    int GetBoostLevel(string id) => _boostLevels.TryGetValue(id, out var v) ? v : 0;
+
+    void RegisterBoost(string id)
+    {
+        _boostLevels[id] = GetBoostLevel(id) + 1;
+    }
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -76,33 +87,120 @@ public class LevelUpUI : MonoBehaviour
 
     List<UpgradeOption> BuildAllOptions()
     {
-        var pc = PlayerController.Instance;
-        var pa = pc != null ? pc.GetComponent<PlayerAttack>()  : null;
-        var ph = pc != null ? pc.GetComponent<PlayerHealth>()  : null;
-
-        var options = new List<UpgradeOption>
-        {
-            new UpgradeOption { id = "dano",     nome = "Lamina Afiada",     descricao = "+10% dano de ataque",
-                onChoose = () => { if (pa) pa.attackDamage = Mathf.Min(pa.attackDamage * 1.10f, 150f); } },
-            new UpgradeOption { id = "vel",      nome = "Pes Ageis",         descricao = "+2% velocidade de movimento",
-                onChoose = () => { if (pc) pc.moveSpeed = Mathf.Min(pc.moveSpeed * 1.02f, PlayerController.MAX_MOVE_SPEED); } },
-            new UpgradeOption { id = "vida",     nome = "Coracao Forte",     descricao = "+5% vida maxima",
-                onChoose = () => { if (ph) ph.AumentarVidaMax(ph.MaxHealth * 0.05f); } },
-            new UpgradeOption { id = "range",    nome = "Alcance Mistico",   descricao = "+8% alcance de ataque",
-                onChoose = () => { if (pa) pa.attackRange = Mathf.Min(pa.attackRange * 1.08f, 12f); } },
-            new UpgradeOption { id = "cooldown", nome = "Furia de Combate",  descricao = "Ataca 3% mais rapido",
-                onChoose = () => { if (pa) pa.attackCooldown = Mathf.Max(pa.attackCooldown * 0.97f, 0.12f); } },
-            new UpgradeOption { id = "xpmagnet", nome = "Cristal Magnetico", descricao = "Cristais de XP se atraem de longe",
-                onChoose = () => { XPDrop.GlobalMagnetRadius += 3f; } },
-        };
-
-        // Adiciona boosts exclusivos da classe atual
+        var options = new List<UpgradeOption>();
         var classId = PlayerClassManager.Instance?.CurrentClass?.classId ?? "";
-        var classBoosts = GetClassBoosts(classId);
-        foreach (var b in classBoosts)
-            options.Add(b);
+
+        AddProgressiveBoost(options, "dano", GetDanoLabel(), GetDanoDesc(),
+            maxLevel: 3, onChoose: () => {
+                RegisterBoost("dano");
+                var pa = PlayerController.Instance?.GetComponent<PlayerAttack>();
+                if (pa != null)
+                {
+                    float[] mults = { 1.05f, 1.10f, 1.15f };
+                    pa.attackDamage *= mults[Mathf.Min(GetBoostLevel("dano") - 1, 2)];
+                }
+                NotifyDifficultyBoost("dano");
+            });
+
+        AddProgressiveBoost(options, "vel", GetVelLabel(), GetVelDesc(),
+            maxLevel: 3, onChoose: () => {
+                RegisterBoost("vel");
+                var pc = PlayerController.Instance;
+                if (pc != null)
+                {
+                    float[] mults = { 1.015f, 1.03f, 1.045f };
+                    pc.SetMoveSpeed(pc.moveSpeed * mults[Mathf.Min(GetBoostLevel("vel") - 1, 2)]);
+                }
+                NotifyDifficultyBoost("vel");
+            });
+
+        AddProgressiveBoost(options, "vida", GetVidaLabel(), GetVidaDesc(),
+            maxLevel: 3, onChoose: () => {
+                RegisterBoost("vida");
+                var ph = PlayerController.Instance?.GetComponent<PlayerHealth>();
+                if (ph != null)
+                {
+                    float[] mults = { 0.03f, 0.06f, 0.09f };
+                    float bonus = ph.MaxHealth * mults[Mathf.Min(GetBoostLevel("vida") - 1, 2)];
+                    ph.AumentarVidaMax(bonus);
+                    ph.Heal(bonus);
+                }
+                NotifyDifficultyBoost("vida");
+            });
+
+        AddProgressiveBoost(options, "cooldown", GetCooldownLabel(), "Ataque mais rápido",
+            maxLevel: 3, onChoose: () => {
+                RegisterBoost("cooldown");
+                var pa = PlayerController.Instance?.GetComponent<PlayerAttack>();
+                if (pa != null)
+                {
+                    float[] reductions = { 0.97f, 0.95f, 0.93f };
+                    pa.attackCooldown *= reductions[Mathf.Min(GetBoostLevel("cooldown") - 1, 2)];
+                    pa.attackCooldown = Mathf.Max(pa.attackCooldown, 0.12f);
+                }
+                NotifyDifficultyBoost("cooldown");
+            });
+
+        AddProgressiveBoost(options, "range", GetRangeLabel(), GetRangeDesc(),
+            maxLevel: 3, onChoose: () => {
+                RegisterBoost("range");
+                var pa = PlayerController.Instance?.GetComponent<PlayerAttack>();
+                if (pa != null)
+                {
+                    float[] mults = { 1.08f, 1.12f, 1.15f };
+                    pa.attackRange *= mults[Mathf.Min(GetBoostLevel("range") - 1, 2)];
+                    pa.attackRange = Mathf.Min(pa.attackRange, 12f);
+                }
+                NotifyDifficultyBoost("range");
+            });
+
+        AddProgressiveBoost(options, "xpmagnet", GetMagnetLabel(), "Cristais de XP voam mais longe até você",
+            maxLevel: 3, onChoose: () => {
+                RegisterBoost("xpmagnet");
+                float[] bonuses = { 2f, 3f, 4f };
+                XPDrop.GlobalMagnetRadius += bonuses[Mathf.Min(GetBoostLevel("xpmagnet") - 1, 2)];
+            });
+
+        if (UnityEngine.Random.value < 0.30f)
+        {
+            var classBoosts = GetClassBoosts(classId);
+            foreach (var b in classBoosts)
+                if (!PlayerClassManager.Instance.HasBoost(b.id))
+                    options.Add(b);
+        }
 
         return options;
+    }
+
+    void AddProgressiveBoost(List<UpgradeOption> list, string id, string nome, string desc, int maxLevel, System.Action onChoose)
+    {
+        if (GetBoostLevel(id) >= maxLevel) return;
+        list.Add(new UpgradeOption { id = id, nome = nome, descricao = desc, onChoose = onChoose });
+    }
+
+    string GetDanoLabel()     { int l = GetBoostLevel("dano");     string[] n = { "Lâmina Afiada I",       "Lâmina Afiada II",       "Lâmina Afiada III"       }; return n[Mathf.Min(l, 2)]; }
+    string GetDanoDesc()      { int l = GetBoostLevel("dano");     string[] d = { "+5% dano",               "+10% dano",              "+15% dano"               }; return d[Mathf.Min(l, 2)]; }
+    string GetVelLabel()      { int l = GetBoostLevel("vel");      string[] n = { "Passos Ágeis I",         "Passos Ágeis II",        "Passos Ágeis III"        }; return n[Mathf.Min(l, 2)]; }
+    string GetVelDesc()       { int l = GetBoostLevel("vel");      string[] d = { "+2% velocidade",         "+4% velocidade",         "+6% velocidade"          }; return d[Mathf.Min(l, 2)]; }
+    string GetVidaLabel()     { int l = GetBoostLevel("vida");     string[] n = { "Coração Forte I",        "Coração Forte II",       "Coração Forte III"       }; return n[Mathf.Min(l, 2)]; }
+    string GetVidaDesc()      { int l = GetBoostLevel("vida");     string[] d = { "+3% HP máximo",          "+6% HP máximo",          "+9% HP máximo"           }; return d[Mathf.Min(l, 2)]; }
+    string GetCooldownLabel() { int l = GetBoostLevel("cooldown"); string[] n = { "Fúria de Combate I",     "Fúria de Combate II",    "Fúria de Combate III"    }; return n[Mathf.Min(l, 2)]; }
+    string GetRangeLabel()    { int l = GetBoostLevel("range");    string[] n = { "Alcance Místico I",      "Alcance Místico II",     "Alcance Místico III"     }; return n[Mathf.Min(l, 2)]; }
+    string GetRangeDesc()     { int l = GetBoostLevel("range");    string[] d = { "+8% alcance",            "+12% alcance",           "+15% alcance"            }; return d[Mathf.Min(l, 2)]; }
+    string GetMagnetLabel()   { int l = GetBoostLevel("xpmagnet"); string[] n = { "Cristal Magnético I",   "Cristal Magnético II",   "Cristal Magnético III"   }; return n[Mathf.Min(l, 2)]; }
+
+    void NotifyDifficultyBoost(string boostId)
+    {
+        var diff = DifficultyAdaptiveSystem.Instance;
+        if (diff == null) return;
+        switch (boostId)
+        {
+            case "vida":     diff.AjustarPorBoostPlayer(hpBonus: 0.04f);    break;
+            case "dano":     diff.AjustarPorBoostPlayer(hpBonus: 0.06f);    break;
+            case "vel":      diff.AjustarPorBoostPlayer(speedBonus: 0.03f); break;
+            case "cooldown": diff.AjustarPorBoostPlayer(speedBonus: 0.04f); break;
+            case "range":    diff.AjustarPorBoostPlayer(hpBonus: 0.06f);    break;
+        }
     }
 
     System.Collections.Generic.List<UpgradeOption> GetClassBoosts(string classId)

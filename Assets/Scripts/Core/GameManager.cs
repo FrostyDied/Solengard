@@ -245,6 +245,7 @@ public class GameManager : MonoBehaviour
                       StartCoroutine(SafetyTimeScale());
                       PlayerClassManager.Instance?.ClearBoosts();
                       PermanentUpgradeSystem.Instance?.ResetarRessurreicao();
+                      UnityEngine.Object.FindFirstObjectByType<LevelUpUI>()?.ResetBoostLevels();
                       proceduralArena?.InitializeRun();
                       ZoneManager.Instance?.StartZones();
                   }));

@@ -96,4 +96,19 @@ public class DifficultyAdaptiveSystem : MonoBehaviour
         EnemyDamageModifier = 1f;
         EnemyCountReduction = 0;
     }
+
+    public void AjustarPorBoostPlayer(float hpBonus = 0f, float speedBonus = 0f, float damageBonus = 0f)
+    {
+        EnemyHealthModifier += hpBonus;
+        EnemySpeedModifier  += speedBonus;
+        EnemyDamageModifier += damageBonus;
+        var enemies = UnityEngine.Object.FindObjectsByType<EnemyBase>(UnityEngine.FindObjectsSortMode.None);
+        foreach (var e in enemies)
+            if (!e.IsDead)
+            {
+                e.maxHealth += e.maxHealth * hpBonus;
+                e.moveSpeed += e.moveSpeed * speedBonus;
+                e.damage    += e.damage    * damageBonus;
+            }
+    }
 }
