@@ -100,6 +100,27 @@ public class HUDComplete : MonoBehaviour
         if (avatarImagem == null) return;
         var cls = PlayerClassManager.Instance?.CurrentClass;
         if (cls == null) return;
+
+        // Tenta carregar portrait da pasta Portroit por classId
+        // Mapeamento classId → nome do arquivo
+        string nomeArquivo = cls.classId switch
+        {
+            "warrior"     => "Guerreiro_Portroit",
+            "mage"        => "Mago_Portroit",
+            "assassin"    => "Assassino_Portroit",
+            "necromancer" => "Necromante_Portroit",
+            "paladin"     => "Paladino_Portroit",
+            "hunter"      => "Caçador_Portroit",
+            _             => null
+        };
+
+        if (nomeArquivo != null)
+        {
+            var portrait = Resources.Load<Sprite>($"Characters/Hero/Portroit/{nomeArquivo}");
+            if (portrait != null) { avatarImagem.sprite = portrait; return; }
+        }
+
+        // Fallback: classIcon ou idleFrames[0]
         if (cls.classIcon != null)
             avatarImagem.sprite = cls.classIcon;
         else if (cls.idleFrames != null && cls.idleFrames.Length > 0)
