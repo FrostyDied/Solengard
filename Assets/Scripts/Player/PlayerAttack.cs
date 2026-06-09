@@ -93,7 +93,7 @@ public class PlayerAttack : MonoBehaviour
 
         StartCoroutine(ProceduralVFX.WhipChain(
             transform, attackDir,
-            length: attackRange * 0.8f, duration: 0.35f,
+            length: attackRange * 1.4f, duration: 0.4f,
             color: new Color(0.6f, 0.85f, 1f)
         ));
 
