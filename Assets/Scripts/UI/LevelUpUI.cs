@@ -160,6 +160,35 @@ public class LevelUpUI : MonoBehaviour
                 XPDrop.GlobalMagnetRadius += bonuses[Mathf.Min(GetBoostLevel("xpmagnet") - 1, 2)];
             });
 
+        // Recuperação de Emergência — cura % do HP máximo (aparece só se HP < 60%)
+        {
+            var ph = PlayerController.Instance?.GetComponent<PlayerHealth>();
+            if (ph != null && ph.CurrentHealth / ph.MaxHealth < 0.60f)
+            {
+                int nivel = GetBoostLevel("recuperacao");
+                if (nivel < 3)
+                {
+                    string[] nomes = { "Poção de Vida I", "Poção de Vida II", "Poção de Vida III" };
+                    string[] descs = { "Recupera 25% do HP máximo", "Recupera 35% do HP máximo", "Recupera 50% do HP máximo" };
+                    float[]  curas = { 0.25f, 0.35f, 0.50f };
+                    options.Add(new UpgradeOption {
+                        id        = "recuperacao",
+                        nome      = nomes[nivel],
+                        descricao = descs[nivel],
+                        onChoose  = () => {
+                            RegisterBoost("recuperacao");
+                            var ph2 = PlayerController.Instance?.GetComponent<PlayerHealth>();
+                            if (ph2 != null)
+                            {
+                                float cura = ph2.MaxHealth * curas[Mathf.Min(GetBoostLevel("recuperacao") - 1, 2)];
+                                ph2.Heal(cura);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
         if (UnityEngine.Random.value < 0.30f)
         {
             var classBoosts = GetClassBoosts(classId);
