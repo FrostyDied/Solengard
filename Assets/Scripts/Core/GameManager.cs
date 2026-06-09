@@ -243,6 +243,7 @@ public class GameManager : MonoBehaviour
                   StartCoroutine(FadeFromBlack(() =>
                   {
                       StartCoroutine(SafetyTimeScale());
+                      PlayerClassManager.Instance?.ClearBoosts();
                       proceduralArena?.InitializeRun();
                       ZoneManager.Instance?.StartZones();
                   }));

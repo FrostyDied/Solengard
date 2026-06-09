@@ -155,8 +155,9 @@ public class HUDComplete : MonoBehaviour
     void UsarPoderEspecial()
     {
         if (_poderEmCooldown) return;
-        Debug.Log("[HUD] Poder especial ativado");
-        StartCoroutine(CooldownPoder(30f));
+        PlayerClassManager.Instance?.ActivateSpecialPower();
+        var cooldown = PlayerClassManager.Instance?.CurrentClass?.specialCooldown ?? 30f;
+        StartCoroutine(CooldownPoder(cooldown));
     }
 
     IEnumerator CooldownPoder(float duracao)

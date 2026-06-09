@@ -9,6 +9,41 @@ public class PlayerClassManager : MonoBehaviour
     const string SELECTED_CLASS_KEY = "selected_class";
     const string DEFAULT_CLASS      = "warrior";
 
+    // Boosts ativos na run atual
+    public System.Collections.Generic.List<string> ActiveBoosts { get; private set; } = new();
+
+    public void AddBoost(string boostId)
+    {
+        if (!ActiveBoosts.Contains(boostId))
+            ActiveBoosts.Add(boostId);
+    }
+
+    public bool HasBoost(string boostId) => ActiveBoosts.Contains(boostId);
+
+    public void ClearBoosts() => ActiveBoosts.Clear();
+
+    public void ActivateSpecialPower()
+    {
+        if (CurrentClass == null) return;
+        switch (CurrentClass.classId)
+        {
+            case "warrior":     StartCoroutine(Special_FuriaSanguinaria()); break;
+            case "mage":        StartCoroutine(Special_NovaArcana());       break;
+            case "assassin":    StartCoroutine(Special_FaseSombria());      break;
+            case "necromancer": StartCoroutine(Special_MaldicaoEmArea());   break;
+            case "paladin":     StartCoroutine(Special_JulgamentoDivino()); break;
+            case "hunter":      StartCoroutine(Special_ChuvaDeFlechas());   break;
+        }
+    }
+
+    // Stubs dos especiais — implementados na Fase 2
+    System.Collections.IEnumerator Special_FuriaSanguinaria()  { Debug.Log("[Special] Fúria Sanguinária"); yield break; }
+    System.Collections.IEnumerator Special_NovaArcana()        { Debug.Log("[Special] Nova Arcana");       yield break; }
+    System.Collections.IEnumerator Special_FaseSombria()       { Debug.Log("[Special] Fase Sombria");      yield break; }
+    System.Collections.IEnumerator Special_MaldicaoEmArea()    { Debug.Log("[Special] Maldição em Área");  yield break; }
+    System.Collections.IEnumerator Special_JulgamentoDivino()  { Debug.Log("[Special] Julgamento Divino"); yield break; }
+    System.Collections.IEnumerator Special_ChuvaDeFlechas()    { Debug.Log("[Special] Chuva de Flechas");  yield break; }
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
