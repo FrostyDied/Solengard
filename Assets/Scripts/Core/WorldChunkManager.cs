@@ -67,7 +67,26 @@ public class WorldChunkManager : MonoBehaviour
             var p = GameObject.FindGameObjectWithTag("Player");
             if (p != null) _player = p.transform;
         }
-        UpdateChunks();
+        // Pré-geração síncrona do anel 3×3 central: chão textured antes do frame 1.
+        // O anel externo (raio 2-3) continua assíncrono, ordenado por distância.
+        var gen = ProceduralSceneGenerator.Instance;
+        if (gen != null && _player != null)
+        {
+            var c0    = ToChunk(_player.position);
+            var props0 = biomeProps[_currentBiome]?.prefabs;
+            for (int dx = -1; dx <= 1; dx++)
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                var pos   = c0 + new Vector2Int(dx, dy);
+                var chunk = _pool.Count > 0 ? _pool.Dequeue() : MakeChunk();
+                chunk.transform.position = ToWorld(pos);
+                gen.GenerateChunkSync(chunk.gameObject, pos.x, pos.y,
+                    _currentBiome, CHUNK_SIZE, props0, PROPS_PER_CHUNK);
+                _active[pos] = chunk;
+            }
+        }
+
+        UpdateChunks(); // anel externo — async, ordenado por distância
     }
 
     void LoadBiomePropsFromResources()
@@ -157,9 +176,18 @@ public class WorldChunkManager : MonoBehaviour
         }
 
         var props = biomeProps[_currentBiome]?.prefabs;
+
+        // Ordenar por distância: o chunk mais próximo inicia a build de textura
+        // primeiro — com o lock serial do ProceduralSceneGenerator, a ordem de
+        // início das coroutines é a ordem de conclusão das texturas.
+        var toPopulate = new List<Vector2Int>();
         foreach (var pos in needed)
+            if (!_active.ContainsKey(pos)) toPopulate.Add(pos);
+        toPopulate.Sort((a, b) =>
+            (a - center).sqrMagnitude.CompareTo((b - center).sqrMagnitude));
+
+        foreach (var pos in toPopulate)
         {
-            if (_active.ContainsKey(pos)) continue;
             var chunk = _pool.Count > 0 ? _pool.Dequeue() : MakeChunk();
             chunk.transform.position = ToWorld(pos);
             chunk.Populate(pos, _currentBiome, props, PROPS_PER_CHUNK, CHUNK_SIZE);

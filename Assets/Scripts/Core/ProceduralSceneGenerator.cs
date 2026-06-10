@@ -218,6 +218,119 @@ public class ProceduralSceneGenerator : MonoBehaviour
         }
     }
 
+    // Versão síncrona para os 9 chunks centrais no Start (zero pop-in no frame 1).
+    // Chão construído aqui mesmo; props ainda amortizados (3/frame) via coroutine.
+    public void GenerateChunkSync(GameObject chunkRoot, int chunkX, int chunkY,
+        int biomeId, float chunkSize,
+        List<GameObject> craftpixPrefabs = null, int craftpixCount = 12)
+    {
+        int seed  = GetChunkSeed(chunkX, chunkY);
+        var biome = biomes[Mathf.Clamp(biomeId, 0, biomes.Length - 1)];
+
+        _chunkVersion.TryGetValue(chunkRoot, out int ver);
+        _chunkVersion[chunkRoot] = ++ver;
+
+        Vector3 wp = chunkRoot.transform.position;
+        float density     = new SeededNoise(globalSeed).FBM(wp.x * 0.02f, wp.y * 0.02f, 2f, 2);
+        float densityMult = density < 0.35f ? 0.65f : density > 0.65f ? 1.4f : 1f;
+        bool  allowTrees  = density >= 0.35f;
+
+        GenerateGroundSync(chunkRoot, chunkX, chunkY, biomeId, biome, chunkSize);
+
+        if (!useProceduralProps)
+            StartCoroutine(PlaceCraftpixPropsAsync(chunkRoot, ver, seed, biomeId,
+                craftpixPrefabs, craftpixCount, chunkSize, densityMult, allowTrees, biome));
+        else
+        {
+            _emissiveSpots.Clear();
+            GenerateRocks(chunkRoot, seed, biomeId, biome, chunkSize);
+            if (allowTrees) GenerateTrees(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
+            GenerateBushes(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
+            GenerateGrass(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
+            GenerateCliffs(chunkRoot, seed, biomeId, biome, chunkSize);
+            GenerateFakeLights(chunkRoot, seed, biomeId, biome, chunkSize, _emissiveSpots);
+        }
+    }
+
+    // Constrói a textura de chão de forma SÍNCRONA (sem yield). Usada apenas
+    // pelos 9 chunks centrais no Start — aceitável porque ocorre uma única vez
+    // antes do primeiro frame. Mesma lógica do BuildGroundAsync, sem coroutine.
+    void GenerateGroundSync(GameObject root, int chunkX, int chunkY, int biomeId,
+        BiomeVisualConfig biome, float size)
+    {
+        var go = new GameObject("Ground");
+        go.transform.SetParent(root.transform, false);
+        go.transform.localPosition = Vector3.zero;
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sortingOrder = -100;
+
+        long key = GroundKey(chunkX, chunkY, biomeId);
+
+        // Se a key já está no cache (re-visita de chunk), apenas atribuir
+        if (_groundTexCache.TryGetValue(key, out var cached) && cached != null)
+        {
+            AssignGroundSprite(sr, go, cached, size, key);
+            return;
+        }
+
+        int ts = Mathf.Max(32, groundTexSize);
+        var tex = new Texture2D(ts, ts, TextureFormat.RGB24, false);
+        tex.filterMode = FilterMode.Bilinear;
+        tex.wrapMode   = TextureWrapMode.Clamp;
+
+        // Reutiliza o buffer compartilhado — sem concorrência aqui (Start é single-thread)
+        if (_pixelScratch == null || _pixelScratch.Length != ts * ts)
+            _pixelScratch = new Color32[ts * ts];
+        var pixels = _pixelScratch;
+        var noise  = new SeededNoise(globalSeed);
+
+        Color gShadow    = Desaturate(biome.groundShadow,    0.85f);
+        Color gBase      = Desaturate(biome.groundBase,      0.85f);
+        Color gAccent    = Desaturate(biome.groundAccent,    0.85f);
+        Color gHighlight = Desaturate(biome.groundHighlight, 0.85f);
+
+        float worldOX = chunkX * size;
+        float worldOY = chunkY * size;
+
+        for (int y = 0; y < ts; y++)
+        {
+            float v = (worldOY + ((y + 0.5f) / ts) * size) * 0.05f;
+            for (int x = 0; x < ts; x++)
+            {
+                float u = (worldOX + ((x + 0.5f) / ts) * size) * 0.05f;
+
+                float macro = noise.FBM(u, v, 3f, 4);
+                float mid   = noise.Smooth(u * 8f  + 5f,  v * 8f  + 5f)  * 0.5f;
+                float micro = noise.Smooth(u * 20f + 10f, v * 20f + 10f) * 0.25f;
+                float h     = macro * 0.5f + mid * 0.35f + micro * 0.15f;
+
+                Color c;
+                if      (h > 0.65f) c = Color.Lerp(gAccent,  gHighlight, (h - 0.65f) / 0.35f);
+                else if (h > 0.35f) c = Color.Lerp(gBase,    gAccent,    (h - 0.35f) / 0.30f);
+                else                c = Color.Lerp(gShadow,  gBase,       h           / 0.35f);
+
+                float sh = noise.FBM(u + 0.02f, v - 0.02f, 3f, 2);
+                c = Color.Lerp(c, gShadow, Mathf.Clamp01(macro - sh) * 0.3f);
+
+                if (noise.Get(u * 30f, v * 30f) > 0.92f)
+                    c = Color.Lerp(c, gShadow, 0.5f);
+
+                float fine = (noise.Get(u * 40f, v * 40f) - 0.5f) * (16f / 255f);
+                c.r = Mathf.Clamp01(c.r + fine);
+                c.g = Mathf.Clamp01(c.g + fine);
+                c.b = Mathf.Clamp01(c.b + fine);
+
+                pixels[y * ts + x] = c;
+            }
+        }
+
+        tex.SetPixels32(pixels);
+        tex.Apply(false, false);
+        CacheGroundTexture(key, tex);
+        AssignGroundSprite(sr, go, tex, size, key);
+    }
+
     // FIX 4 + Item 1 — props Craftpix com POSICIONAMENTO procedural, via pool,
     // amortizado em 3 props/frame. Seed decide posição/quantidade (determinístico);
     // tint de bioma e Y-sorting idênticos ao ChunkInstance original.
