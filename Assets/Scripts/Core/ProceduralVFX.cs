@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using DG.Tweening;
 
 public static class ProceduralVFX
 {
@@ -13,6 +15,341 @@ public static class ProceduralVFX
     public static Material GetPublicMat() => GetMat();
 
     // ═══════════════════════════════════════════
+    // EVENTO DE CÂMERA (A6)
+    // Disparado em todo impacto confirmado. Feel fará o shake depois.
+    // Intensidades: 0.3 normal, 0.6 inimigo <20% HP, 1.0 poder especial
+    // ═══════════════════════════════════════════
+    public static event System.Action<float, Color> OnImpact;
+
+    // ═══════════════════════════════════════════
+    // CURVAS DE EASING (A1)
+    // ═══════════════════════════════════════════
+    static readonly AnimationCurve ScaleCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    static readonly AnimationCurve SpeedCurve = new AnimationCurve(
+        new Keyframe(0, 1.6f), new Keyframe(0.3f, 1f), new Keyframe(1, 0.7f));
+    static readonly AnimationCurve FadeCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
+
+    // ═══════════════════════════════════════════
+    // RUNNER — host persistente para coroutines disparadas de
+    // dentro dos efeitos (hit-stop, camadas de impacto) e raiz do pool.
+    // DontDestroyOnLoad: nunca morre no meio de um hit-stop.
+    // ═══════════════════════════════════════════
+    class VFXRuntime : MonoBehaviour { }
+
+    static VFXRuntime _runner;
+    static MonoBehaviour Runner
+    {
+        get
+        {
+            if (_runner == null)
+            {
+                var go = new GameObject("VFXRuntime");
+                Object.DontDestroyOnLoad(go);
+                _runner = go.AddComponent<VFXRuntime>();
+            }
+            return _runner;
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // FÍSICA CACHEADA (A0) — zero alocação no loop de voo.
+    // O buffer é preenchido e lido na mesma chamada, sem yield no meio,
+    // então o compartilhamento entre coroutines é seguro.
+    // ═══════════════════════════════════════════
+    static ContactFilter2D _enemyFilter;
+    static bool _enemyFilterReady;
+    static readonly List<Collider2D> _hitBuffer = new List<Collider2D>(16);
+
+    static EnemyBase FindEnemyHit(Vector3 pos, float radius)
+    {
+        if (!_enemyFilterReady)
+        {
+            _enemyFilter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
+            _enemyFilter.SetLayerMask(LayerMask.GetMask("Enemy"));
+            _enemyFilterReady = true;
+        }
+        Physics2D.OverlapCircle(pos, radius, _enemyFilter, _hitBuffer);
+        for (int i = 0; i < _hitBuffer.Count; i++)
+        {
+            var col = _hitBuffer[i];
+            if (col == null) continue;
+            var eb = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
+            if (eb != null && !eb.IsDead) return eb;
+        }
+        return null;
+    }
+
+    // EnemyBase.currentHealth é protected e EnemyBase é intocável —
+    // reflection cacheada, lida apenas no momento do impacto
+    static System.Reflection.FieldInfo _hpField;
+    static bool _hpFieldSearched;
+
+    static float HealthRatio(EnemyBase eb)
+    {
+        if (eb == null || eb.maxHealth <= 0f) return 1f;
+        if (!_hpFieldSearched)
+        {
+            _hpField = typeof(EnemyBase).GetField("currentHealth",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            _hpFieldSearched = true;
+        }
+        if (_hpField == null) return 1f;
+        return (float)_hpField.GetValue(eb) / eb.maxHealth;
+    }
+
+    static Color Saturate(Color c, float mult)
+    {
+        Color.RGBToHSV(c, out float h, out float s, out float v);
+        return Color.HSVToRGB(h, Mathf.Clamp01(s * mult), v);
+    }
+
+    // ═══════════════════════════════════════════
+    // HIT-STOP (A2) — roda sempre no Runner (sobrevive a trocas de cena)
+    // ═══════════════════════════════════════════
+    static Coroutine _hitStopRoutine;
+
+    public static void DoHitStop(MonoBehaviour host, float duration = 0.08f, float scale = 0.05f)
+    {
+        if (_hitStopRoutine != null) return; // não empilhar hit-stops
+        _hitStopRoutine = Runner.StartCoroutine(HitStopRoutine(duration, scale));
+    }
+
+    static IEnumerator HitStopRoutine(float duration, float scale)
+    {
+        float prev = Time.timeScale;
+        Time.timeScale = scale;
+        yield return new WaitForSecondsRealtime(duration);
+        Time.timeScale = prev;
+        _hitStopRoutine = null;
+    }
+
+    // ═══════════════════════════════════════════
+    // LAYERED EFFECTS (A3) — 3 camadas por impacto
+    // Camada 1 = efeito principal (cada efeito), 2 = partículas, 3 = glow residual
+    // ═══════════════════════════════════════════
+    public static void SpawnImpactLayers(MonoBehaviour host, Vector3 pos, Color color, float intensity = 0.3f)
+    {
+        // Roda sempre no Runner: se o host morrer no meio, os sprites voltam ao pool mesmo assim
+        if (intensity >= 1f) color = Saturate(color, 3f); // poder especial: saturação máxima (A7)
+        int count = Mathf.Min(4 + (int)(intensity * 4), 12);
+        Runner.StartCoroutine(ImpactParticles(pos, color, count));
+        Runner.StartCoroutine(ResidualGlow(pos, color, intensity));
+        OnImpact?.Invoke(intensity, color);
+    }
+
+    // Impacto confirmado de projétil: hit-stop só no primeiro hit do disparo
+    // (cada projétil termina no hit) + camadas + color grading por HP (A7)
+    static void ConfirmedImpact(Vector3 pos, Color color, EnemyBase eb)
+    {
+        float ratio = HealthRatio(eb);
+        float intensity = ratio < 0.2f ? 0.6f : 0.3f;
+        if (ratio < 0.2f) color = Saturate(color, 1.3f);
+        DoHitStop(Runner);
+        SpawnImpactLayers(Runner, pos, color, intensity);
+    }
+
+    // Tempo unscaled: as camadas de impacto animam DURANTE o hit-stop
+    static IEnumerator ImpactParticles(Vector3 pos, Color color, int count)
+    {
+        count = Mathf.Min(count, 12);
+        var sprites = new SpriteRenderer[count];
+        var dirs = new Vector3[count];
+        var speeds = new float[count];
+        for (int i = 0; i < count; i++)
+        {
+            sprites[i] = GetSpriteGO("VFX_ImpactParticle", pos);
+            sprites[i].sortingOrder = 305;
+            sprites[i].color = color;
+            sprites[i].transform.localScale = Vector3.one * Random.Range(0.08f, 0.16f);
+            float a = (i + Random.value * 0.8f) / count * Mathf.PI * 2f;
+            dirs[i] = new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f);
+            speeds[i] = Random.Range(2.5f, 4.5f);
+        }
+
+        const float life = 0.3f;
+        float t = 0f;
+        while (t < life)
+        {
+            float dt = Time.unscaledDeltaTime;
+            t += dt;
+            float k = t / life;
+            float fade = FadeCurve.Evaluate(k);
+            float decel = 1f - k * 0.8f;
+            for (int i = 0; i < count; i++)
+            {
+                sprites[i].transform.position += dirs[i] * (speeds[i] * decel * dt);
+                Color c = color; c.a = fade;
+                sprites[i].color = c;
+            }
+            yield return null;
+        }
+        for (int i = 0; i < count; i++) ReleaseSprite(sprites[i].gameObject);
+    }
+
+    static IEnumerator ResidualGlow(Vector3 pos, Color color, float intensity)
+    {
+        var sr = GetSpriteGO("VFX_ResidualGlow", pos);
+        sr.sortingOrder = 304;
+        float target = (0.3f + intensity * 0.9f) * (intensity >= 1f ? 1.5f : 1f); // 1.5x p/ poder especial (A7)
+        // squash de impacto (A5): nasce achatado e expande em tempo real
+        sr.transform.localScale = new Vector3(0.6f, 1.4f, 1f) * (target * 0.1f);
+        sr.transform.DOScale(Vector3.one * target, 0.4f).SetUpdate(true).SetEase(Ease.OutQuad);
+
+        const float life = 0.4f;
+        float t = 0f;
+        while (t < life)
+        {
+            t += Time.unscaledDeltaTime;
+            Color c = color; c.a = 0.6f * FadeCurve.Evaluate(t / life);
+            sr.color = c;
+            yield return null;
+        }
+        ReleaseSprite(sr.gameObject);
+    }
+
+    // ═══════════════════════════════════════════
+    // ANTICIPATION FLASH (A4) — chamado pelo PlayerAttack antes de cada disparo
+    // ═══════════════════════════════════════════
+    static bool _flashing;
+
+    public static IEnumerator AnticipationFlash(SpriteRenderer sr)
+    {
+        if (sr == null || _flashing) yield break; // não capturar branco como cor original
+        _flashing = true;
+        Color original = sr.color;
+        sr.color = Color.white;
+        float t = 0f;
+        while (t < 0.05f) { t += Time.unscaledDeltaTime; yield return null; }
+        if (sr != null) sr.color = original;
+        _flashing = false;
+    }
+
+    // ═══════════════════════════════════════════
+    // POOL DE VFX (Adendo 4) — zero Instantiate/Destroy durante combate
+    // ═══════════════════════════════════════════
+    const int LINE_POOL_CAP = 16;
+    const int SPRITE_POOL_CAP = 24;
+    static readonly Stack<GameObject> _linePool = new Stack<GameObject>();
+    static readonly Stack<GameObject> _spritePool = new Stack<GameObject>();
+
+    static GameObject GetLineGO(string name, Vector3 pos, out LineRenderer lr, out TrailRenderer tr)
+    {
+        GameObject go = null;
+        while (_linePool.Count > 0 && go == null) go = _linePool.Pop(); // descarta refs destruídas
+        if (go == null)
+        {
+            go = new GameObject("VFX_Line");
+            go.transform.SetParent(Runner.transform, false);
+            var newLr = go.AddComponent<LineRenderer>();
+            newLr.material = GetMat();
+            newLr.positionCount = 0;
+            var newTr = go.AddComponent<TrailRenderer>();
+            newTr.material = GetMat();
+            newTr.emitting = false;
+            newTr.enabled = false;
+        }
+        go.name = name;
+        go.transform.position = pos;
+        lr = go.GetComponent<LineRenderer>();
+        tr = go.GetComponent<TrailRenderer>();
+        go.SetActive(true);
+        return go;
+    }
+
+    static readonly Gradient _defaultGrad = new Gradient(); // branco — atribuição copia, sem alloc
+
+    static void ReleaseLine(GameObject go)
+    {
+        if (go == null) return;
+        var tr = go.GetComponent<TrailRenderer>();
+        if (tr != null) { tr.emitting = false; tr.Clear(); tr.enabled = false; }
+        var lr = go.GetComponent<LineRenderer>();
+        if (lr != null)
+        {
+            lr.positionCount = 0;
+            lr.loop = false;
+            lr.useWorldSpace = true;
+            lr.widthMultiplier = 1f;
+            lr.colorGradient = _defaultGrad; // gradientes não vazam para o próximo uso
+        }
+        go.transform.SetParent(Runner.transform, false);
+        go.transform.localScale = Vector3.one;
+        go.transform.rotation = Quaternion.identity;
+        go.SetActive(false);
+        if (_linePool.Count < LINE_POOL_CAP) _linePool.Push(go);
+        else Object.Destroy(go);
+    }
+
+    static Sprite _circleSprite;
+    static Sprite GetCircleSprite()
+    {
+        if (_circleSprite == null)
+        {
+            const int S = 16;
+            var tex = new Texture2D(S, S, TextureFormat.RGBA32, false);
+            tex.filterMode = FilterMode.Bilinear;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            var px = new Color32[S * S];
+            float c = (S - 1) * 0.5f;
+            for (int y = 0; y < S; y++)
+                for (int x = 0; x < S; x++)
+                {
+                    float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c)) / c;
+                    float a = Mathf.Clamp01(1f - d);
+                    px[y * S + x] = new Color32(255, 255, 255, (byte)(a * a * 255f));
+                }
+            tex.SetPixels32(px);
+            tex.Apply(false, false);
+            _circleSprite = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(0.5f, 0.5f), S);
+        }
+        return _circleSprite;
+    }
+
+    static SpriteRenderer GetSpriteGO(string name, Vector3 pos)
+    {
+        GameObject go = null;
+        while (_spritePool.Count > 0 && go == null) go = _spritePool.Pop();
+        SpriteRenderer sr;
+        if (go == null)
+        {
+            go = new GameObject("VFX_Sprite");
+            go.transform.SetParent(Runner.transform, false);
+            sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = GetCircleSprite();
+            sr.material = GetMat();
+        }
+        else sr = go.GetComponent<SpriteRenderer>();
+        go.name = name;
+        go.transform.position = pos;
+        go.SetActive(true);
+        return sr;
+    }
+
+    static void ReleaseSprite(GameObject go)
+    {
+        if (go == null) return;
+        go.transform.DOKill();
+        go.transform.SetParent(Runner.transform, false);
+        go.transform.localScale = Vector3.one;
+        go.SetActive(false);
+        if (_spritePool.Count < SPRITE_POOL_CAP) _spritePool.Push(go);
+        else Object.Destroy(go);
+    }
+
+    static void SetupTrail(TrailRenderer tr, float time, float width, Color color, int sortOrder)
+    {
+        tr.enabled = true;
+        tr.Clear(); // não arrastar trilha fantasma do uso anterior do pool
+        tr.emitting = true;
+        tr.time = time;
+        tr.startWidth = width;
+        tr.endWidth = 0f;
+        tr.startColor = color;
+        tr.endColor = new Color(color.r, color.g, color.b, 0f);
+        tr.sortingOrder = sortOrder;
+    }
+
+    // ═══════════════════════════════════════════
     // TIPO 1 — WHIP (chicote de energia)
     // Usado por: Guerreiro
     // Linha senoidal que vai e volta na direção do ataque
@@ -21,9 +358,8 @@ public static class ProceduralVFX
         float length, float duration, Color color, float width = 0.06f,
         int segments = 20, float amplitude = 0.4f)
     {
-        var go = new GameObject("VFX_Whip");
-        var lr = go.AddComponent<LineRenderer>();
-        lr.material = GetMat();
+        var go = GetLineGO("VFX_Whip",
+            originTransform != null ? originTransform.position : Vector3.zero, out var lr, out _);
         lr.startWidth = width;
         lr.endWidth = width * 0.3f;
         lr.positionCount = segments;
@@ -40,12 +376,12 @@ public static class ProceduralVFX
 
         Vector3 perp = new Vector3(-direction.y, direction.x, 0);
         float elapsed = 0f;
-        while (elapsed < duration)
+        while (elapsed < duration && originTransform != null)
         {
             Vector3 origin  = originTransform.position;
             float   flicker = amplitude + Random.Range(-0.05f, 0.05f);
             float   t       = elapsed / duration;
-            float   reach   = t < 0.5f ? t * 2f : (1f - t) * 2f;
+            float   reach   = ScaleCurve.Evaluate(t < 0.5f ? t * 2f : (1f - t) * 2f); // A1
 
             for (int i = 0; i < segments; i++)
             {
@@ -60,7 +396,7 @@ public static class ProceduralVFX
             elapsed += Time.deltaTime;
             yield return null;
         }
-        Object.Destroy(go);
+        ReleaseLine(go);
     }
 
     // ═══════════════════════════════════════════
@@ -72,56 +408,42 @@ public static class ProceduralVFX
         float speed, float range, Color coreColor, Color trailColor,
         float size = 0.15f, System.Action<Vector3> onHit = null)
     {
-        var go = new GameObject("VFX_EnergyBolt");
-        go.transform.position = origin;
+        var go = GetLineGO("VFX_EnergyBolt", origin, out var lr, out var tr);
+        go.transform.rotation = Quaternion.FromToRotation(Vector3.right, direction); // squash na direção (A5)
+        ConfigCircle(lr, size, coreColor, 300);
+        SetupTrail(tr, 0.4f, size * 1.2f, trailColor, 299);
 
-        var core = CreateCircle(go, size, coreColor, 300);
-
-        var tr = go.AddComponent<TrailRenderer>();
-        tr.material = GetMat();
-        tr.time = 0.4f;
-        tr.startWidth = size * 1.2f;
-        tr.endWidth = 0f;
-        tr.startColor = trailColor;
-        tr.endColor = new Color(trailColor.r, trailColor.g, trailColor.b, 0f);
-        tr.sortingOrder = 299;
-
-        float traveled    = 0f;
-        float currentSize = size * 0.2f;
-        var boltFilter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
-        boltFilter.SetLayerMask(LayerMask.GetMask("Enemy"));
-        var boltHits = new System.Collections.Generic.List<Collider2D>();
-
+        float traveled = 0f;
+        float elapsed  = 0f;
         while (traveled < range)
         {
-            float step = speed * Time.deltaTime;
+            float step = speed * SpeedCurve.Evaluate(traveled / range) * Time.deltaTime; // A1
             go.transform.position += (Vector3)(direction * step);
             traveled += step;
+            elapsed  += Time.deltaTime;
 
-            float growT = Mathf.Clamp01(traveled / (range * 0.6f));
-            currentSize = Mathf.Lerp(size * 0.2f, size, growT);
-            core.transform.localScale = Vector3.one * currentSize;
-            tr.startWidth = currentSize * 0.8f;
+            float growth  = Mathf.Lerp(0.2f, 1f,
+                ScaleCurve.Evaluate(Mathf.Clamp01(traveled / (range * 0.6f)))); // A1
+            float squashT = Mathf.Clamp01(elapsed / 0.15f); // A5
+            go.transform.localScale = new Vector3(
+                growth * Mathf.Lerp(1.4f, 1f, squashT),
+                growth * Mathf.Lerp(0.7f, 1f, squashT), 1f);
+            tr.startWidth = size * growth * 0.8f;
 
-            // Detecção de colisão em tempo real
-            Physics2D.OverlapCircle(go.transform.position, currentSize * 0.8f, boltFilter, boltHits);
-            if (boltHits.Count > 0)
+            var eb = FindEnemyHit(go.transform.position, size * growth * 0.8f);
+            if (eb != null)
             {
-                var eb = boltHits[0].GetComponent<EnemyBase>()
-                      ?? boltHits[0].GetComponentInParent<EnemyBase>();
-                if (eb != null && !eb.IsDead)
-                {
-                    Vector3 hitPos = go.transform.position;
-                    Object.Destroy(go);
-                    if (onHit != null) onHit(hitPos);
-                    yield break;
-                }
+                Vector3 hitPos = go.transform.position;
+                ConfirmedImpact(hitPos, coreColor, eb); // A2 + A3 + A7
+                ReleaseLine(go);
+                if (onHit != null) onHit(hitPos);
+                yield break;
             }
 
             yield return null;
         }
 
-        Object.Destroy(go);
+        ReleaseLine(go);
     }
 
     // ═══════════════════════════════════════════
@@ -133,24 +455,14 @@ public static class ProceduralVFX
         float arcDegrees, float radius, float duration,
         Color color, float width = 0.2f, int segments = 30)
     {
-        var go = new GameObject("VFX_SlashArc");
-        var lr = go.AddComponent<LineRenderer>();
-        lr.material = GetMat();
+        var go = GetLineGO("VFX_SlashArc", origin, out var lr, out _);
         lr.startWidth = width;
         lr.endWidth = width * 0.1f;
         lr.positionCount = segments;
         lr.sortingOrder = 300;
 
-        var grad = new Gradient();
-        grad.SetKeys(
-            new[]{ new GradientColorKey(Color.white, 0f),
-                   new GradientColorKey(color, 0.3f),
-                   new GradientColorKey(color * 0.3f, 1f) },
-            new[]{ new GradientAlphaKey(1f, 0f),
-                   new GradientAlphaKey(0.8f, 0.5f),
-                   new GradientAlphaKey(0f, 1f) }
-        );
-        lr.colorGradient = grad;
+        Color head = Color.Lerp(Color.white, color, 0.4f);
+        Color tail = color * 0.3f;
 
         float baseAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         float halfArc = arcDegrees * 0.5f;
@@ -159,8 +471,11 @@ public static class ProceduralVFX
         while (elapsed < duration)
         {
             float t = elapsed / duration;
-            float currentRadius = radius * (t < 0.4f ? t / 0.4f : 1f);
-            float alpha = t < 0.4f ? 1f : 1f - (t - 0.4f) / 0.6f;
+            float currentRadius = radius * ScaleCurve.Evaluate(Mathf.Clamp01(t / 0.4f)); // A1
+            float alpha = FadeCurve.Evaluate(t);                                          // A1
+
+            lr.startColor = new Color(head.r, head.g, head.b, alpha);
+            lr.endColor   = new Color(tail.r, tail.g, tail.b, 0f);
 
             for (int i = 0; i < segments; i++)
             {
@@ -173,15 +488,10 @@ public static class ProceduralVFX
                 lr.SetPosition(i, pos);
             }
 
-            // Fade out via alpha scaling no gradient
-            var g = lr.colorGradient;
-            var ak = g.alphaKeys;
-            for (int i = 0; i < ak.Length; i++)
-                ak[i] = new GradientAlphaKey(ak[i].alpha * alpha, ak[i].time);
             elapsed += Time.deltaTime;
             yield return null;
         }
-        Object.Destroy(go);
+        ReleaseLine(go);
     }
 
     // ═══════════════════════════════════════════
@@ -193,73 +503,60 @@ public static class ProceduralVFX
         float speed, float range, Color color,
         System.Action<EnemyBase> onHit = null)
     {
-        var go = new GameObject("VFX_Star");
-        go.transform.position = origin;
+        var go = GetLineGO("VFX_Star", origin, out var lr, out var tr);
+        go.transform.rotation = Quaternion.FromToRotation(Vector3.right, direction); // squash na direção (A5)
 
-        // Estrela de 4 pontas usando 2 LineRenderers cruzados
         float outerR = 0.18f;
         float innerR = 0.07f;
         int   pts    = 9; // 4 pontas + centro
 
-        var lr1 = go.AddComponent<LineRenderer>();
-        lr1.material    = GetMat();
-        lr1.loop        = true;
-        lr1.positionCount = pts;
-        lr1.startWidth  = 0.04f;
-        lr1.endWidth    = 0.04f;
-        lr1.startColor  = lr1.endColor = color;
-        lr1.sortingOrder = 301;
+        lr.useWorldSpace = false; // desenho local p/ a escala (squash) funcionar
+        lr.loop          = true;
+        lr.positionCount = pts;
+        lr.startWidth    = 0.04f;
+        lr.endWidth      = 0.04f;
+        lr.startColor    = lr.endColor = color;
+        lr.sortingOrder  = 301;
 
-        // Trail
-        var tr = go.AddComponent<TrailRenderer>();
-        tr.material    = GetMat();
-        tr.time        = 0.12f;
-        tr.startWidth  = 0.06f;
-        tr.endWidth    = 0f;
-        tr.startColor  = color;
-        tr.endColor    = new Color(color.r, color.g, color.b, 0f);
-        tr.sortingOrder = 300;
+        SetupTrail(tr, 0.12f, 0.06f, color, 300);
 
         float traveled = 0f;
         float rotation = 0f;
-
-        var hitFilter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
-        hitFilter.SetLayerMask(LayerMask.GetMask("Enemy"));
-        var hitList = new System.Collections.Generic.List<Collider2D>();
+        float elapsed  = 0f;
 
         while (traveled < range)
         {
-            float step = speed * Time.deltaTime;
+            float step = speed * SpeedCurve.Evaluate(traveled / range) * Time.deltaTime; // A1
             go.transform.position += (Vector3)(direction * step);
-            traveled  += step;
-            rotation  += 360f * Time.deltaTime * 4f; // rotação rápida
+            traveled += step;
+            elapsed  += Time.deltaTime;
+            rotation += 360f * Time.deltaTime * 4f; // rotação rápida
 
-            // Redesenhar a estrela rotacionada
+            float squashT = Mathf.Clamp01(elapsed / 0.15f); // A5
+            go.transform.localScale = new Vector3(
+                Mathf.Lerp(1.4f, 1f, squashT), Mathf.Lerp(0.7f, 1f, squashT), 1f);
+
+            // Redesenhar a estrela rotacionada (coordenadas locais)
             for (int i = 0; i < pts; i++)
             {
                 float baseAngle = (rotation + i * (360f / 4f)) * Mathf.Deg2Rad;
                 float r = (i % 2 == 0) ? outerR : innerR;
-                lr1.SetPosition(i, go.transform.position + new Vector3(
+                lr.SetPosition(i, new Vector3(
                     Mathf.Cos(baseAngle) * r,
                     Mathf.Sin(baseAngle) * r, 0));
             }
 
-            // Detecção de colisão
-            Physics2D.OverlapCircle(go.transform.position, outerR * 1.2f, hitFilter, hitList);
-            if (hitList.Count > 0)
+            var eb = FindEnemyHit(go.transform.position, outerR * 1.2f);
+            if (eb != null)
             {
-                var eb = hitList[0].GetComponent<EnemyBase>()
-                      ?? hitList[0].GetComponentInParent<EnemyBase>();
-                if (eb != null && !eb.IsDead)
-                {
-                    Object.Destroy(go);
-                    if (onHit != null) onHit(eb);
-                    yield break;
-                }
+                ConfirmedImpact(go.transform.position, color, eb); // A2 + A3 + A7
+                ReleaseLine(go);
+                if (onHit != null) onHit(eb);
+                yield break;
             }
             yield return null;
         }
-        Object.Destroy(go);
+        ReleaseLine(go);
     }
 
     // ═══════════════════════════════════════════
@@ -270,9 +567,7 @@ public static class ProceduralVFX
     public static IEnumerator DaggerFlash(Vector3 origin, Vector2 direction,
         float length, Color color, float width = 0.08f)
     {
-        var go = new GameObject("VFX_DaggerFlash");
-        var lr = go.AddComponent<LineRenderer>();
-        lr.material = GetMat();
+        var go = GetLineGO("VFX_DaggerFlash", origin, out var lr, out _);
         lr.sortingOrder = 300;
         lr.positionCount = 3;
 
@@ -285,7 +580,7 @@ public static class ProceduralVFX
         float duration = 0.12f;
         while (elapsed < duration)
         {
-            float t = 1f - elapsed / duration;
+            float t = FadeCurve.Evaluate(elapsed / duration); // A1
             lr.startWidth = width * t;
             lr.endWidth = 0f;
             lr.startColor = new Color(color.r, color.g, color.b, t);
@@ -293,93 +588,85 @@ public static class ProceduralVFX
             elapsed += Time.deltaTime;
             yield return null;
         }
-        Object.Destroy(go);
+        ReleaseLine(go);
     }
 
     // ═══════════════════════════════════════════
     // TIPO 5 — ARROW STREAK (rastro de flecha)
     // Usado por: Caçador
-    // Linha fina e rápida com ponta triangular
+    // Linha fina e rápida com ponta triangular (desenho local — A5)
     // ═══════════════════════════════════════════
     public static IEnumerator ArrowStreak(Transform originTransform, Vector2 direction,
         float speed, float range, Color color, System.Action<EnemyBase> onHit = null)
     {
-        Vector3 startPos = originTransform.position;
-        var go = new GameObject("VFX_Arrow");
-        go.transform.position = startPos;
-        var lr = go.AddComponent<LineRenderer>();
-        lr.material = GetMat();
+        Vector3 startPos = originTransform != null ? originTransform.position : Vector3.zero;
+        var go = GetLineGO("VFX_Arrow", startPos, out var lr, out var tr);
+        go.transform.rotation = Quaternion.FromToRotation(Vector3.right, direction);
+
+        lr.useWorldSpace = false;
         lr.sortingOrder = 300;
         lr.positionCount = 2;
         lr.startWidth = 0.06f;
         lr.endWidth = 0.02f;
         lr.startColor = Color.white;
         lr.endColor = color;
+        lr.SetPosition(0, new Vector3(-0.4f, 0f, 0f));
+        lr.SetPosition(1, Vector3.zero);
 
-        var tr = go.AddComponent<TrailRenderer>();
-        tr.material = GetMat();
-        tr.time = 0.08f;
-        tr.startWidth = 0.04f;
-        tr.endWidth = 0f;
-        tr.startColor = color;
-        tr.endColor = new Color(color.r, color.g, color.b, 0f);
-        tr.sortingOrder = 299;
+        SetupTrail(tr, 0.08f, 0.04f, color, 299);
 
-        Vector3 perpDir      = new Vector3(-direction.y, direction.x, 0);
-        float   arrowHeadLen = 0.075f;  // era 0.25f → reduzido 70%
-        float   arrowHeadW   = 0.024f;  // era 0.08f → reduzido 70%
+        const float arrowHeadLen = 0.075f;
+        const float arrowHeadW   = 0.024f;
 
-        var tipL = new GameObject("TipL");
+        var tipL = GetLineGO("TipL", startPos, out var lrL, out _);
         tipL.transform.SetParent(go.transform, false);
-        var lrL = tipL.AddComponent<LineRenderer>();
-        lrL.material = GetMat();
-        lrL.positionCount = 2;
-        lrL.startWidth = 0.036f; lrL.endWidth = 0.012f;  // era 0.12f/0.04f → reduzido 70%
-        lrL.startColor = Color.white; lrL.endColor = color;
-        lrL.sortingOrder = 300;
+        ConfigArrowTip(lrL, new Vector3(-arrowHeadLen, arrowHeadW, 0), color);
 
-        var tipR = new GameObject("TipR");
+        var tipR = GetLineGO("TipR", startPos, out var lrR, out _);
         tipR.transform.SetParent(go.transform, false);
-        var lrR = tipR.AddComponent<LineRenderer>();
-        lrR.material = GetMat();
-        lrR.positionCount = 2;
-        lrR.startWidth = 0.036f; lrR.endWidth = 0.012f;  // era 0.12f/0.04f → reduzido 70%
-        lrR.startColor = Color.white; lrR.endColor = color;
-        lrR.sortingOrder = 300;
+        ConfigArrowTip(lrR, new Vector3(-arrowHeadLen, -arrowHeadW, 0), color);
 
         float traveled = 0f;
+        float elapsed  = 0f;
         while (traveled < range)
         {
-            float   step = speed * Time.deltaTime;
+            float step = speed * SpeedCurve.Evaluate(traveled / range) * Time.deltaTime; // A1
             go.transform.position += (Vector3)(direction * step);
-            Vector3 tip  = go.transform.position;
-            lr.SetPosition(0, tip - (Vector3)(direction * 0.4f));
-            lr.SetPosition(1, tip);
-            lrL.SetPosition(0, tip);
-            lrL.SetPosition(1, tip - (Vector3)(direction * arrowHeadLen) + perpDir * arrowHeadW);
-            lrR.SetPosition(0, tip);
-            lrR.SetPosition(1, tip - (Vector3)(direction * arrowHeadLen) - perpDir * arrowHeadW);
             traveled += step;
+            elapsed  += Time.deltaTime;
 
-            var hitFilter = new ContactFilter2D();
-            hitFilter.useTriggers = true;
-            hitFilter.SetLayerMask(LayerMask.GetMask("Enemy"));
-            var hitList = new System.Collections.Generic.List<Collider2D>();
-            Physics2D.OverlapCircle(go.transform.position, 0.2f, hitFilter, hitList);
-            if (hitList.Count > 0)
+            float squashT = Mathf.Clamp01(elapsed / 0.15f); // A5
+            go.transform.localScale = new Vector3(
+                Mathf.Lerp(1.4f, 1f, squashT), Mathf.Lerp(0.7f, 1f, squashT), 1f);
+
+            var eb = FindEnemyHit(go.transform.position, 0.2f);
+            if (eb != null)
             {
-                var eb = hitList[0].GetComponent<EnemyBase>()
-                      ?? hitList[0].GetComponentInParent<EnemyBase>();
-                if (eb != null && !eb.IsDead)
-                {
-                    Object.Destroy(go);
-                    if (onHit != null) onHit(eb);
-                    yield break;
-                }
+                ConfirmedImpact(go.transform.position, color, eb); // A2 + A3 + A7
+                ReleaseLine(tipL);
+                ReleaseLine(tipR);
+                ReleaseLine(go);
+                if (onHit != null) onHit(eb);
+                yield break;
             }
             yield return null;
         }
-        Object.Destroy(go);
+        ReleaseLine(tipL);
+        ReleaseLine(tipR);
+        ReleaseLine(go);
+    }
+
+    static void ConfigArrowTip(LineRenderer lr, Vector3 localEnd, Color color)
+    {
+        lr.useWorldSpace = false;
+        lr.positionCount = 2;
+        lr.startWidth = 0.036f;
+        lr.endWidth = 0.012f;
+        lr.startColor = Color.white;
+        lr.endColor = color;
+        lr.sortingOrder = 300;
+        lr.SetPosition(0, Vector3.zero);
+        lr.SetPosition(1, localEnd);
     }
 
     // ═══════════════════════════════════════════
@@ -390,9 +677,8 @@ public static class ProceduralVFX
     public static IEnumerator WhipChain(Transform playerTransform,
         Vector2 direction, float length, float duration, Color color)
     {
-        var go = new GameObject("VFX_Whip");
-        var lr = go.AddComponent<LineRenderer>();
-        lr.material      = GetMat();
+        var go = GetLineGO("VFX_Whip",
+            playerTransform != null ? playerTransform.position : Vector3.zero, out var lr, out _);
         lr.sortingOrder  = 300;
         lr.positionCount = 20;
         lr.startWidth    = 0.08f;
@@ -416,10 +702,10 @@ public static class ProceduralVFX
         while (elapsed < duration && playerTransform != null)
         {
             float t     = elapsed / duration;
-            // Extensão: vai de 0 a 1 rapidamente, depois volta
+            // Extensão: vai de 0 a 1 rapidamente, depois volta (A1)
             float reach = t < 0.4f
-                ? Mathf.SmoothStep(0f, 1f, t / 0.4f)
-                : Mathf.SmoothStep(1f, 0f, (t - 0.4f) / 0.6f);
+                ? ScaleCurve.Evaluate(t / 0.4f)
+                : ScaleCurve.Evaluate(1f - (t - 0.4f) / 0.6f);
 
             Vector3 anchor = playerTransform.position; // ponta fixa no player
 
@@ -437,7 +723,7 @@ public static class ProceduralVFX
             elapsed += Time.deltaTime;
             yield return null;
         }
-        Object.Destroy(go);
+        ReleaseLine(go);
     }
 
     // ═══════════════════════════════════════════
@@ -448,11 +734,8 @@ public static class ProceduralVFX
     public static IEnumerator ExplosionRing(Vector3 center, Color color,
         float maxRadius, float duration, float width = 0.15f)
     {
-        var go = new GameObject("VFX_Ring");
-        go.transform.position = center;
-        var lr = go.AddComponent<LineRenderer>();
+        var go = GetLineGO("VFX_Ring", center, out var lr, out _);
         lr.useWorldSpace = true;
-        lr.material = GetMat();
         lr.loop = true;
         lr.positionCount = 32;
         lr.sortingOrder = 300;
@@ -461,8 +744,8 @@ public static class ProceduralVFX
         while (elapsed < duration)
         {
             float t = elapsed / duration;
-            float r = maxRadius * t;
-            float alpha = 1f - t;
+            float r = maxRadius * ScaleCurve.Evaluate(t); // A1
+            float alpha = FadeCurve.Evaluate(t);          // A1
             float w = width * (1f - t * 0.5f);
 
             lr.startWidth = w;
@@ -480,7 +763,7 @@ public static class ProceduralVFX
             elapsed += Time.deltaTime;
             yield return null;
         }
-        Object.Destroy(go);
+        ReleaseLine(go);
     }
 
     // ═══════════════════════════════════════════
@@ -492,67 +775,60 @@ public static class ProceduralVFX
         System.Action<Vector3> onHit = null)
     {
         Color skullColor = new Color(0.5f, 1f, 0.4f);
-        var go = new GameObject("VFX_Skull");
-        go.transform.position = origin;
+        Color dark = new Color(0f, 0f, 0f, 0.8f);
 
-        CreateCircle(go, 0.12f, skullColor, 300, 12);
-        CreateDot(go, new Vector3(-0.04f, 0.02f, 0), 0.03f, new Color(0f, 0f, 0f, 0.8f));
-        CreateDot(go, new Vector3( 0.04f, 0.02f, 0), 0.03f, new Color(0f, 0f, 0f, 0.8f));
+        var go = GetLineGO("VFX_Skull", origin, out var lr, out var tr);
+        go.transform.rotation = Quaternion.FromToRotation(Vector3.right, direction); // squash na direção (A5)
 
-        var mouth = new GameObject("Mouth");
+        ConfigCircle(lr, 0.12f, skullColor, 300, 12);
+        var eyeL = CreateDot(go, new Vector3(-0.04f, 0.02f, 0), 0.03f, dark);
+        var eyeR = CreateDot(go, new Vector3( 0.04f, 0.02f, 0), 0.03f, dark);
+
+        var mouth = GetLineGO("Mouth", origin, out var lrM, out _);
         mouth.transform.SetParent(go.transform, false);
-        var lrM = mouth.AddComponent<LineRenderer>();
-        lrM.material = GetMat();
         lrM.useWorldSpace = false;
         lrM.positionCount = 2;
         lrM.startWidth = 0.02f; lrM.endWidth = 0.02f;
-        lrM.startColor = lrM.endColor = new Color(0f, 0f, 0f, 0.8f);
+        lrM.startColor = lrM.endColor = dark;
         lrM.sortingOrder = 301;
         lrM.SetPosition(0, new Vector3(-0.05f, -0.04f, 0));
         lrM.SetPosition(1, new Vector3( 0.05f, -0.04f, 0));
 
-        var tr = go.AddComponent<TrailRenderer>();
-        tr.material = GetMat();
-        tr.time = 0.3f;
-        tr.startWidth = 0.08f; tr.endWidth = 0f;
-        tr.startColor = skullColor;
-        tr.endColor = new Color(skullColor.r, skullColor.g, skullColor.b, 0f);
-        tr.sortingOrder = 299;
+        SetupTrail(tr, 0.3f, 0.08f, skullColor, 299);
 
         float traveled    = 0f;
         float bounceTimer = 0f;
+        float elapsed     = 0f;
         while (traveled < range)
         {
-            float step = speed * Time.deltaTime;
+            float step = speed * SpeedCurve.Evaluate(traveled / range) * Time.deltaTime; // A1
             bounceTimer += Time.deltaTime;
+            elapsed     += Time.deltaTime;
 
             float bounce = Mathf.Abs(Mathf.Sin(bounceTimer * 12f)) * 0.05f;
             go.transform.position += (Vector3)(direction * step)
                                    + Vector3.up * (bounce - 0.025f);
             traveled += step;
 
-            var filter = new ContactFilter2D();
-            filter.useTriggers = true;
-            filter.SetLayerMask(LayerMask.GetMask("Enemy"));
-            var hits = new System.Collections.Generic.List<Collider2D>();
-            Physics2D.OverlapCircle(go.transform.position, 0.35f, filter, hits);
-            if (hits.Count > 0)
+            float squashT = Mathf.Clamp01(elapsed / 0.15f); // A5
+            go.transform.localScale = new Vector3(
+                Mathf.Lerp(1.4f, 1f, squashT), Mathf.Lerp(0.7f, 1f, squashT), 1f);
+
+            var eb = FindEnemyHit(go.transform.position, 0.35f);
+            if (eb != null)
             {
-                var eb = hits[0].GetComponent<EnemyBase>()
-                      ?? hits[0].GetComponentInParent<EnemyBase>();
-                if (eb != null && !eb.IsDead)
-                {
-                    Vector3 hitPos = go.transform.position;
-                    Object.Destroy(go);
-                    if (onHit != null) onHit(hitPos);
-                    yield break;
-                }
+                Vector3 hitPos = go.transform.position;
+                ConfirmedImpact(hitPos, skullColor, eb); // A2 + A3 + A7
+                ReleaseLine(eyeL); ReleaseLine(eyeR); ReleaseLine(mouth); ReleaseLine(go);
+                if (onHit != null) onHit(hitPos);
+                yield break;
             }
             yield return null;
         }
 
         Vector3 finalPos = go.transform.position;
-        Object.Destroy(go);
+        SpawnImpactLayers(Runner, finalPos, skullColor); // explode no fim do curso (sem hit-stop)
+        ReleaseLine(eyeL); ReleaseLine(eyeR); ReleaseLine(mouth); ReleaseLine(go);
         if (onHit != null) onHit(finalPos);
     }
 
@@ -577,12 +853,17 @@ public static class ProceduralVFX
     // Usado por: Caçador
     // Arco crescente que expande girando levemente
     // ═══════════════════════════════════════════
+
+    // Scratch compartilhado p/ gradiente sem alocação por frame —
+    // preenchido e atribuído na mesma chamada, sem yield no meio
+    static readonly GradientColorKey[] _crescentColorKeys = new GradientColorKey[2];
+    static readonly GradientAlphaKey[] _crescentAlphaKeys = new GradientAlphaKey[3];
+    static readonly Gradient _crescentGrad = new Gradient();
+
     public static IEnumerator CrescentSlash(Vector3 origin, Vector2 direction,
         float radius, float duration, Color color, float width = 0.15f)
     {
-        var go = new GameObject("VFX_Crescent");
-        var lr = go.AddComponent<LineRenderer>();
-        lr.material = GetMat();
+        var go = GetLineGO("VFX_Crescent", origin, out var lr, out _);
         lr.sortingOrder = 300;
         int segments = 40;
         lr.positionCount = segments;
@@ -595,18 +876,19 @@ public static class ProceduralVFX
         while (elapsed < duration)
         {
             float t             = elapsed / duration;
-            float currentRadius = Mathf.Lerp(radius * 0.2f, radius, t);
-            float alpha         = t < 0.5f ? t * 2f : Mathf.Lerp(1f, 0.3f, (t - 0.5f) * 2f);
+            float currentRadius = Mathf.Lerp(radius * 0.2f, radius, ScaleCurve.Evaluate(t)); // A1
+            float alpha         = t < 0.5f
+                ? t * 2f
+                : Mathf.Lerp(1f, 0.3f, 1f - FadeCurve.Evaluate((t - 0.5f) * 2f)); // A1
             float swingAngle    = Mathf.Lerp(-15f, 15f, t);
 
-            var grad = new Gradient();
-            grad.SetKeys(
-                new[]{ new GradientColorKey(color, 0f), new GradientColorKey(color, 1f) },
-                new[]{ new GradientAlphaKey(0f, 0f),
-                       new GradientAlphaKey(alpha, 0.5f),
-                       new GradientAlphaKey(0f, 1f) }
-            );
-            lr.colorGradient = grad;
+            _crescentColorKeys[0] = new GradientColorKey(color, 0f);
+            _crescentColorKeys[1] = new GradientColorKey(color, 1f);
+            _crescentAlphaKeys[0] = new GradientAlphaKey(0f, 0f);
+            _crescentAlphaKeys[1] = new GradientAlphaKey(alpha, 0.5f);
+            _crescentAlphaKeys[2] = new GradientAlphaKey(0f, 1f);
+            _crescentGrad.SetKeys(_crescentColorKeys, _crescentAlphaKeys);
+            lr.colorGradient = _crescentGrad;
             lr.startWidth = width * (1f - t * 0.4f);
             lr.endWidth   = lr.startWidth * 0.3f;
 
@@ -622,19 +904,17 @@ public static class ProceduralVFX
             elapsed += Time.deltaTime;
             yield return null;
         }
-        Object.Destroy(go);
+        ReleaseLine(go);
     }
 
     // ═══════════════════════════════════════════
     // HELPERS INTERNOS
     // ═══════════════════════════════════════════
-    static GameObject CreateCircle(GameObject parent, float radius,
+
+    // Configura o LineRenderer (pooled) como círculo em espaço local
+    static void ConfigCircle(LineRenderer lr, float radius,
         Color color, int sortOrder, int segments = 24)
     {
-        var go = new GameObject("Core");
-        go.transform.SetParent(parent.transform, false);
-        var lr = go.AddComponent<LineRenderer>();
-        lr.material = GetMat();
         lr.useWorldSpace = false;
         lr.loop = true;
         lr.positionCount = segments;
@@ -649,16 +929,13 @@ public static class ProceduralVFX
             lr.SetPosition(i, new Vector3(
                 Mathf.Cos(a) * radius, Mathf.Sin(a) * radius, 0));
         }
-        return go;
     }
 
-    static void CreateDot(GameObject parent, Vector3 localPos, float size, Color color)
+    static GameObject CreateDot(GameObject parent, Vector3 localPos, float size, Color color)
     {
-        var go = new GameObject("Dot");
+        var go = GetLineGO("VFX_Dot", parent.transform.position, out var lr, out _);
         go.transform.SetParent(parent.transform, false);
         go.transform.localPosition = localPos;
-        var lr = go.AddComponent<LineRenderer>();
-        lr.material = GetMat();
         lr.useWorldSpace = false;
         lr.positionCount = 2;
         lr.startWidth = size; lr.endWidth = size;
@@ -666,44 +943,13 @@ public static class ProceduralVFX
         lr.sortingOrder = 302;
         lr.SetPosition(0, Vector3.zero);
         lr.SetPosition(1, new Vector3(0.001f, 0, 0));
-    }
-
-    static GameObject CreateExplosion(Vector3 pos, Color color,
-        float size, float duration)
-    {
-        var go = new GameObject("VFX_Impact");
-        go.transform.position = pos;
-        for (int i = 0; i < 3; i++)
-        {
-            var ring = new GameObject($"Ring{i}");
-            ring.transform.SetParent(go.transform, false);
-            var lr = ring.AddComponent<LineRenderer>();
-            lr.material = GetMat();
-            lr.loop = true;
-            lr.positionCount = 24;
-            lr.startWidth = 0.05f;
-            lr.endWidth = 0.05f;
-            float r = size * (0.3f + i * 0.35f);
-            lr.startColor = new Color(color.r, color.g, color.b,
-                                      1f - i * 0.3f);
-            lr.endColor = lr.startColor;
-            lr.sortingOrder = 300;
-            for (int j = 0; j < 24; j++)
-            {
-                float a = (float)j / 24 * Mathf.PI * 2f;
-                lr.SetPosition(j, new Vector3(
-                    Mathf.Cos(a) * r, Mathf.Sin(a) * r, 0));
-            }
-        }
         return go;
     }
 
     public static System.Collections.IEnumerator PulsingRing(
         System.Func<Vector3> getPos, Color color, float radius, float duration)
     {
-        var go = new GameObject("VFX_PulsingRing");
-        var lr = go.AddComponent<LineRenderer>();
-        lr.material      = GetMat();
+        var go = GetLineGO("VFX_PulsingRing", getPos(), out var lr, out _);
         lr.loop          = true;
         lr.positionCount = 32;
         lr.useWorldSpace = true;
@@ -732,6 +978,6 @@ public static class ProceduralVFX
             elapsed += Time.deltaTime;
             yield return null;
         }
-        Object.Destroy(go);
+        ReleaseLine(go);
     }
 }

@@ -24,8 +24,6 @@ public class ChunkInstance : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[Chunk] Populate: gridPos={gridPos}, biome={biome}, prefabs={prefabs.Count}, count={count}");
-
         int nullCount = 0;
         foreach (var p in prefabs) if (p == null) nullCount++;
         if (nullCount > 0)
@@ -46,7 +44,6 @@ public class ChunkInstance : MonoBehaviour
             Vector3 pos = transform.position + new Vector3(x, y, 0);
 
             var go = Instantiate(prefabs[pi], pos, Quaternion.identity, transform);
-            Debug.Log($"[Chunk] Prop criado: {go?.name} em {pos}");
 
             var ep = go.GetComponent<EnvironmentProp>();
             if (ep != null) ep.Initialize(seed + i * 1000);

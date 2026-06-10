@@ -23,12 +23,14 @@ public class PlayerAttack : MonoBehaviour
 
     PlayerWeapon      weapon;
     CharacterAnimator _anim;
+    SpriteRenderer    _sr;
     float             _cooldownTimer;
 
     void Awake()
     {
         weapon = GetComponent<PlayerWeapon>();
         _anim  = GetComponent<CharacterAnimator>();
+        _sr    = GetComponentInChildren<SpriteRenderer>();
         SyncFromWeapon();
         if (enemyLayerMask == 0) enemyLayerMask = LayerMask.GetMask("Enemy");
         _cooldownTimer = attackCooldown;
@@ -91,6 +93,7 @@ public class PlayerAttack : MonoBehaviour
         Vector2 attackDir = _meleeAlt ? -facing : facing;
         _meleeAlt = !_meleeAlt;
 
+        StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
         StartCoroutine(ProceduralVFX.WhipChain(
             transform, attackDir,
             length: attackRange * 1.4f, duration: 0.4f,
@@ -120,6 +123,7 @@ public class PlayerAttack : MonoBehaviour
         Vector2 attackDir = GetAttackDirection();
         Vector3 swordTip  = transform.position + (Vector3)(attackDir * 0.8f);
 
+        StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
         StartCoroutine(ProceduralVFX.DaggerFlash(
             transform.position, attackDir,
             length: 1.2f,
@@ -155,6 +159,7 @@ public class PlayerAttack : MonoBehaviour
 
         Vector2 dirToEnemy = ((Vector2)(nearestEnemy.transform.position - transform.position)).normalized;
 
+        StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
         StartCoroutine(ProceduralVFX.StarProjectile(
             transform.position, dirToEnemy,
             speed: 14f, range: attackRange,
@@ -190,6 +195,7 @@ public class PlayerAttack : MonoBehaviour
         Vector2 dir = ((Vector2)(target.transform.position - transform.position)).normalized;
         float range = attackRange;
 
+        StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
         StartCoroutine(ProceduralVFX.EnergyBolt(
             transform.position, dir,
             speed: 18f, range: range,
@@ -225,6 +231,7 @@ public class PlayerAttack : MonoBehaviour
         Vector2 dir = ((Vector2)(target.transform.position - transform.position)).normalized;
         float aoeRadius = (PlayerClassManager.Instance?.HasBoost("caveira_explosiva") == true) ? 1.2f : 0.5f;
 
+        StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
         StartCoroutine(ProceduralVFX.SkullProjectile(
             transform.position, dir, 8f, attackRange,
             onHit: hitPos =>
@@ -241,6 +248,7 @@ public class PlayerAttack : MonoBehaviour
     void AttackCacador()
     {
         if (GetNearestEnemy(attackRange) == null) return;
+        StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
         var mgr = PlayerClassManager.Instance;
         bool flechasPerfurantes = mgr?.HasBoost("flechas_perfurantes") ?? false;
         float range = attackRange * ((mgr?.HasBoost("olho_aguia") == true) ? 1.4f : 1f);
