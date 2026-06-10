@@ -257,15 +257,13 @@ public static class SolengardLayoutSetup
             SetRect(RT(go),new(.5f,0),new(.5f,0),new(.5f,0),new(0,180),new(700,130));
             if(isNew)
             {
-                EnsureImage(go,Hex("#5A1090")); EnsureButton(go);
+                EnsureButton(go);
                 var lbl=AddLabel(go,"> JOGAR",56f,Color.white); lbl.fontStyle=FontStyles.Bold;
                 var sh=lbl.gameObject.AddComponent<Shadow>(); sh.effectDistance=new(0,-4); sh.effectColor=new Color(0,0,0,.5f);
                 log.AppendLine("  PlayButton"); total++;
             }
             TryWire(mmmSO,"botaoJogar",playButtonGO.GetComponent<Button>(),log);
-            var playImg = playButtonGO.GetComponent<Image>();
-            var playSprite = LoadUI("menu_button.png");
-            if(playSprite != null){ playImg.sprite = playSprite; playImg.type = Image.Type.Simple; playImg.color = new Color(0.6f,0.1f,1f,1f); }
+            ApplyGUISprite(playButtonGO, "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#8B1A9A"));
         }
 
         // BottomTabs
@@ -1132,6 +1130,26 @@ public static class SolengardLayoutSetup
 
     static Image EnsureImage(GameObject go, Color color)
     { var i=go.GetComponent<Image>()??go.AddComponent<Image>(); i.color=color; return i; }
+
+    const string GUIPRO = "Assets/Layer Lab/GUI Pro-FantasyRPG/ResourcesData/Sprites/Component/";
+
+    static void ApplyGUISprite(GameObject go, string spritePath, Color tint)
+    {
+        var img = go.GetComponent<UnityEngine.UI.Image>();
+        if (img == null) img = go.AddComponent<UnityEngine.UI.Image>();
+        var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(GUIPRO + spritePath);
+        if (sprite != null)
+        {
+            img.sprite = sprite;
+            img.type = UnityEngine.UI.Image.Type.Sliced;
+            img.color = tint;
+            img.pixelsPerUnitMultiplier = 1f;
+        }
+        else
+        {
+            Debug.LogWarning($"[GUIPro] Sprite não encontrado: {spritePath}");
+        }
+    }
 
     static TextMeshProUGUI EnsureTMP(GameObject go, string text, float size, Color color)
     {
