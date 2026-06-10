@@ -263,7 +263,7 @@ public static class SolengardLayoutSetup
                 log.AppendLine("  PlayButton"); total++;
             }
             TryWire(mmmSO,"botaoJogar",playButtonGO.GetComponent<Button>(),log);
-            ApplyGUISprite(playButtonGO, "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#8B1A9A"));
+            ApplyGUISprite(playButtonGO, "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#B048C8"));
         }
 
         // BottomTabs
