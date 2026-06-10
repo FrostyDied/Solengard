@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 [System.Serializable]
@@ -23,6 +24,13 @@ public class RuntimeMeshAutoDestroy : MonoBehaviour
         var mf = GetComponent<MeshFilter>();
         if (mf != null && mf.sharedMesh != null) Destroy(mf.sharedMesh);
     }
+}
+
+// Segura a textura de chão viva enquanto o chunk a usa (FIX 3 — refcount)
+public class GroundTextureRef : MonoBehaviour
+{
+    public long key;
+    void OnDestroy() => ProceduralSceneGenerator.ReleaseGroundTexture(key);
 }
 
 // Pulso suave de alpha para as fake lights (sin lento, fase aleatória)
@@ -55,10 +63,27 @@ public class ProceduralSceneGenerator : MonoBehaviour
     [Header("Config por bioma")]
     public BiomeVisualConfig[] biomes = new BiomeVisualConfig[5];
 
+    [Header("Chão (FIX 1/2)")]
+    [Tooltip("128 = mobile seguro; 256 = mais detalhe se não houver stutter")]
+    public int groundTexSize = 128;
+    [Tooltip("Linhas de textura geradas por frame (amortização)")]
+    public int rowsPerFrame = 32;
+
+    [Header("Híbrido (FIX 4)")]
+    [Tooltip("false = props Craftpix posicionados pelo motor; true = props 100% procedurais")]
+    public bool useProceduralProps = false;
+
     // ---- CACHE DE TEXTURAS DE CHÃO (grid 7x7 = 49 chunks, evita stutter) ----
+    // Key por (chunkX, chunkY, biomeId); refcount impede o LRU de destruir
+    // textura que um chunk ativo ainda usa (FIX 3)
     static readonly Dictionary<long, Texture2D> _groundTexCache = new();
+    static readonly Dictionary<long, int> _groundTexRefs = new();
     static readonly Queue<long> _cacheOrder = new();
+    static readonly HashSet<long> _building = new();
     const int MAX_CACHED_TEXTURES = 60;
+
+    static long GroundKey(int cx, int cy, int biomeId)
+        => ((long)(cx & 0xFFFFF) << 28) | ((long)(cy & 0xFFFFF) << 8) | (long)(biomeId & 0xFF);
 
     void Awake()
     {
@@ -71,6 +96,7 @@ public class ProceduralSceneGenerator : MonoBehaviour
     void OnDestroy()
     {
         if (Instance == this) Instance = null;
+        _building.Clear(); // coroutines morrem com o GO — não deixar keys travadas
         // NÃO destruir texturas do cache aqui — sobrevivem entre rebuilds de chunk
     }
 
@@ -78,8 +104,11 @@ public class ProceduralSceneGenerator : MonoBehaviour
         => globalSeed ^ (chunkX * 7919) ^ (chunkY * 6271);
 
     // Ponto de entrada — chamado pelo ChunkInstance (Bloco F)
+    // Híbrido (FIX 4): chão sempre procedural; props Craftpix posicionados
+    // pelo motor (seed + densidade), a menos que useProceduralProps = true.
     public void GenerateChunk(GameObject chunkRoot, int chunkX, int chunkY,
-        int biomeId, float chunkSize)
+        int biomeId, float chunkSize,
+        List<GameObject> craftpixPrefabs = null, int craftpixCount = 12)
     {
         int seed = GetChunkSeed(chunkX, chunkY);
         var biome = biomes[Mathf.Clamp(biomeId, 0, biomes.Length - 1)];
@@ -93,14 +122,70 @@ public class ProceduralSceneGenerator : MonoBehaviour
 
         _emissiveSpots.Clear(); // posições candidatas para fake lights (Bloco E)
 
-        GenerateGround(chunkRoot, seed, biomeId, biome, chunkSize);
-        GenerateRocks(chunkRoot, seed, biomeId, biome, chunkSize); // rochas: distribuição uniforme
-        if (allowTrees)
-            GenerateTrees(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
-        GenerateBushes(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
-        GenerateGrass(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
-        GenerateCliffs(chunkRoot, seed, biomeId, biome, chunkSize);
+        GenerateGround(chunkRoot, chunkX, chunkY, biomeId, biome, chunkSize);
+
+        if (useProceduralProps)
+        {
+            // Props 100% procedurais (preservados — reativar pela flag)
+            GenerateRocks(chunkRoot, seed, biomeId, biome, chunkSize);
+            if (allowTrees)
+                GenerateTrees(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
+            GenerateBushes(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
+            GenerateGrass(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
+            GenerateCliffs(chunkRoot, seed, biomeId, biome, chunkSize);
+        }
+        else
+        {
+            PlaceCraftpixProps(chunkRoot, seed, biomeId, craftpixPrefabs,
+                craftpixCount, chunkSize, densityMult, allowTrees);
+        }
+
         GenerateFakeLights(chunkRoot, seed, biomeId, biome, chunkSize);
+    }
+
+    // FIX 4 — props Craftpix com POSICIONAMENTO procedural:
+    // seed do chunk decide posição/quantidade; densidade espacial modula;
+    // tint de bioma e Y-sorting idênticos ao ChunkInstance original.
+    void PlaceCraftpixProps(GameObject root, int seed, int biomeId,
+        List<GameObject> prefabs, int count, float size,
+        float densityMult, bool allowTrees)
+    {
+        if (prefabs == null || prefabs.Count == 0) return;
+
+        var rng = new System.Random(seed);
+        int total = Mathf.RoundToInt(count * densityMult);
+        float half = size * 0.5f;
+        float margin = size * 0.1f;
+
+        for (int i = 0; i < total; i++)
+        {
+            int pi = rng.Next(prefabs.Count);
+            if (prefabs[pi] == null) continue;
+
+            float x = (float)(rng.NextDouble() * (size - margin * 2) - (half - margin));
+            float y = (float)(rng.NextDouble() * (size - margin * 2) - (half - margin));
+
+            // centro do chunk protegido (área de combate)
+            if (Mathf.Abs(x) < size * 0.15f && Mathf.Abs(y) < size * 0.15f) continue;
+            // área aberta: sem árvores
+            if (!allowTrees && prefabs[pi].name.Contains("Tree")) continue;
+
+            Vector3 pos = root.transform.position + new Vector3(x, y, 0);
+            var go = Instantiate(prefabs[pi], pos, Quaternion.identity, root.transform);
+
+            var ep = go.GetComponent<EnvironmentProp>();
+            if (ep != null) ep.Initialize(seed + i * 1000);
+
+            var sr = go.GetComponentInChildren<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.color = biomeId < ChunkInstance.BIOME_TINTS.Length
+                    ? ChunkInstance.BIOME_TINTS[biomeId] : Color.white;
+                sr.sortingOrder = Mathf.RoundToInt(-pos.y * 0.1f) + 50;
+            }
+
+            _emissiveSpots.Add(new Vector3(x, y, 0)); // fake lights junto aos props
+        }
     }
 
     public void ClearChunk(GameObject chunkRoot)
@@ -110,8 +195,8 @@ public class ProceduralSceneGenerator : MonoBehaviour
         // Texturas cacheadas NÃO são destruídas — o sprite some, a textura fica
     }
 
-    // ---- CHÃO ----
-    void GenerateGround(GameObject root, int seed, int biomeId,
+    // ---- CHÃO (FIX 1: noise em WORLD-SPACE → zero emenda entre chunks) ----
+    void GenerateGround(GameObject root, int chunkX, int chunkY, int biomeId,
         BiomeVisualConfig biome, float size)
     {
         var go = new GameObject("Ground");
@@ -121,80 +206,167 @@ public class ProceduralSceneGenerator : MonoBehaviour
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sortingOrder = -100; // convenção do projeto (layer Default)
 
-        Texture2D tex = GetOrCreateGroundTexture(seed, biomeId, biome);
+        long key = GroundKey(chunkX, chunkY, biomeId);
 
-        const int texSize = 256;
-        float ppu = texSize / size;
-        sr.sprite = Sprite.Create(tex, new Rect(0, 0, texSize, texSize),
-            new Vector2(0.5f, 0.5f), ppu, 0, SpriteMeshType.FullRect);
+        if (_groundTexCache.TryGetValue(key, out var cached) && cached != null)
+        {
+            AssignGroundSprite(sr, go, cached, size, key);
+            return;
+        }
+
+        // FIX 2: placeholder sólido enquanto a textura é gerada (sem buraco)
+        sr.sprite = GetWhitePixelSprite();
+        sr.color = biome.groundBase;
+        go.transform.localScale = new Vector3(size, size, 1f);
+
+        StartCoroutine(BuildGroundAsync(sr, go, key, chunkX, chunkY, biome, size));
     }
 
-    Texture2D GetOrCreateGroundTexture(int seed, int biomeId, BiomeVisualConfig biome)
+    void AssignGroundSprite(SpriteRenderer sr, GameObject go, Texture2D tex,
+        float size, long key)
     {
-        long key = ((long)seed << 8) | (uint)biomeId;
-        if (_groundTexCache.TryGetValue(key, out var cached) && cached != null)
-            return cached;
+        int ts = tex.width;
+        sr.color = Color.white;
+        go.transform.localScale = Vector3.one;
+        sr.sprite = Sprite.Create(tex, new Rect(0, 0, ts, ts),
+            new Vector2(0.5f, 0.5f), ts / size, 0, SpriteMeshType.FullRect);
 
-        var tex = BuildGroundTexture(seed, biome);
+        // FIX 3: o GO segura a textura viva via refcount enquanto existir
+        var rc = go.AddComponent<GroundTextureRef>();
+        rc.key = key;
+        _groundTexRefs.TryGetValue(key, out int n);
+        _groundTexRefs[key] = n + 1;
+    }
 
-        // LRU simples por ordem de inserção
-        if (_groundTexCache.Count >= MAX_CACHED_TEXTURES && _cacheOrder.Count > 0)
+    public static void ReleaseGroundTexture(long key)
+    {
+        if (!_groundTexRefs.TryGetValue(key, out int n)) return;
+        if (n <= 1) _groundTexRefs.Remove(key);
+        else _groundTexRefs[key] = n - 1;
+    }
+
+    // FIX 2: textura gerada em fatias de rowsPerFrame linhas por frame.
+    // Como o grid 7×7 cria chunks bem fora da câmera, a geração amortizada
+    // termina antes do player alcançar o anel externo (pré-geração).
+    IEnumerator BuildGroundAsync(SpriteRenderer sr, GameObject go, long key,
+        int chunkX, int chunkY, BiomeVisualConfig biome, float size)
+    {
+        // outra coroutine já constrói esta key? aguardar e reaproveitar
+        while (_building.Contains(key))
+            yield return null;
+
+        if (!_groundTexCache.TryGetValue(key, out var tex) || tex == null)
+        {
+            _building.Add(key);
+
+            int ts = Mathf.Max(32, groundTexSize);
+            tex = new Texture2D(ts, ts, TextureFormat.RGB24, false);
+            tex.filterMode = FilterMode.Bilinear;
+            tex.wrapMode = TextureWrapMode.Clamp;
+
+            var pixels = new Color[ts * ts];
+            // FIX 1: UMA seed global p/ todo o chão — campo contínuo no mundo
+            var noise = new SeededNoise(globalSeed);
+
+            // FIX 4: paleta dessaturada 15% (não competir com pixel art)
+            Color gShadow    = Desaturate(biome.groundShadow, 0.85f);
+            Color gBase      = Desaturate(biome.groundBase, 0.85f);
+            Color gAccent    = Desaturate(biome.groundAccent, 0.85f);
+            Color gHighlight = Desaturate(biome.groundHighlight, 0.85f);
+
+            float worldOX = chunkX * size;
+            float worldOY = chunkY * size;
+            int rows = Mathf.Max(8, rowsPerFrame);
+
+            for (int y = 0; y < ts; y++)
+            {
+                // centro do pixel → bordas simétricas entre chunks vizinhos
+                float v = (worldOY + ((y + 0.5f) / ts) * size) * 0.05f;
+                for (int x = 0; x < ts; x++)
+                {
+                    float u = (worldOX + ((x + 0.5f) / ts) * size) * 0.05f;
+
+                    float macro = noise.FBM(u, v, 3f, 4);
+                    float mid   = noise.Smooth(u * 8f + 5f, v * 8f + 5f) * 0.5f;
+                    float micro = noise.Smooth(u * 20f + 10f, v * 20f + 10f) * 0.25f;
+                    float h = macro * 0.5f + mid * 0.35f + micro * 0.15f;
+
+                    Color c;
+                    if (h > 0.65f)
+                        c = Color.Lerp(gAccent, gHighlight, (h - 0.65f) / 0.35f);
+                    else if (h > 0.35f)
+                        c = Color.Lerp(gBase, gAccent, (h - 0.35f) / 0.30f);
+                    else
+                        c = Color.Lerp(gShadow, gBase, h / 0.35f);
+
+                    // Sombra direcional (luz topo-esquerda)
+                    float sh = noise.FBM(u + 0.02f, v - 0.02f, 3f, 2);
+                    c = Color.Lerp(c, gShadow, Mathf.Clamp01(macro - sh) * 0.3f);
+
+                    // Rachaduras
+                    if (noise.Get(u * 30f, v * 30f) > 0.92f)
+                        c = Color.Lerp(c, gShadow, 0.5f);
+
+                    // FIX 4: ruído fino (escala 40, ±8/255) — textura menos chapada
+                    float fine = (noise.Get(u * 40f, v * 40f) - 0.5f) * (16f / 255f);
+                    c.r = Mathf.Clamp01(c.r + fine);
+                    c.g = Mathf.Clamp01(c.g + fine);
+                    c.b = Mathf.Clamp01(c.b + fine);
+
+                    pixels[y * ts + x] = c;
+                }
+                if ((y + 1) % rows == 0) yield return null; // amortização
+            }
+
+            tex.SetPixels(pixels);
+            tex.Apply(false, false);
+            CacheGroundTexture(key, tex);
+            _building.Remove(key);
+        }
+
+        // o chunk pode ter sido reciclado durante a geração — textura fica no cache
+        if (sr != null && go != null)
+            AssignGroundSprite(sr, go, tex, size, key);
+    }
+
+    static void CacheGroundTexture(long key, Texture2D tex)
+    {
+        // FIX 3: eviction só destrói textura que NENHUM chunk ativo referencia
+        int guard = _cacheOrder.Count;
+        while (_groundTexCache.Count >= MAX_CACHED_TEXTURES && guard-- > 0)
         {
             long oldest = _cacheOrder.Dequeue();
+            if (_groundTexRefs.TryGetValue(oldest, out int refs) && refs > 0)
+            {
+                _cacheOrder.Enqueue(oldest); // em uso — volta para o fim da fila
+                continue;
+            }
             if (_groundTexCache.TryGetValue(oldest, out var old) && old != null)
-                Destroy(old);
+                Object.Destroy(old);
             _groundTexCache.Remove(oldest);
         }
         _groundTexCache[key] = tex;
         _cacheOrder.Enqueue(key);
-        return tex;
     }
 
-    Texture2D BuildGroundTexture(int seed, BiomeVisualConfig biome)
+    static Sprite _whitePixelSprite;
+    static Sprite GetWhitePixelSprite()
     {
-        const int texSize = 256;
-        var tex = new Texture2D(texSize, texSize, TextureFormat.RGB24, false);
-        tex.filterMode = FilterMode.Bilinear;
-        tex.wrapMode = TextureWrapMode.Repeat;
-
-        var pixels = new Color[texSize * texSize];
-        var noise = new SeededNoise(seed);
-
-        for (int y = 0; y < texSize; y++)
+        if (_whitePixelSprite == null)
         {
-            for (int x = 0; x < texSize; x++)
-            {
-                float fx = (float)x / texSize;
-                float fy = (float)y / texSize;
-
-                float macro = noise.FBM(fx, fy, 3f, 4);
-                float mid   = noise.Smooth(fx * 8f + 5f, fy * 8f + 5f) * 0.5f;
-                float micro = noise.Smooth(fx * 20f + 10f, fy * 20f + 10f) * 0.25f;
-                float h = macro * 0.5f + mid * 0.35f + micro * 0.15f;
-
-                Color c;
-                if (h > 0.65f)
-                    c = Color.Lerp(biome.groundAccent, biome.groundHighlight, (h - 0.65f) / 0.35f);
-                else if (h > 0.35f)
-                    c = Color.Lerp(biome.groundBase, biome.groundAccent, (h - 0.35f) / 0.30f);
-                else
-                    c = Color.Lerp(biome.groundShadow, biome.groundBase, h / 0.35f);
-
-                // Sombra direcional (luz topo-esquerda)
-                float sh = noise.FBM(fx + 0.02f, fy - 0.02f, 3f, 2);
-                c = Color.Lerp(c, biome.groundShadow, Mathf.Clamp01(macro - sh) * 0.3f);
-
-                // Rachaduras
-                if (noise.Get(fx * 30f, fy * 30f) > 0.92f)
-                    c = Color.Lerp(c, biome.groundShadow, 0.5f);
-
-                pixels[y * texSize + x] = c;
-            }
+            var t = new Texture2D(1, 1, TextureFormat.RGB24, false);
+            t.SetPixel(0, 0, Color.white);
+            t.Apply(false, false);
+            _whitePixelSprite = Sprite.Create(t, new Rect(0, 0, 1, 1),
+                new Vector2(0.5f, 0.5f), 1f);
         }
+        return _whitePixelSprite;
+    }
 
-        tex.SetPixels(pixels);
-        tex.Apply(false, false);
-        return tex;
+    static Color Desaturate(Color c, float satMult)
+    {
+        Color.RGBToHSV(c, out float h, out float s, out float v);
+        return Color.HSVToRGB(h, Mathf.Clamp01(s * satMult), v);
     }
 
     // ---- ROCHAS (Bloco C) ----

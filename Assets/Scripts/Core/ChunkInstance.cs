@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class ChunkInstance : MonoBehaviour
 {
-    static readonly Color[] BIOME_TINTS =
+    public static readonly Color[] BIOME_TINTS =
     {
         new Color(0.55f, 0.62f, 0.50f), // Veremoth — verde escuro sombrio
         new Color(0.45f, 0.50f, 0.65f), // Khorduum — azul pedra escuro
@@ -19,12 +19,12 @@ public class ChunkInstance : MonoBehaviour
     {
         Clear();
 
-        // Motor procedural (Fase 2): gera chão + props direto neste chunk.
-        // O motor faz o próprio sorting e cores — sem tint nem Y-sort daqui.
+        // Motor procedural (Fase 2): chão procedural + props Craftpix
+        // posicionados pelo motor (híbrido). O motor aplica tint e Y-sort.
         if (ProceduralSceneGenerator.Instance != null)
         {
             ProceduralSceneGenerator.Instance.GenerateChunk(
-                gameObject, gridPos.x, gridPos.y, biome, size);
+                gameObject, gridPos.x, gridPos.y, biome, size, prefabs, count);
             return;
         }
 
