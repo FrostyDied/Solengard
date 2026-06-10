@@ -105,13 +105,43 @@ public static class ProceduralVFX
 
     // ═══════════════════════════════════════════
     // HIT-STOP (A2) — roda sempre no Runner (sobrevive a trocas de cena)
+    // Política: NUNCA em hit de ataque base (autofire de survivor travaria
+    // o jogo várias vezes por segundo). Só em kill, com cooldown global.
+    // Poderes especiais podem chamar DoHitStop direto com valores fortes.
     // ═══════════════════════════════════════════
     static Coroutine _hitStopRoutine;
+    static float _lastHitStop = -999f;
+    const float KILL_HITSTOP_COOLDOWN = 1.5f;
 
     public static void DoHitStop(MonoBehaviour host, float duration = 0.08f, float scale = 0.05f)
     {
         if (_hitStopRoutine != null) return; // não empilhar hit-stops
         _hitStopRoutine = Runner.StartCoroutine(HitStopRoutine(duration, scale));
+    }
+
+    // Chamado APÓS o onHit aplicar o dano — fonte ÚNICA de VFX por evento:
+    //   kill      → NÃO spawnar camadas (o VFX de morte do EnemyBase.Die é o único),
+    //               hit-stop sutil com cooldown global, OnImpact 0.6 (câmera reage)
+    //   sobreviveu → camadas de impacto normais, SEM hit-stop, OnImpact via camadas
+    static void PostHitFeedback(Vector3 pos, Color color, EnemyBase eb)
+    {
+        bool died = eb == null || eb.IsDead || HealthRatio(eb) <= 0f;
+        if (died)
+        {
+            if (Time.unscaledTime - _lastHitStop >= KILL_HITSTOP_COOLDOWN)
+            {
+                _lastHitStop = Time.unscaledTime;
+                DoHitStop(Runner, 0.05f, 0.3f); // pausa sutil, não freeze
+            }
+            OnImpact?.Invoke(0.6f, color);
+            return;
+        }
+
+        float ratio = HealthRatio(eb);
+        float intensity = ratio < 0.2f ? 0.6f : 0.3f; // A7
+        float scaleMult = ratio < 0.2f ? 1.3f : 1f;   // quase morto: impacto 1.3x maior
+        if (ratio < 0.2f) color = Saturate(color, 1.3f);
+        SpawnImpactLayersInternal(pos, color, intensity, scaleMult);
     }
 
     static IEnumerator HitStopRoutine(float duration, float scale)
@@ -128,28 +158,20 @@ public static class ProceduralVFX
     // Camada 1 = efeito principal (cada efeito), 2 = partículas, 3 = glow residual
     // ═══════════════════════════════════════════
     public static void SpawnImpactLayers(MonoBehaviour host, Vector3 pos, Color color, float intensity = 0.3f)
+        => SpawnImpactLayersInternal(pos, color, intensity, 1f);
+
+    static void SpawnImpactLayersInternal(Vector3 pos, Color color, float intensity, float scaleMult)
     {
         // Roda sempre no Runner: se o host morrer no meio, os sprites voltam ao pool mesmo assim
         if (intensity >= 1f) color = Saturate(color, 3f); // poder especial: saturação máxima (A7)
-        int count = Mathf.Min(4 + (int)(intensity * 4), 12);
-        Runner.StartCoroutine(ImpactParticles(pos, color, count));
-        Runner.StartCoroutine(ResidualGlow(pos, color, intensity));
+        int count = Mathf.Min(5 + (int)(intensity * 4), 12); // 6 em hit normal (0.3)
+        Runner.StartCoroutine(ImpactParticles(pos, color, count, scaleMult));
+        Runner.StartCoroutine(ResidualGlow(pos, color, intensity, scaleMult));
         OnImpact?.Invoke(intensity, color);
     }
 
-    // Impacto confirmado de projétil: hit-stop só no primeiro hit do disparo
-    // (cada projétil termina no hit) + camadas + color grading por HP (A7)
-    static void ConfirmedImpact(Vector3 pos, Color color, EnemyBase eb)
-    {
-        float ratio = HealthRatio(eb);
-        float intensity = ratio < 0.2f ? 0.6f : 0.3f;
-        if (ratio < 0.2f) color = Saturate(color, 1.3f);
-        DoHitStop(Runner);
-        SpawnImpactLayers(Runner, pos, color, intensity);
-    }
-
     // Tempo unscaled: as camadas de impacto animam DURANTE o hit-stop
-    static IEnumerator ImpactParticles(Vector3 pos, Color color, int count)
+    static IEnumerator ImpactParticles(Vector3 pos, Color color, int count, float scaleMult = 1f)
     {
         count = Mathf.Min(count, 12);
         var sprites = new SpriteRenderer[count];
@@ -160,10 +182,10 @@ public static class ProceduralVFX
             sprites[i] = GetSpriteGO("VFX_ImpactParticle", pos);
             sprites[i].sortingOrder = 305;
             sprites[i].color = color;
-            sprites[i].transform.localScale = Vector3.one * Random.Range(0.08f, 0.16f);
+            sprites[i].transform.localScale = Vector3.one * (Random.Range(0.16f, 0.32f) * scaleMult);
             float a = (i + Random.value * 0.8f) / count * Mathf.PI * 2f;
             dirs[i] = new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f);
-            speeds[i] = Random.Range(2.5f, 4.5f);
+            speeds[i] = Random.Range(3.75f, 6.75f);
         }
 
         const float life = 0.3f;
@@ -186,21 +208,22 @@ public static class ProceduralVFX
         for (int i = 0; i < count; i++) ReleaseSprite(sprites[i].gameObject);
     }
 
-    static IEnumerator ResidualGlow(Vector3 pos, Color color, float intensity)
+    static IEnumerator ResidualGlow(Vector3 pos, Color color, float intensity, float scaleMult = 1f)
     {
         var sr = GetSpriteGO("VFX_ResidualGlow", pos);
         sr.sortingOrder = 304;
-        float target = (0.3f + intensity * 0.9f) * (intensity >= 1f ? 1.5f : 1f); // 1.5x p/ poder especial (A7)
+        // escala final 2.5x (calibração) × 1.3x p/ inimigo quase morto × 1.5x p/ poder especial
+        float target = (0.375f + intensity * 1.125f) * scaleMult * (intensity >= 1f ? 1.5f : 1f);
         // squash de impacto (A5): nasce achatado e expande em tempo real
         sr.transform.localScale = new Vector3(0.6f, 1.4f, 1f) * (target * 0.1f);
-        sr.transform.DOScale(Vector3.one * target, 0.4f).SetUpdate(true).SetEase(Ease.OutQuad);
+        sr.transform.DOScale(Vector3.one * target, 0.5f).SetUpdate(true).SetEase(Ease.OutQuad);
 
-        const float life = 0.4f;
+        const float life = 0.5f;
         float t = 0f;
         while (t < life)
         {
             t += Time.unscaledDeltaTime;
-            Color c = color; c.a = 0.6f * FadeCurve.Evaluate(t / life);
+            Color c = color; c.a = 0.8f * FadeCurve.Evaluate(t / life);
             sr.color = c;
             yield return null;
         }
@@ -219,7 +242,7 @@ public static class ProceduralVFX
         Color original = sr.color;
         sr.color = Color.white;
         float t = 0f;
-        while (t < 0.05f) { t += Time.unscaledDeltaTime; yield return null; }
+        while (t < 0.07f) { t += Time.unscaledDeltaTime; yield return null; }
         if (sr != null) sr.color = original;
         _flashing = false;
     }
@@ -424,19 +447,19 @@ public static class ProceduralVFX
 
             float growth  = Mathf.Lerp(0.2f, 1f,
                 ScaleCurve.Evaluate(Mathf.Clamp01(traveled / (range * 0.6f)))); // A1
-            float squashT = Mathf.Clamp01(elapsed / 0.15f); // A5
+            float squashT = Mathf.Clamp01(elapsed / 0.2f); // A5
             go.transform.localScale = new Vector3(
-                growth * Mathf.Lerp(1.4f, 1f, squashT),
-                growth * Mathf.Lerp(0.7f, 1f, squashT), 1f);
+                growth * Mathf.Lerp(1.7f, 1f, squashT),
+                growth * Mathf.Lerp(0.6f, 1f, squashT), 1f);
             tr.startWidth = size * growth * 0.8f;
 
             var eb = FindEnemyHit(go.transform.position, size * growth * 0.8f);
             if (eb != null)
             {
                 Vector3 hitPos = go.transform.position;
-                ConfirmedImpact(hitPos, coreColor, eb); // A2 + A3 + A7
                 ReleaseLine(go);
-                if (onHit != null) onHit(hitPos);
+                if (onHit != null) onHit(hitPos);       // aplica o dano
+                PostHitFeedback(hitPos, coreColor, eb); // feedback pós-dano (kill vs hit)
                 yield break;
             }
 
@@ -532,9 +555,9 @@ public static class ProceduralVFX
             elapsed  += Time.deltaTime;
             rotation += 360f * Time.deltaTime * 4f; // rotação rápida
 
-            float squashT = Mathf.Clamp01(elapsed / 0.15f); // A5
+            float squashT = Mathf.Clamp01(elapsed / 0.2f); // A5
             go.transform.localScale = new Vector3(
-                Mathf.Lerp(1.4f, 1f, squashT), Mathf.Lerp(0.7f, 1f, squashT), 1f);
+                Mathf.Lerp(1.7f, 1f, squashT), Mathf.Lerp(0.6f, 1f, squashT), 1f);
 
             // Redesenhar a estrela rotacionada (coordenadas locais)
             for (int i = 0; i < pts; i++)
@@ -549,9 +572,10 @@ public static class ProceduralVFX
             var eb = FindEnemyHit(go.transform.position, outerR * 1.2f);
             if (eb != null)
             {
-                ConfirmedImpact(go.transform.position, color, eb); // A2 + A3 + A7
+                Vector3 hitPos = go.transform.position;
                 ReleaseLine(go);
-                if (onHit != null) onHit(eb);
+                if (onHit != null) onHit(eb);       // aplica o dano
+                PostHitFeedback(hitPos, color, eb); // feedback pós-dano (kill vs hit)
                 yield break;
             }
             yield return null;
@@ -635,18 +659,19 @@ public static class ProceduralVFX
             traveled += step;
             elapsed  += Time.deltaTime;
 
-            float squashT = Mathf.Clamp01(elapsed / 0.15f); // A5
+            float squashT = Mathf.Clamp01(elapsed / 0.2f); // A5
             go.transform.localScale = new Vector3(
-                Mathf.Lerp(1.4f, 1f, squashT), Mathf.Lerp(0.7f, 1f, squashT), 1f);
+                Mathf.Lerp(1.7f, 1f, squashT), Mathf.Lerp(0.6f, 1f, squashT), 1f);
 
             var eb = FindEnemyHit(go.transform.position, 0.2f);
             if (eb != null)
             {
-                ConfirmedImpact(go.transform.position, color, eb); // A2 + A3 + A7
+                Vector3 hitPos = go.transform.position;
                 ReleaseLine(tipL);
                 ReleaseLine(tipR);
                 ReleaseLine(go);
-                if (onHit != null) onHit(eb);
+                if (onHit != null) onHit(eb);       // aplica o dano
+                PostHitFeedback(hitPos, color, eb); // feedback pós-dano (kill vs hit)
                 yield break;
             }
             yield return null;
@@ -810,17 +835,17 @@ public static class ProceduralVFX
                                    + Vector3.up * (bounce - 0.025f);
             traveled += step;
 
-            float squashT = Mathf.Clamp01(elapsed / 0.15f); // A5
+            float squashT = Mathf.Clamp01(elapsed / 0.2f); // A5
             go.transform.localScale = new Vector3(
-                Mathf.Lerp(1.4f, 1f, squashT), Mathf.Lerp(0.7f, 1f, squashT), 1f);
+                Mathf.Lerp(1.7f, 1f, squashT), Mathf.Lerp(0.6f, 1f, squashT), 1f);
 
             var eb = FindEnemyHit(go.transform.position, 0.35f);
             if (eb != null)
             {
                 Vector3 hitPos = go.transform.position;
-                ConfirmedImpact(hitPos, skullColor, eb); // A2 + A3 + A7
                 ReleaseLine(eyeL); ReleaseLine(eyeR); ReleaseLine(mouth); ReleaseLine(go);
-                if (onHit != null) onHit(hitPos);
+                if (onHit != null) onHit(hitPos);        // aplica o dano (AoE)
+                PostHitFeedback(hitPos, skullColor, eb); // feedback pós-dano (kill vs hit)
                 yield break;
             }
             yield return null;
