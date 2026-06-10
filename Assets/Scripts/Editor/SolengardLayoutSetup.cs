@@ -119,7 +119,7 @@ public static class SolengardLayoutSetup
             var (go, isNew) = FindOrCreateUI(canvasTr, "BG");
             if (isNew) { StretchFull(RT(go)); EnsureImage(go, Hex("#0A0A1A")); log.AppendLine("  BG"); total++; }
             // Fundo dark fantasy — força reimport como Sprite se necessário
-            const string BG_PATH = "Assets/Art/UI/Backgrounds/menu_background.png";
+            const string BG_PATH = "Assets/Art/UI/Backgournds/menu_background.png";
             var bgImporter = AssetImporter.GetAtPath(BG_PATH) as TextureImporter;
             if (bgImporter != null && bgImporter.textureType != TextureImporterType.Sprite)
             {
@@ -272,7 +272,7 @@ public static class SolengardLayoutSetup
             var (go,isNew)=FindOrCreateUI(canvasTr,"PlayButton");
             playButtonGO=go;
             // Always apply position — 180px above bottom, clearing BottomTabs (140px) with 40px gap
-            SetRect(RT(go),new(.5f,0),new(.5f,0),new(.5f,0),new(0,180),new(700,130));
+            SetRect(RT(go),new(.5f,0),new(.5f,0),new(.5f,0),new(0,180),new(500,100));
             if(isNew)
             {
                 EnsureButton(go);
