@@ -14,6 +14,17 @@ public class BiomeVisualConfig
     public int treeCount = 4, rockCount = 5, bushCount = 8;
 }
 
+// Meshes criadas em runtime NÃO são destruídas junto com o GameObject —
+// sem isto, cada rebuild de chunk vazaria memória de mesh no mobile.
+public class RuntimeMeshAutoDestroy : MonoBehaviour
+{
+    void OnDestroy()
+    {
+        var mf = GetComponent<MeshFilter>();
+        if (mf != null && mf.sharedMesh != null) Destroy(mf.sharedMesh);
+    }
+}
+
 public class ProceduralSceneGenerator : MonoBehaviour
 {
     public static ProceduralSceneGenerator Instance { get; private set; }
@@ -54,9 +65,9 @@ public class ProceduralSceneGenerator : MonoBehaviour
         var biome = biomes[Mathf.Clamp(biomeId, 0, biomes.Length - 1)];
 
         GenerateGround(chunkRoot, seed, biomeId, biome, chunkSize);
-        GenerateRocks(chunkRoot, seed, biome, chunkSize);
-        GenerateTrees(chunkRoot, seed, biome, chunkSize);
-        GenerateBushes(chunkRoot, seed, biome, chunkSize);
+        GenerateRocks(chunkRoot, seed, biomeId, biome, chunkSize);
+        GenerateTrees(chunkRoot, seed, biomeId, biome, chunkSize);
+        GenerateBushes(chunkRoot, seed, biomeId, biome, chunkSize);
     }
 
     public void ClearChunk(GameObject chunkRoot)
@@ -153,18 +164,243 @@ public class ProceduralSceneGenerator : MonoBehaviour
         return tex;
     }
 
-    // ---- PROPS (implementados nos Blocos C e D) ----
-    void GenerateRocks(GameObject root, int seed, BiomeVisualConfig biome, float size)
+    // ---- ROCHAS (Bloco C) ----
+    void GenerateRocks(GameObject root, int seed, int biomeId, BiomeVisualConfig biome, float size)
     {
-        // Bloco C
+        var rng = new System.Random(seed + 1000);
+        int count = biome.rockCount + rng.Next(3);
+
+        for (int i = 0; i < count; i++)
+        {
+            float x = (float)(rng.NextDouble() * size * 0.9f - size * 0.45f);
+            float y = (float)(rng.NextDouble() * size * 0.9f - size * 0.45f);
+            float r = 0.3f + (float)rng.NextDouble() * 0.8f;
+            CreateRock(root, new Vector3(x, y, 0), r, seed + i * 100, biomeId, biome);
+        }
     }
 
-    void GenerateTrees(GameObject root, int seed, BiomeVisualConfig biome, float size)
+    void CreateRock(GameObject root, Vector3 localPos, float radius,
+        int rockSeed, int biomeId, BiomeVisualConfig biome)
+    {
+        var go = new GameObject("Rock");
+        go.transform.SetParent(root.transform, false);
+        go.transform.localPosition = localPos;
+
+        // Sorting pela convenção do projeto: worldY
+        float worldY = go.transform.position.y;
+        int sortOrder = Mathf.RoundToInt(-worldY * 0.1f + 50f);
+
+        // Sombra projetada
+        CreateEllipse(go, new Vector3(radius * 0.15f, -radius * 0.2f, 0),
+            radius * 0.9f, radius * 0.35f, new Color(0, 0, 0, 0.35f), 40);
+
+        // Valdross: rochas alongadas verticalmente, como lápides
+        float yFlatten = biomeId == 2 ? 0.9f : 0.7f;
+
+        // Corpo — polígono noise radial, fan triangulation com vertex colors
+        int pts = 8 + (Mathf.Abs(rockSeed) % 5);
+        var noise = new SeededNoise(rockSeed);
+        var verts = new Vector3[pts + 1];
+        verts[0] = Vector3.zero;
+        for (int i = 0; i < pts; i++)
+        {
+            float angle = (float)i / pts * Mathf.PI * 2f;
+            float r = radius * (0.7f + noise.Get(rockSeed + i * 0.3f, 0) * 0.5f);
+            verts[i + 1] = new Vector3(Mathf.Cos(angle) * r, Mathf.Sin(angle) * r * yFlatten, 0);
+        }
+        CreateMeshGO(go, verts, pts, biome.rockColor, biome.rockDark, sortOrder);
+
+        // Rachadura ocasional
+        if (noise.Get(rockSeed, 1) > 0.6f)
+            CreateCrack(go, radius, rockSeed, biome.rockDark, sortOrder + 1);
+
+        // Khorduum: 1-2 cristais saindo do topo da rocha
+        if (biomeId == 1)
+        {
+            int crystals = 1 + (Mathf.Abs(rockSeed / 7) % 2);
+            for (int ci = 0; ci < crystals; ci++)
+            {
+                float cx = (noise.Get(rockSeed, 5 + ci) - 0.5f) * radius * 0.6f;
+                float ch = radius * (0.7f + noise.Get(rockSeed, 8 + ci) * 0.6f);
+                float cw = radius * 0.16f;
+                CreateTriangle(go,
+                    new Vector3(cx - cw, radius * 0.2f, 0),
+                    new Vector3(cx + cw, radius * 0.2f, 0),
+                    new Vector3(cx + (noise.Get(rockSeed, 11 + ci) - 0.5f) * cw, radius * 0.2f + ch, 0),
+                    biome.rockColor, biome.bushLight, sortOrder + 2);
+            }
+        }
+
+        // 2-3 pedras satélite pequenas
+        var prng = new System.Random(rockSeed);
+        int pebbles = 2 + prng.Next(2);
+        for (int p = 0; p < pebbles; p++)
+        {
+            float pr = radius * (0.15f + (float)prng.NextDouble() * 0.15f);
+            float ang = (float)(prng.NextDouble() * Mathf.PI * 2);
+            float dist = radius * (1.1f + (float)prng.NextDouble() * 0.5f);
+            var ppos = new Vector3(Mathf.Cos(ang) * dist, Mathf.Sin(ang) * dist * 0.7f, 0);
+            CreateSimplePolygon(go, ppos, pr, 6, rockSeed + p * 31,
+                biome.rockColor, biome.rockDark, sortOrder);
+        }
+    }
+
+    // ---- HELPERS DE MESH (compartilhados por rochas, árvores, arbustos) ----
+
+    // Material COMPARTILHADO (não criar new Material por mesh — leak de memória)
+    static Material _vertexColorMat;
+    static Material GetSharedVertexColorMaterial()
+    {
+        if (_vertexColorMat == null)
+            _vertexColorMat = new Material(Shader.Find("Sprites/Default"));
+        return _vertexColorMat;
+    }
+
+    // Mesh procedural fan com vertex colors (centro claro, borda escura)
+    void CreateMeshGO(GameObject parent, Vector3[] verts, int ptCount,
+        Color colorCenter, Color colorEdge, int sortOrder, bool brightenCenter = true)
+    {
+        var go = new GameObject("Mesh");
+        go.transform.SetParent(parent.transform, false);
+        var mf = go.AddComponent<MeshFilter>();
+        var mr = go.AddComponent<MeshRenderer>();
+        go.AddComponent<RuntimeMeshAutoDestroy>(); // mesh de runtime não morre com o GO sozinha
+        mr.sortingOrder = sortOrder;
+        mr.sharedMaterial = GetSharedVertexColorMaterial();
+
+        var mesh = new Mesh();
+        var triangles = new int[ptCount * 3];
+        for (int i = 0; i < ptCount; i++)
+        {
+            triangles[i * 3] = 0;
+            triangles[i * 3 + 1] = i + 1;
+            triangles[i * 3 + 2] = (i + 1) % ptCount + 1;
+        }
+        var colors = new Color[verts.Length];
+        colors[0] = brightenCenter ? Color.Lerp(colorCenter, Color.white, 0.2f) : colorCenter;
+        for (int i = 1; i < verts.Length; i++) colors[i] = colorEdge;
+
+        mesh.vertices = verts;
+        mesh.triangles = triangles;
+        mesh.colors = colors;
+        mesh.RecalculateBounds();
+        mf.sharedMesh = mesh;
+    }
+
+    // Elipse de cor chapada (sombras projetadas)
+    void CreateEllipse(GameObject parent, Vector3 localPos, float rx, float ry,
+        Color color, int sortOrder, int segments = 16)
+    {
+        var verts = new Vector3[segments + 1];
+        verts[0] = localPos;
+        for (int i = 0; i < segments; i++)
+        {
+            float a = (float)i / segments * Mathf.PI * 2f;
+            verts[i + 1] = localPos + new Vector3(Mathf.Cos(a) * rx, Mathf.Sin(a) * ry, 0);
+        }
+        CreateMeshGO(parent, verts, segments, color, color, sortOrder, brightenCenter: false);
+    }
+
+    // Quad com gradiente vertical (troncos, pilares). v4: bl, br, tr, tl
+    void CreateQuadMesh(GameObject parent, Vector3[] v4, Color cBottom, Color cTop, int sortOrder)
+    {
+        var go = new GameObject("Quad");
+        go.transform.SetParent(parent.transform, false);
+        var mf = go.AddComponent<MeshFilter>();
+        var mr = go.AddComponent<MeshRenderer>();
+        go.AddComponent<RuntimeMeshAutoDestroy>();
+        mr.sortingOrder = sortOrder;
+        mr.sharedMaterial = GetSharedVertexColorMaterial();
+
+        var mesh = new Mesh();
+        mesh.vertices = v4;
+        mesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };
+        mesh.colors = new[] { cBottom, cBottom, cTop, cTop };
+        mesh.RecalculateBounds();
+        mf.sharedMesh = mesh;
+    }
+
+    void CreateQuad(GameObject parent, Vector3 localCenter, float w, float h,
+        Color bottom, Color top, int sortOrder)
+    {
+        var v = new Vector3[]
+        {
+            localCenter + new Vector3(-w * 0.5f, -h * 0.5f, 0),
+            localCenter + new Vector3( w * 0.5f, -h * 0.5f, 0),
+            localCenter + new Vector3( w * 0.5f,  h * 0.5f, 0),
+            localCenter + new Vector3(-w * 0.5f,  h * 0.5f, 0),
+        };
+        CreateQuadMesh(parent, v, bottom, top, sortOrder);
+    }
+
+    // Quad fino entre dois pontos (galhos, rachaduras, lâminas de grama)
+    void CreateQuadLine(GameObject parent, Vector3 a, Vector3 b, float width,
+        Color color, int sortOrder)
+    {
+        Vector3 d = b - a;
+        Vector3 perp = new Vector3(-d.y, d.x, 0).normalized * (width * 0.5f);
+        var v = new Vector3[] { a - perp, a + perp, b + perp, b - perp };
+        CreateQuadMesh(parent, v, color, color, sortOrder);
+    }
+
+    void CreateTriangle(GameObject parent, Vector3 a, Vector3 b, Vector3 c,
+        Color colBase, Color colTip, int sortOrder)
+    {
+        var go = new GameObject("Tri");
+        go.transform.SetParent(parent.transform, false);
+        var mf = go.AddComponent<MeshFilter>();
+        var mr = go.AddComponent<MeshRenderer>();
+        go.AddComponent<RuntimeMeshAutoDestroy>();
+        mr.sortingOrder = sortOrder;
+        mr.sharedMaterial = GetSharedVertexColorMaterial();
+
+        var mesh = new Mesh();
+        mesh.vertices = new[] { a, b, c };
+        mesh.triangles = new[] { 0, 1, 2 };
+        mesh.colors = new[] { colBase, colBase, colTip };
+        mesh.RecalculateBounds();
+        mf.sharedMesh = mesh;
+    }
+
+    // Rachadura: linha quebrada descendo do topo da rocha
+    void CreateCrack(GameObject parent, float radius, int seed, Color color, int sortOrder)
+    {
+        var noise = new SeededNoise(seed);
+        Vector3 p = new Vector3((noise.Get(seed, 20) - 0.5f) * radius * 0.6f, radius * 0.45f, 0);
+        int segs = 2 + (Mathf.Abs(seed) % 2);
+        float w = Mathf.Max(0.02f, radius * 0.05f);
+        for (int i = 0; i < segs; i++)
+        {
+            Vector3 q = p + new Vector3((noise.Get(seed, 21 + i) - 0.5f) * radius * 0.5f,
+                                        -radius * (0.25f + noise.Get(seed, 24 + i) * 0.2f), 0);
+            CreateQuadLine(parent, p, q, w, color, sortOrder);
+            p = q;
+        }
+    }
+
+    // Polígono irregular achatado (pedras satélite, blocos caídos)
+    void CreateSimplePolygon(GameObject parent, Vector3 localPos, float radius,
+        int sides, int seed, Color color, Color colorDark, int sortOrder)
+    {
+        var noise = new SeededNoise(seed);
+        var verts = new Vector3[sides + 1];
+        verts[0] = localPos;
+        for (int i = 0; i < sides; i++)
+        {
+            float a = (float)i / sides * Mathf.PI * 2f;
+            float r = radius * (0.8f + noise.Get(seed + i, 0) * 0.4f);
+            verts[i + 1] = localPos + new Vector3(Mathf.Cos(a) * r, Mathf.Sin(a) * r * 0.7f, 0);
+        }
+        CreateMeshGO(parent, verts, sides, color, colorDark, sortOrder);
+    }
+
+    // ---- ÁRVORES E ARBUSTOS (Bloco D) ----
+    void GenerateTrees(GameObject root, int seed, int biomeId, BiomeVisualConfig biome, float size)
     {
         // Bloco D
     }
 
-    void GenerateBushes(GameObject root, int seed, BiomeVisualConfig biome, float size)
+    void GenerateBushes(GameObject root, int seed, int biomeId, BiomeVisualConfig biome, float size)
     {
         // Bloco D
     }
