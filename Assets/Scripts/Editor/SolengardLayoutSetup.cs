@@ -316,9 +316,10 @@ public static class SolengardLayoutSetup
             var (tjGO,tjN)=FindOrCreateUI(tr,"TabJogar");
             if(tjN){ EnsureImage(tjGO,Hex("#5A1090")); EnsureButton(tjGO); AddLabel(tjGO,"> JOGAR",24f,Color.white); log.AppendLine("  BottomTabs/TabJogar"); total++; }
             { var img=tjGO.GetComponent<Image>()??tjGO.AddComponent<Image>(); if(tabMenuSprite!=null){ img.sprite=tabMenuSprite; img.type=Image.Type.Simple; img.color=tabActive; } }
+            tjGO.SetActive(false);
 
             var (pGO,pN)=FindOrCreateUI(tr,"TabPasse");   tabPasseGO=pGO;
-            if(pN){ EnsureImage(pGO,Hex("#0D0D1F")); EnsureButton(pGO); AddLabel(pGO,"PASSE",24f,Color.white);   log.AppendLine("  BottomTabs/TabPasse");   total++; }
+            if(pN){ EnsureImage(pGO,Hex("#0D0D1F")); EnsureButton(pGO); AddLabel(pGO,"UPGRADES",24f,Color.white); log.AppendLine("  BottomTabs/TabPasse");   total++; }
             { var img=pGO.GetComponent<Image>()??pGO.AddComponent<Image>(); if(tabMenuSprite!=null){ img.sprite=tabMenuSprite; img.type=Image.Type.Simple; img.color=tabNormal; } }
 
             { var (c,n)=FindOrCreateUI(tr,"TabConfigs"); if(n){ EnsureImage(c,Hex("#0D0D1F")); EnsureButton(c); AddLabel(c,"CONFIG",24f,Color.white); log.AppendLine("  BottomTabs/TabConfigs"); total++; }
