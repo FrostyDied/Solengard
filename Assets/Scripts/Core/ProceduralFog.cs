@@ -10,7 +10,8 @@ public class ProceduralFog : MonoBehaviour
     readonly SpriteRenderer[] _layers = new SpriteRenderer[3];
     // Velocidades de drift por camada (parallax sutil entre as 3)
     readonly Vector2[] _drift = { new Vector2(0.12f, 0.04f), new Vector2(-0.08f, 0.06f), new Vector2(0.05f, -0.03f) };
-    readonly float[] _layerWeight = { 0.5f, 0.35f, 0.25f };
+    // Pesos altos: com cor escura sobre chão escuro, alpha baixo fica invisível
+    readonly float[] _layerWeight = { 0.8f, 0.6f, 0.45f };
 
     Color _targetColor = new Color(0.16f, 0.36f, 0.12f);
     float _targetDensity = 0.35f;
@@ -100,7 +101,8 @@ public class ProceduralFog : MonoBehaviour
         if (gen == null || gen.biomes == null || gen.biomes.Length == 0) return;
         var b = gen.biomes[Mathf.Clamp(id, 0, gen.biomes.Length - 1)];
         if (b == null) return;
-        _targetColor = b.fogColor;
+        // clarear 25%: fogColor pura é quase a cor do chão → névoa camuflada
+        _targetColor = Color.Lerp(b.fogColor, Color.white, 0.25f);
         _targetDensity = b.fogDensity;
     }
 }

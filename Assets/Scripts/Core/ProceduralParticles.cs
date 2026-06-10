@@ -83,7 +83,7 @@ public class ProceduralParticles : MonoBehaviour
         }
 
         _srs[i].transform.position = _pos[i];
-        _srs[i].transform.localScale = Vector3.one * Random.Range(0.05f, 0.14f);
+        _srs[i].transform.localScale = Vector3.one * Random.Range(0.07f, 0.18f);
     }
 
     void Update()
@@ -131,7 +131,7 @@ public class ProceduralParticles : MonoBehaviour
                 ? 0.55f + 0.45f * Mathf.Sin(t * 2.5f + _phase[i]) // pulso Gorveth
                 : 1f;
             var c = _color;
-            c.a = Mathf.Clamp01(fade * glow) * 0.85f;
+            c.a = Mathf.Clamp01(fade * glow) * 0.95f;
             _srs[i].color = c;
             _srs[i].transform.position = _pos[i];
         }

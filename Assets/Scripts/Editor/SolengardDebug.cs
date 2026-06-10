@@ -284,7 +284,22 @@ public static class SolengardDebug
         var zm = Object.FindFirstObjectByType<ZoneManager>();
         if (zm == null) { Debug.LogError("[Debug] ZoneManager não encontrado"); return; }
         zm.testStartZone = zone;
-        Debug.Log($"[Debug] testStartZone = {zone} — dê Play para iniciar nessa zona");
+
+        if (Application.isPlaying)
+        {
+            // Em Play: aplica o VISUAL do bioma imediatamente (calibração).
+            // Gameplay (inimigos/boss) continua na zona atual — pare e dê Play
+            // para iniciar a gameplay na zona escolhida.
+            BiomeSystem.Instance?.SetBiome((BiomeSystem.Biome)(zone - 1));
+            WorldChunkManager.Instance?.SetBiome(zone - 1);
+            Debug.Log($"[Debug] Visual do bioma {zone} aplicado AO VIVO. Para gameplay da zona, reinicie o Play.");
+        }
+        else
+        {
+            EditorUtility.SetDirty(zm); // sem isto o valor não persiste na cena
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(zm.gameObject.scene);
+            Debug.Log($"[Debug] testStartZone = {zone} — dê Play para iniciar nessa zona");
+        }
     }
 
     // Encontra o componente T na cena ativa; se estiver num GO com nome errado, move.

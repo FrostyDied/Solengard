@@ -581,7 +581,11 @@ public class ZoneManager : MonoBehaviour
 
     public void RestoreToZone(int zone)
     {
-        CurrentZone = Mathf.Clamp(zone, 0, zones.Length - 1);
+        // testStartZone (debug) vence a restauração de sessão — sem isto,
+        // uma sessão salva faz "Ir para Zona X" carregar a zona antiga
+        CurrentZone = testStartZone > 0
+            ? Mathf.Clamp(testStartZone - 1, 0, zones.Length - 1)
+            : Mathf.Clamp(zone, 0, zones.Length - 1);
         StartZonesFromCurrent();
     }
 

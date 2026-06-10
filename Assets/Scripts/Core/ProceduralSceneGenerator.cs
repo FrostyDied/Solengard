@@ -33,6 +33,12 @@ public class GroundTextureRef : MonoBehaviour
     void OnDestroy() => ProceduralSceneGenerator.ReleaseGroundTexture(key);
 }
 
+// Marca instância de prop Craftpix pooled e lembra o prefab de origem (Item 1a)
+public class PooledProp : MonoBehaviour
+{
+    public GameObject sourcePrefab;
+}
+
 // Pulso suave de alpha para as fake lights (sin lento, fase aleatória)
 public class FakeLightPulse : MonoBehaviour
 {
@@ -80,6 +86,8 @@ public class ProceduralSceneGenerator : MonoBehaviour
     static readonly Dictionary<long, int> _groundTexRefs = new();
     static readonly Queue<long> _cacheOrder = new();
     static readonly HashSet<long> _building = new();
+    static bool _buildLock;            // serializa builds (Item 1c)
+    static Color32[] _pixelScratch;    // buffer único reutilizado (Item 1b/1c)
     const int MAX_CACHED_TEXTURES = 60;
 
     static long GroundKey(int cx, int cy, int biomeId)
@@ -91,13 +99,77 @@ public class ProceduralSceneGenerator : MonoBehaviour
         Instance = this;
         if (globalSeed == 0) globalSeed = Random.Range(1, 99999);
         InitDefaultBiomes();
+        EnsureAtmosphereSystems();
+    }
+
+    // Item 3b: auto-setup — névoa/partículas/vinheta existem mesmo sem Rebuild
+    void EnsureAtmosphereSystems()
+    {
+        if (FindFirstObjectByType<ProceduralFog>() == null)
+            new GameObject("ProceduralFog").AddComponent<ProceduralFog>();
+        if (FindFirstObjectByType<ProceduralParticles>() == null)
+            new GameObject("ProceduralParticles").AddComponent<ProceduralParticles>();
+        if (FindFirstObjectByType<VignetteOverlay>() == null)
+            new GameObject("VignetteOverlay").AddComponent<VignetteOverlay>();
     }
 
     void OnDestroy()
     {
         if (Instance == this) Instance = null;
-        _building.Clear(); // coroutines morrem com o GO — não deixar keys travadas
+        _building.Clear();  // coroutines morrem com o GO — não deixar keys travadas
+        _buildLock = false; // idem para o lock de build serializado
         // NÃO destruir texturas do cache aqui — sobrevivem entre rebuilds de chunk
+    }
+
+    // ---- POOL DE PROPS CRAFTPIX (Item 1a — zero Instantiate em recycle) ----
+    static readonly Dictionary<GameObject, Stack<GameObject>> _propPool = new();
+    static Transform _propPoolRoot;
+    const int PROP_POOL_CAP_PER_PREFAB = 64;
+
+    // Versão por chunk: invalida coroutines de placement pendentes no recycle
+    readonly Dictionary<GameObject, int> _chunkVersion = new();
+
+    static Transform PropPoolRoot
+    {
+        get
+        {
+            if (_propPoolRoot == null)
+            {
+                var go = new GameObject("PropPool");
+                go.SetActive(false); // filhos ficam ocultos até o reuso
+                _propPoolRoot = go.transform;
+            }
+            return _propPoolRoot;
+        }
+    }
+
+    GameObject GetProp(GameObject prefab, Vector3 pos, Transform parent)
+    {
+        if (_propPool.TryGetValue(prefab, out var stack))
+        {
+            while (stack.Count > 0)
+            {
+                var go = stack.Pop();
+                if (go == null) continue; // descarta refs destruídas
+                go.transform.SetParent(parent, false);
+                go.transform.position = pos;
+                go.SetActive(true);
+                return go;
+            }
+        }
+        var inst = Instantiate(prefab, pos, Quaternion.identity, parent);
+        inst.AddComponent<PooledProp>().sourcePrefab = prefab;
+        return inst;
+    }
+
+    static void ReleaseProp(GameObject go, GameObject prefab)
+    {
+        if (!_propPool.TryGetValue(prefab, out var stack))
+            _propPool[prefab] = stack = new Stack<GameObject>();
+        if (stack.Count >= PROP_POOL_CAP_PER_PREFAB) { Object.Destroy(go); return; }
+        go.SetActive(false);
+        go.transform.SetParent(PropPoolRoot, false);
+        stack.Push(go);
     }
 
     public int GetChunkSeed(int chunkX, int chunkY)
@@ -113,86 +185,114 @@ public class ProceduralSceneGenerator : MonoBehaviour
         int seed = GetChunkSeed(chunkX, chunkY);
         var biome = biomes[Mathf.Clamp(biomeId, 0, biomes.Length - 1)];
 
-        // Noise de densidade espacial (Adendo 2): campo coerente no MUNDO
-        // (usa globalSeed, não o seed do chunk, para variar suavemente entre chunks)
-        Vector3 wp = chunkRoot.transform.position;
-        float density = new SeededNoise(globalSeed).FBM(wp.x * 0.01f, wp.y * 0.01f, 2f, 2);
-        float densityMult = density < 0.35f ? 0.3f : density > 0.65f ? 1.5f : 1f;
-        bool allowTrees = density >= 0.35f; // área aberta: sem árvores (combate)
+        // invalida placements pendentes deste root e captura a versão atual
+        _chunkVersion.TryGetValue(chunkRoot, out int ver);
+        _chunkVersion[chunkRoot] = ++ver;
 
-        _emissiveSpots.Clear(); // posições candidatas para fake lights (Bloco E)
+        // Noise de densidade espacial (Item 2: freq 0.02 — variação em distâncias
+        // menores; aberto 65%, normal 100%, denso 140% — nunca vazio)
+        Vector3 wp = chunkRoot.transform.position;
+        float density = new SeededNoise(globalSeed).FBM(wp.x * 0.02f, wp.y * 0.02f, 2f, 2);
+        float densityMult = density < 0.35f ? 0.65f : density > 0.65f ? 1.4f : 1f;
+        bool allowTrees = density >= 0.35f; // área aberta: sem árvores (combate)
 
         GenerateGround(chunkRoot, chunkX, chunkY, biomeId, biome, chunkSize);
 
         if (useProceduralProps)
         {
             // Props 100% procedurais (preservados — reativar pela flag)
+            _emissiveSpots.Clear();
             GenerateRocks(chunkRoot, seed, biomeId, biome, chunkSize);
             if (allowTrees)
                 GenerateTrees(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
             GenerateBushes(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
             GenerateGrass(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
             GenerateCliffs(chunkRoot, seed, biomeId, biome, chunkSize);
+            GenerateFakeLights(chunkRoot, seed, biomeId, biome, chunkSize, _emissiveSpots);
         }
         else
         {
-            PlaceCraftpixProps(chunkRoot, seed, biomeId, craftpixPrefabs,
-                craftpixCount, chunkSize, densityMult, allowTrees);
+            // Item 1a: amortizado — máx. 3 props por frame, via pool
+            StartCoroutine(PlaceCraftpixPropsAsync(chunkRoot, ver, seed, biomeId,
+                craftpixPrefabs, craftpixCount, chunkSize, densityMult, allowTrees, biome));
         }
-
-        GenerateFakeLights(chunkRoot, seed, biomeId, biome, chunkSize);
     }
 
-    // FIX 4 — props Craftpix com POSICIONAMENTO procedural:
-    // seed do chunk decide posição/quantidade; densidade espacial modula;
+    // FIX 4 + Item 1 — props Craftpix com POSICIONAMENTO procedural, via pool,
+    // amortizado em 3 props/frame. Seed decide posição/quantidade (determinístico);
     // tint de bioma e Y-sorting idênticos ao ChunkInstance original.
-    void PlaceCraftpixProps(GameObject root, int seed, int biomeId,
-        List<GameObject> prefabs, int count, float size,
-        float densityMult, bool allowTrees)
+    IEnumerator PlaceCraftpixPropsAsync(GameObject root, int version, int seed,
+        int biomeId, List<GameObject> prefabs, int count, float size,
+        float densityMult, bool allowTrees, BiomeVisualConfig biome)
     {
-        if (prefabs == null || prefabs.Count == 0) return;
+        var spots = new List<Vector3>(8); // local: chunks geram em paralelo
 
-        var rng = new System.Random(seed);
-        int total = Mathf.RoundToInt(count * densityMult);
-        float half = size * 0.5f;
-        float margin = size * 0.1f;
-
-        for (int i = 0; i < total; i++)
+        if (prefabs != null && prefabs.Count > 0)
         {
-            int pi = rng.Next(prefabs.Count);
-            if (prefabs[pi] == null) continue;
+            var rng = new System.Random(seed);
+            int total = Mathf.RoundToInt(count * 1.3f * densityMult); // base +30% (Item 2)
+            float half = size * 0.5f;
+            float margin = size * 0.1f;
+            int placedThisFrame = 0;
 
-            float x = (float)(rng.NextDouble() * (size - margin * 2) - (half - margin));
-            float y = (float)(rng.NextDouble() * (size - margin * 2) - (half - margin));
-
-            // centro do chunk protegido (área de combate)
-            if (Mathf.Abs(x) < size * 0.15f && Mathf.Abs(y) < size * 0.15f) continue;
-            // área aberta: sem árvores
-            if (!allowTrees && prefabs[pi].name.Contains("Tree")) continue;
-
-            Vector3 pos = root.transform.position + new Vector3(x, y, 0);
-            var go = Instantiate(prefabs[pi], pos, Quaternion.identity, root.transform);
-
-            var ep = go.GetComponent<EnvironmentProp>();
-            if (ep != null) ep.Initialize(seed + i * 1000);
-
-            var sr = go.GetComponentInChildren<SpriteRenderer>();
-            if (sr != null)
+            for (int i = 0; i < total; i++)
             {
-                sr.color = biomeId < ChunkInstance.BIOME_TINTS.Length
-                    ? ChunkInstance.BIOME_TINTS[biomeId] : Color.white;
-                sr.sortingOrder = Mathf.RoundToInt(-pos.y * 0.1f) + 50;
-            }
+                // rng sempre consumido na mesma ordem → determinismo por seed
+                int pi = rng.Next(prefabs.Count);
+                float x = (float)(rng.NextDouble() * (size - margin * 2) - (half - margin));
+                float y = (float)(rng.NextDouble() * (size - margin * 2) - (half - margin));
 
-            _emissiveSpots.Add(new Vector3(x, y, 0)); // fake lights junto aos props
+                if (prefabs[pi] == null) continue;
+                // centro do chunk protegido (área de combate)
+                if (Mathf.Abs(x) < size * 0.15f && Mathf.Abs(y) < size * 0.15f) continue;
+                // área aberta: sem árvores
+                if (!allowTrees && prefabs[pi].name.Contains("Tree")) continue;
+
+                // chunk reciclado durante o placement? abortar
+                if (root == null) yield break;
+                if (!_chunkVersion.TryGetValue(root, out int cur) || cur != version) yield break;
+
+                Vector3 pos = root.transform.position + new Vector3(x, y, 0);
+                var go = GetProp(prefabs[pi], pos, root.transform);
+
+                var ep = go.GetComponent<EnvironmentProp>();
+                if (ep != null) ep.Initialize(seed + i * 1000);
+
+                var sr = go.GetComponentInChildren<SpriteRenderer>();
+                if (sr != null)
+                {
+                    sr.color = biomeId < ChunkInstance.BIOME_TINTS.Length
+                        ? ChunkInstance.BIOME_TINTS[biomeId] : Color.white;
+                    sr.sortingOrder = Mathf.RoundToInt(-pos.y * 0.1f) + 50;
+                }
+
+                spots.Add(new Vector3(x, y, 0));
+
+                if (++placedThisFrame >= 3) { placedThisFrame = 0; yield return null; }
+            }
         }
+
+        if (root == null) yield break;
+        if (!_chunkVersion.TryGetValue(root, out int v2) || v2 != version) yield break;
+        GenerateFakeLights(root, seed, biomeId, biome, size, spots); // Item 3d
     }
 
     public void ClearChunk(GameObject chunkRoot)
     {
+        // invalida coroutines de placement pendentes (recycle seguro)
+        _chunkVersion.TryGetValue(chunkRoot, out int ver);
+        _chunkVersion[chunkRoot] = ver + 1;
+
         for (int i = chunkRoot.transform.childCount - 1; i >= 0; i--)
-            Destroy(chunkRoot.transform.GetChild(i).gameObject);
-        // Texturas cacheadas NÃO são destruídas — o sprite some, a textura fica
+        {
+            var child = chunkRoot.transform.GetChild(i).gameObject;
+            var pooled = child.GetComponent<PooledProp>();
+            if (pooled != null && pooled.sourcePrefab != null)
+                ReleaseProp(child, pooled.sourcePrefab); // Item 1a: volta ao pool
+            else
+                Destroy(child);
+        }
+        // Texturas cacheadas NÃO são destruídas — o refcount cuida da vida delas
     }
 
     // ---- CHÃO (FIX 1: noise em WORLD-SPACE → zero emenda entre chunks) ----
@@ -259,12 +359,19 @@ public class ProceduralSceneGenerator : MonoBehaviour
         {
             _building.Add(key);
 
+            // Item 1c: builds serializados — UM buffer Color32 compartilhado
+            // entre todos os chunks (zero alocação de pixels por chunk)
+            while (_buildLock) yield return null;
+            _buildLock = true;
+
             int ts = Mathf.Max(32, groundTexSize);
             tex = new Texture2D(ts, ts, TextureFormat.RGB24, false);
             tex.filterMode = FilterMode.Bilinear;
             tex.wrapMode = TextureWrapMode.Clamp;
 
-            var pixels = new Color[ts * ts];
+            if (_pixelScratch == null || _pixelScratch.Length != ts * ts)
+                _pixelScratch = new Color32[ts * ts];
+            var pixels = _pixelScratch;
             // FIX 1: UMA seed global p/ todo o chão — campo contínuo no mundo
             var noise = new SeededNoise(globalSeed);
 
@@ -318,9 +425,10 @@ public class ProceduralSceneGenerator : MonoBehaviour
                 if ((y + 1) % rows == 0) yield return null; // amortização
             }
 
-            tex.SetPixels(pixels);
+            tex.SetPixels32(pixels); // Item 1b: ~4x mais rápido que SetPixels
             tex.Apply(false, false);
             CacheGroundTexture(key, tex);
+            _buildLock = false;
             _building.Remove(key);
         }
 
@@ -1018,16 +1126,16 @@ public class ProceduralSceneGenerator : MonoBehaviour
     }
 
     void GenerateFakeLights(GameObject root, int seed, int biomeId,
-        BiomeVisualConfig biome, float size)
+        BiomeVisualConfig biome, float size, List<Vector3> spots)
     {
         var rng = new System.Random(seed + 6000);
         int count = 2 + rng.Next(3); // 2-4 por chunk
 
         for (int i = 0; i < count; i++)
         {
-            // Junto a props emissivos do bioma; fallback: posição aleatória
-            Vector3 pos = _emissiveSpots.Count > 0
-                ? _emissiveSpots[rng.Next(_emissiveSpots.Count)]
+            // Junto aos props do chunk (Item 3d); fallback: posição aleatória
+            Vector3 pos = spots != null && spots.Count > 0
+                ? spots[rng.Next(spots.Count)]
                     + new Vector3((float)(rng.NextDouble() * 0.6 - 0.3),
                                   (float)(rng.NextDouble() * 0.6 - 0.3), 0)
                 : new Vector3((float)(rng.NextDouble() * size * 0.8f - size * 0.4f),
