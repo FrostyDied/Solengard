@@ -104,34 +104,40 @@ public class SolengardGUIProSetup : EditorWindow
 
     static void ApplyDarkPalette(GameObject root)
     {
-        // Backgrounds
         foreach (var img in root.GetComponentsInChildren<Image>(true))
         {
             var name = img.gameObject.name.ToLower();
-            if (name.Contains("background") || name.Contains("bg") || name.Contains("back"))
-                img.color = COL_BG;
-            else if (name.Contains("panel") || name.Contains("frame") || name.Contains("popup"))
+
+            // Preserva imagens com sprite artístico (backgrounds, ícones, ilustrações)
+            if (img.sprite != null && !name.Contains("fill") && !name.Contains("bg_dark") && !name.Contains("overlay"))
+                continue;
+
+            // Só recolore imagens sem sprite (cores sólidas de UI)
+            if (name.Contains("background") || name.Contains("back") || name.Contains("light"))
+                continue; // preserva backgrounds artísticos
+            else if (name.Contains("panel") || name.Contains("frame") || name.Contains("popup") || name.Contains("window"))
                 img.color = COL_PANEL;
-            else if (name.Contains("button") || name.Contains("btn"))
+            else if (name.Contains("btn_") || name.Contains("button_"))
             {
-                if (name.Contains("play") || name.Contains("start") || name.Contains("primary"))
+                if (name.Contains("play") || name.Contains("start") || name.Contains("primary") || name.Contains("confirm"))
                     img.color = COL_BTN_PRI;
                 else
                     img.color = COL_BTN_SEC;
             }
             else if (name.Contains("fill"))
                 img.color = COL_BTN_PRI;
-            else if (name.Contains("dark") || name.Contains("menu") || name.Contains("bar"))
+            else if (name.Contains("homemenu") || name.Contains("menubar") || name.Contains("navbar") || name.Contains("tabbar"))
                 img.color = COL_DARK;
+            else if (name.Contains("resourcebar") || name.Contains("topbar"))
+                img.color = new Color(0f, 0f, 0f, 0.7f);
         }
 
-        // Textos
         foreach (var tmp in root.GetComponentsInChildren<TextMeshProUGUI>(true))
         {
             var name = tmp.gameObject.name.ToLower();
             if (name.Contains("coin") || name.Contains("gem") || name.Contains("gold") || name.Contains("price"))
                 tmp.color = COL_ACCENT;
-            else if (name.Contains("sub") || name.Contains("desc") || name.Contains("info"))
+            else if (name.Contains("sub") || name.Contains("desc") || name.Contains("info") || name.Contains("label"))
                 tmp.color = COL_TEXT_SEC;
             else
                 tmp.color = COL_TEXT;
