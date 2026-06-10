@@ -151,7 +151,7 @@ public class ZoneManager : MonoBehaviour
                 Debug.LogError($"[Safeguard] Zona {CurrentZone+1} ({zone.nome}) sem inimigos configurados — spawn será vazio");
 
             BiomeSystem.Instance?.SetBiome(zone.biome);
-            WorldChunkManager.Instance?.SetBiome(CurrentZone);
+            WorldChunkManager.Instance?.SetBiome((int)zone.biome);
             OnZoneStarted?.Invoke(CurrentZone);
             WaveTimerSystem.Instance?.StartTimer();
             Debug.Log($"[Zone] Iniciando zona {CurrentZone + 1}: {zone.nome}");
