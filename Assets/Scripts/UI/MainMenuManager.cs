@@ -105,7 +105,10 @@ public class MainMenuManager : MonoBehaviour
         botaoJogar?.onClick.AddListener(LoadGameScene);
         botaoTabJogar?.onClick.AddListener(LoadGameScene);
         botaoLoja?.onClick.AddListener(() => AbrirPainel(painelLoja));
-        botaoPasse?.onClick.AddListener(() => AbrirPainel(painelPasse));
+        botaoPasse?.onClick.AddListener(() => {
+            AbrirPainel(painelLoja);
+            LojaController.Instance?.AbrirAbaUpgradesDireto();
+        });
         botaoMissoes?.onClick.AddListener(() => AbrirPainel(painelMissoes));
         botaoRanking?.onClick.AddListener(() => AbrirPainel(painelRanking));
         botaoConfiguracoes?.onClick.AddListener(() => AbrirPainel(painelConfiguracoes));

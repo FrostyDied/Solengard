@@ -64,6 +64,12 @@ public class LojaController : MonoBehaviour
         abaDiamantes?.SetActive(aba == abaDiamantes);
     }
 
+    public void AbrirAbaUpgradesDireto()
+    {
+        gameObject.SetActive(true);
+        AbrirAba(abaUpgrades);
+    }
+
     // Compra de personagem
     public void ComprarClasse(string classId, int preco)
     {
