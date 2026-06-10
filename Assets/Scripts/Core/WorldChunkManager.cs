@@ -113,9 +113,24 @@ public class WorldChunkManager : MonoBehaviour
         if (c != _lastChunk) { _lastChunk = c; UpdateChunks(); }
     }
 
+    ProceduralFog       _fog;
+    ProceduralParticles _particles;
+    bool                _atmoSearched;
+
     public void SetBiome(int b)
     {
         _currentBiome = Mathf.Clamp(b, 0, 4);
+
+        // Propaga o bioma para névoa e partículas (Find só uma vez — refs cacheadas)
+        if (!_atmoSearched)
+        {
+            _fog          = FindFirstObjectByType<ProceduralFog>();
+            _particles    = FindFirstObjectByType<ProceduralParticles>();
+            _atmoSearched = true;
+        }
+        _fog?.SetBiome(_currentBiome);
+        _particles?.SetBiome(_currentBiome);
+
         var props = biomeProps[_currentBiome]?.prefabs;
         int count = props?.Count ?? 0;
         Debug.Log($"[Chunks] SetBiome({b}): {count} prefabs disponíveis");

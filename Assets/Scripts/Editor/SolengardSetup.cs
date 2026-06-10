@@ -302,6 +302,10 @@ public static class SolengardSetup
         CreateSceneSystem<XPSystem>                 ("XPSystem");
         CreateSceneSystem<BiomeSystem>              ("BiomeSystem");
         CreateSceneSystem<VFXManager>               ("VFXManager");
+        CreateSceneSystem<ProceduralSceneGenerator> ("ProceduralSceneGenerator");
+        CreateSceneSystem<ProceduralFog>            ("ProceduralFog");
+        CreateSceneSystem<ProceduralParticles>      ("ProceduralParticles");
+        CreateSceneSystem<VignetteOverlay>          ("VignetteOverlay");
 
         // EventSystem — required for UI clicks; module depends on Input System setting
         {
@@ -1010,6 +1014,10 @@ public static class SolengardSetup
         total += EnsureSystemObject<XPSystem>                ("XPSystem",                  log);
         total += EnsureSystemObject<BiomeSystem>             ("BiomeSystem",               log);
         total += EnsureSystemObject<VFXManager>              ("VFXManager",                log);
+        total += EnsureSystemObject<ProceduralSceneGenerator>("ProceduralSceneGenerator",  log);
+        total += EnsureSystemObject<ProceduralFog>           ("ProceduralFog",             log);
+        total += EnsureSystemObject<ProceduralParticles>     ("ProceduralParticles",       log);
+        total += EnsureSystemObject<VignetteOverlay>         ("VignetteOverlay",           log);
         total += EnsureSystemObject<ZoneManager>             ("ZoneManager",               log);
 
         return total;

@@ -18,6 +18,17 @@ public class ChunkInstance : MonoBehaviour
         List<GameObject> prefabs, int count, float size)
     {
         Clear();
+
+        // Motor procedural (Fase 2): gera chão + props direto neste chunk.
+        // O motor faz o próprio sorting e cores — sem tint nem Y-sort daqui.
+        if (ProceduralSceneGenerator.Instance != null)
+        {
+            ProceduralSceneGenerator.Instance.GenerateChunk(
+                gameObject, gridPos.x, gridPos.y, biome, size);
+            return;
+        }
+
+        // FALLBACK Craftpix — código original intacto
         if (prefabs == null || prefabs.Count == 0)
         {
             Debug.LogWarning($"[Chunk] Populate abortado: prefabs null ou vazio para bioma {biome} em {gridPos}");
@@ -69,6 +80,14 @@ public class ChunkInstance : MonoBehaviour
 
     public void Clear()
     {
+        if (ProceduralSceneGenerator.Instance != null)
+        {
+            ProceduralSceneGenerator.Instance.ClearChunk(gameObject);
+            _props.Clear();
+            return;
+        }
+
+        // FALLBACK original
         foreach (var p in _props) if (p != null) Destroy(p);
         _props.Clear();
     }

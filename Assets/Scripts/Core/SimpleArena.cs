@@ -19,6 +19,10 @@ public class SimpleArena : MonoBehaviour
     [Header("Cor de fallback (último recurso)")]
     [SerializeField] Color fallbackColor = new Color(0.15f, 0.13f, 0.17f);
 
+    [Header("Motor procedural")]
+    [Tooltip("Desativa o chão tiled quando o ProceduralSceneGenerator está ativo (o motor gera o chão por chunk)")]
+    public bool disableWhenProceduralActive = true;
+
     Transform      _player;
     Transform      _floor;
     SpriteRenderer _floorRenderer;
@@ -30,7 +34,19 @@ public class SimpleArena : MonoBehaviour
         BuildFloor();
     }
 
-    void Start() => FindPlayer();
+    void Start()
+    {
+        FindPlayer();
+
+        // Motor procedural ativo: o chão por chunk substitui o tiled.
+        // NÃO destruir o SimpleArena — o fade de paleta por zona continua útil.
+        if (disableWhenProceduralActive && ProceduralSceneGenerator.Instance != null
+            && _floorRenderer != null)
+        {
+            _floorRenderer.enabled = false;
+            Debug.Log("[SimpleArena] Chão tiled desativado — motor procedural ativo");
+        }
+    }
 
     void FindPlayer()
     {
