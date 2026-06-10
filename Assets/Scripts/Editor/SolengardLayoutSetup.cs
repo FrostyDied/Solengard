@@ -118,6 +118,24 @@ public static class SolengardLayoutSetup
         {
             var (go, isNew) = FindOrCreateUI(canvasTr, "BG");
             if (isNew) { StretchFull(RT(go)); EnsureImage(go, Hex("#0A0A1A")); log.AppendLine("  BG"); total++; }
+            // Fundo dark fantasy — força reimport como Sprite se necessário
+            const string BG_PATH = "Assets/Art/UI/Backgrounds/menu_background.png";
+            var bgImporter = AssetImporter.GetAtPath(BG_PATH) as TextureImporter;
+            if (bgImporter != null && bgImporter.textureType != TextureImporterType.Sprite)
+            {
+                bgImporter.textureType = TextureImporterType.Sprite;
+                bgImporter.SaveAndReimport();
+            }
+            var bgSprite = AssetDatabase.LoadAssetAtPath<Sprite>(BG_PATH);
+            if (bgSprite != null)
+            {
+                var bgImg = go.GetComponent<Image>() ?? go.AddComponent<Image>();
+                bgImg.sprite = bgSprite;
+                bgImg.type = Image.Type.Simple;
+                bgImg.color = Color.white;
+                bgImg.preserveAspect = false;
+            }
+            else Debug.LogWarning("[Layout] menu_background.png não encontrado em Assets/Art/UI/Backgrounds/");
         }
 
         // TopBar
@@ -263,7 +281,7 @@ public static class SolengardLayoutSetup
                 log.AppendLine("  PlayButton"); total++;
             }
             TryWire(mmmSO,"botaoJogar",playButtonGO.GetComponent<Button>(),log);
-            ApplyGUISprite(playButtonGO, "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#B048C8"));
+            ApplyGUISprite(playButtonGO, "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#8B2535"));
         }
 
         // BottomTabs
