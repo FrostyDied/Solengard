@@ -64,10 +64,20 @@ public class ProceduralSceneGenerator : MonoBehaviour
         int seed = GetChunkSeed(chunkX, chunkY);
         var biome = biomes[Mathf.Clamp(biomeId, 0, biomes.Length - 1)];
 
+        // Noise de densidade espacial (Adendo 2): campo coerente no MUNDO
+        // (usa globalSeed, não o seed do chunk, para variar suavemente entre chunks)
+        Vector3 wp = chunkRoot.transform.position;
+        float density = new SeededNoise(globalSeed).FBM(wp.x * 0.01f, wp.y * 0.01f, 2f, 2);
+        float densityMult = density < 0.35f ? 0.3f : density > 0.65f ? 1.5f : 1f;
+        bool allowTrees = density >= 0.35f; // área aberta: sem árvores (combate)
+
         GenerateGround(chunkRoot, seed, biomeId, biome, chunkSize);
-        GenerateRocks(chunkRoot, seed, biomeId, biome, chunkSize);
-        GenerateTrees(chunkRoot, seed, biomeId, biome, chunkSize);
-        GenerateBushes(chunkRoot, seed, biomeId, biome, chunkSize);
+        GenerateRocks(chunkRoot, seed, biomeId, biome, chunkSize); // rochas: distribuição uniforme
+        if (allowTrees)
+            GenerateTrees(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
+        GenerateBushes(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
+        GenerateGrass(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
+        GenerateCliffs(chunkRoot, seed, biomeId, biome, chunkSize);
     }
 
     public void ClearChunk(GameObject chunkRoot)
@@ -394,15 +404,386 @@ public class ProceduralSceneGenerator : MonoBehaviour
         CreateMeshGO(parent, verts, sides, color, colorDark, sortOrder);
     }
 
-    // ---- ÁRVORES E ARBUSTOS (Bloco D) ----
-    void GenerateTrees(GameObject root, int seed, int biomeId, BiomeVisualConfig biome, float size)
+    // ---- ÁRVORES (Bloco D) ----
+    void GenerateTrees(GameObject root, int seed, int biomeId, BiomeVisualConfig biome,
+        float size, float densityMult)
     {
-        // Bloco D
+        var rng = new System.Random(seed + 2000);
+        int count = Mathf.RoundToInt((biome.treeCount + rng.Next(2)) * densityMult);
+
+        for (int i = 0; i < count; i++)
+        {
+            // Evitar o centro do chunk (área de combate)
+            float x = 0f, y = 0f;
+            bool ok = false;
+            for (int tries = 0; tries < 8 && !ok; tries++)
+            {
+                x = (float)(rng.NextDouble() * size * 0.9f - size * 0.45f);
+                y = (float)(rng.NextDouble() * size * 0.9f - size * 0.45f);
+                ok = Mathf.Abs(x) >= size * 0.15f || Mathf.Abs(y) >= size * 0.15f;
+            }
+            if (!ok) continue;
+
+            int treeSeed = seed + 7000 + i * 211;
+            var pos = new Vector3(x, y, 0);
+
+            if (biomeId == 1)
+                CreateStalagmite(root, pos, treeSeed, biome);          // Khorduum: caverna
+            else if (biomeId == 4 && rng.NextDouble() < 0.5)
+                CreateBrokenPillar(root, pos, treeSeed, biome);        // Arkenfall: ruínas
+            else
+                CreateTree(root, pos, treeSeed, biomeId, biome, rng);
+        }
     }
 
-    void GenerateBushes(GameObject root, int seed, int biomeId, BiomeVisualConfig biome, float size)
+    void CreateTree(GameObject root, Vector3 localPos, int treeSeed, int biomeId,
+        BiomeVisualConfig biome, System.Random rng)
     {
-        // Bloco D
+        var go = new GameObject("Tree");
+        go.transform.SetParent(root.transform, false);
+        go.transform.localPosition = localPos;
+
+        float worldY = go.transform.position.y;
+        int sortOrder = Mathf.RoundToInt(-worldY * 0.1f + 50f);
+
+        var noise = new SeededNoise(treeSeed);
+        float trunkH = 1.2f + (float)rng.NextDouble() * 1.0f;
+        float trunkW = 0.08f + noise.Get(treeSeed, 1) * 0.06f;
+        float topR   = 0.5f + noise.Get(treeSeed, 2) * 0.5f;
+
+        // Sombra no chão
+        CreateEllipse(go, new Vector3(topR * 0.15f, -0.05f, 0),
+            topR * 0.85f, topR * 0.28f, new Color(0, 0, 0, 0.28f), 40);
+
+        // Tronco
+        CreateQuad(go, new Vector3(0, trunkH * 0.5f, 0), trunkW, trunkH,
+            biome.treeBase, biome.treeMid, sortOrder);
+
+        // Galhos 2-3 (Valdross: caídos a -45°)
+        float branchAngle = biomeId == 2 ? -45f : 30f;
+        int branches = 2 + (int)(noise.Get(treeSeed, 3) * 2);
+        for (int b = 0; b < branches; b++)
+        {
+            float bh = trunkH * (0.35f + b * 0.2f);
+            float dir = noise.Get(treeSeed, 4 + b) > 0.5f ? 1f : -1f;
+            float len = 0.3f + noise.Get(treeSeed, 5 + b) * 0.4f;
+            CreateBranch(go, new Vector3(0, bh, 0), dir, len, trunkW * 0.5f,
+                biome.treeMid, sortOrder, branchAngle);
+        }
+
+        // Copa — círculos irregulares sobrepostos (Valdross: esparsa, 2 camadas)
+        int layers = biomeId == 2 ? 2 : 3 + (int)(noise.Get(treeSeed, 6) * 2);
+        for (int l = layers - 1; l >= 0; l--)
+        {
+            float lr  = topR * (0.65f + l * 0.12f);
+            float lox = (noise.Get(treeSeed, 7 + l) - 0.5f) * topR * 0.35f;
+            float loy = trunkH + topR * 0.35f + l * topR * 0.18f;
+            Color col = l == 0 ? biome.treeTopDark :
+                        l == layers - 1 ? biome.treeTopLight : biome.treeMid;
+            CreateIrregularCircle(go, new Vector3(lox, loy, 0), lr, 0.85f,
+                treeSeed + l * 50, col, sortOrder + 1 + l);
+        }
+    }
+
+    // Galho: quad fino saindo do tronco em ângulo
+    void CreateBranch(GameObject parent, Vector3 origin, float dirSign, float len,
+        float width, Color color, int sortOrder, float angleDeg = 30f)
+    {
+        float rad = angleDeg * Mathf.Deg2Rad;
+        Vector3 end = origin + new Vector3(Mathf.Cos(rad) * len * dirSign, Mathf.Sin(rad) * len, 0);
+        CreateQuadLine(parent, origin, end, width, color, sortOrder);
+    }
+
+    // Círculo irregular de 8 pontos (camadas de copa, arbustos)
+    void CreateIrregularCircle(GameObject parent, Vector3 localPos, float radius,
+        float roundness, int seed, Color color, int sortOrder)
+    {
+        const int pts = 8;
+        var noise = new SeededNoise(seed);
+        var verts = new Vector3[pts + 1];
+        verts[0] = localPos;
+        for (int i = 0; i < pts; i++)
+        {
+            float a = (float)i / pts * Mathf.PI * 2f;
+            float r = radius * (roundness + noise.Get(seed + i * 0.7f, 0) * (1f - roundness) * 2f);
+            verts[i + 1] = localPos + new Vector3(Mathf.Cos(a) * r, Mathf.Sin(a) * r, 0);
+        }
+        CreateMeshGO(parent, verts, pts, color, color, sortOrder);
+    }
+
+    // Khorduum: estalagmite no lugar de árvore
+    void CreateStalagmite(GameObject root, Vector3 localPos, int seed, BiomeVisualConfig biome)
+    {
+        var go = new GameObject("Stalagmite");
+        go.transform.SetParent(root.transform, false);
+        go.transform.localPosition = localPos;
+
+        float worldY = go.transform.position.y;
+        int sortOrder = Mathf.RoundToInt(-worldY * 0.1f + 50f);
+
+        var noise = new SeededNoise(seed);
+        float h = 1.5f + noise.Get(seed, 0) * 1.5f;
+        float w = 0.3f + noise.Get(seed, 1) * 0.3f;
+
+        CreateEllipse(go, new Vector3(0, -0.03f, 0), w * 1.1f, w * 0.32f,
+            new Color(0, 0, 0, 0.3f), 40);
+
+        // Corpo afinando até a ponta (fan a partir do centro)
+        var verts = new Vector3[6];
+        verts[0] = new Vector3(0, h * 0.4f, 0);
+        verts[1] = new Vector3(-w, 0, 0);
+        verts[2] = new Vector3(w, 0, 0);
+        verts[3] = new Vector3(w * 0.45f, h * 0.55f, 0);
+        verts[4] = new Vector3((noise.Get(seed, 2) - 0.5f) * w * 0.3f, h, 0);
+        verts[5] = new Vector3(-w * 0.45f, h * 0.55f, 0);
+        CreateMeshGO(go, verts, 5, biome.rockColor, biome.rockDark, sortOrder);
+
+        // Ponta de cristal emissivo
+        CreateTriangle(go,
+            new Vector3(-w * 0.18f, h * 0.75f, 0),
+            new Vector3( w * 0.18f, h * 0.75f, 0),
+            new Vector3(0, h * 1.15f, 0),
+            biome.treeTopDark, biome.treeTopLight, sortOrder + 1);
+    }
+
+    // Arkenfall: pilar quebrado no lugar de árvore (50%)
+    void CreateBrokenPillar(GameObject root, Vector3 localPos, int seed, BiomeVisualConfig biome)
+    {
+        var go = new GameObject("Pillar");
+        go.transform.SetParent(root.transform, false);
+        go.transform.localPosition = localPos;
+
+        float worldY = go.transform.position.y;
+        int sortOrder = Mathf.RoundToInt(-worldY * 0.1f + 50f);
+
+        var noise = new SeededNoise(seed);
+        float h = 1.0f + noise.Get(seed, 0) * 1.2f;
+        float w = 0.25f + noise.Get(seed, 1) * 0.15f;
+
+        CreateEllipse(go, new Vector3(0.05f, -0.04f, 0), w * 1.4f, w * 0.4f,
+            new Color(0, 0, 0, 0.3f), 40);
+
+        // Corpo com topo quebrado (inclinado)
+        var v = new Vector3[]
+        {
+            new Vector3(-w, 0, 0),
+            new Vector3( w, 0, 0),
+            new Vector3( w, h * (0.75f + noise.Get(seed, 2) * 0.25f), 0),
+            new Vector3(-w, h, 0),
+        };
+        CreateQuadMesh(go, v, biome.treeBase, biome.treeTopLight, sortOrder);
+
+        // Bloco caído ao lado
+        CreateSimplePolygon(go,
+            new Vector3(w * (1.5f + noise.Get(seed, 3)), w * 0.2f, 0),
+            w * 0.5f, 5, seed + 9, biome.treeTopLight, biome.treeBase, sortOrder);
+    }
+
+    // ---- ARBUSTOS (Bloco D) ----
+    void GenerateBushes(GameObject root, int seed, int biomeId, BiomeVisualConfig biome,
+        float size, float densityMult)
+    {
+        var rng = new System.Random(seed + 3000);
+        int count = Mathf.RoundToInt((biome.bushCount + rng.Next(3)) * densityMult);
+        for (int i = 0; i < count; i++)
+        {
+            float x = (float)(rng.NextDouble() * size * 0.94f - size * 0.47f);
+            float y = (float)(rng.NextDouble() * size * 0.94f - size * 0.47f);
+            CreateBush(root, new Vector3(x, y, 0), seed + 5000 + i * 131, biome);
+        }
+    }
+
+    void CreateBush(GameObject root, Vector3 localPos, int seed, BiomeVisualConfig biome)
+    {
+        var go = new GameObject("Bush");
+        go.transform.SetParent(root.transform, false);
+        go.transform.localPosition = localPos;
+
+        float worldY = go.transform.position.y;
+        int sortOrder = Mathf.RoundToInt(-worldY * 0.1f + 50f);
+
+        var noise = new SeededNoise(seed);
+        float baseR = 0.25f + noise.Get(seed, 0) * 0.25f;
+
+        CreateEllipse(go, new Vector3(0.05f, -baseR * 0.3f, 0),
+            baseR * 1.1f, baseR * 0.35f, new Color(0, 0, 0, 0.25f), 40);
+
+        // 3-5 círculos irregulares agrupados
+        int blobs = 3 + (int)(noise.Get(seed, 1) * 3);
+        for (int i = 0; i < blobs; i++)
+        {
+            float ox = (noise.Get(seed, 2 + i) - 0.5f) * baseR * 1.2f;
+            float oy = noise.Get(seed, 6 + i) * baseR * 0.5f;
+            float r = baseR * (0.5f + noise.Get(seed, 10 + i) * 0.4f);
+            Color col = Color.Lerp(biome.bushColor, biome.bushLight, noise.Get(seed, 14 + i) * 0.6f);
+            CreateIrregularCircle(go, new Vector3(ox, oy, 0), r, 0.8f,
+                seed + i * 37, col, sortOrder + (i % 2));
+        }
+    }
+
+    // ---- GRAMA E FLORES (Bloco D + Adendo 1) ----
+    // Tudo numa mesh combinada por chunk: até ~100 lâminas viram 1 draw call
+    void GenerateGrass(GameObject root, int seed, int biomeId, BiomeVisualConfig biome,
+        float size, float densityMult)
+    {
+        if (biomeId == 1) return; // Khorduum: caverna, sem grama
+
+        var rng = new System.Random(seed + 4000);
+        int tufts = Mathf.RoundToInt((12 + rng.Next(9)) * densityMult);
+        if (tufts <= 0) return;
+
+        var verts = new List<Vector3>(tufts * 20);
+        var cols  = new List<Color>(tufts * 20);
+        var tris  = new List<int>(tufts * 30);
+        var fverts = new List<Vector3>();
+        var fcols  = new List<Color>();
+        var ftris  = new List<int>();
+        bool allowFlowers = biomeId != 4; // Adendo 1: sem flores em Khorduum (já saiu) e Arkenfall
+
+        for (int i = 0; i < tufts; i++)
+        {
+            float x = (float)(rng.NextDouble() * size * 0.94f - size * 0.47f);
+            float y = (float)(rng.NextDouble() * size * 0.94f - size * 0.47f);
+            var basePos = new Vector3(x, y, 0);
+
+            int blades = 3 + rng.Next(3); // 3-5 lâminas
+            for (int b = 0; b < blades; b++)
+            {
+                float ang = ((float)rng.NextDouble() - 0.5f) * 40f * Mathf.Deg2Rad; // ±20°
+                float h = 0.16f + (float)rng.NextDouble() * 0.08f;
+                float vary = 0.85f + (float)rng.NextDouble() * 0.3f; // ±15%
+                var col = new Color(
+                    Mathf.Clamp01(biome.bushColor.r * vary),
+                    Mathf.Clamp01(biome.bushColor.g * vary),
+                    Mathf.Clamp01(biome.bushColor.b * vary), 1f);
+                var p0 = basePos + new Vector3((b - blades * 0.5f) * 0.03f, 0, 0);
+                var p1 = p0 + new Vector3(Mathf.Sin(ang) * h, Mathf.Cos(ang) * h, 0);
+                AddQuadLine(verts, cols, tris, p0, p1, 0.03f, col);
+            }
+
+            // Flor: prob. 15% por tufo, polígono de 5 pontas na cor particleColor
+            if (allowFlowers && rng.NextDouble() < 0.15)
+            {
+                float fr = 0.05f + (float)rng.NextDouble() * 0.03f;
+                AddPolygonFan(fverts, fcols, ftris,
+                    basePos + new Vector3(0, 0.12f, 0), fr, 5,
+                    Color.Lerp(biome.particleColor, Color.white, 0.3f),
+                    biome.particleColor, rng);
+            }
+        }
+
+        BuildCombinedMesh(root, "Grass", verts, cols, tris, 41);
+        if (fverts.Count > 0)
+            BuildCombinedMesh(root, "Flowers", fverts, fcols, ftris, 42);
+    }
+
+    static void AddQuadLine(List<Vector3> v, List<Color> c, List<int> t,
+        Vector3 a, Vector3 b, float width, Color color)
+    {
+        Vector3 d = b - a;
+        Vector3 perp = new Vector3(-d.y, d.x, 0).normalized * (width * 0.5f);
+        int i0 = v.Count;
+        v.Add(a - perp); v.Add(a + perp); v.Add(b + perp); v.Add(b - perp);
+        c.Add(color); c.Add(color); c.Add(color); c.Add(color);
+        t.Add(i0); t.Add(i0 + 1); t.Add(i0 + 2);
+        t.Add(i0); t.Add(i0 + 2); t.Add(i0 + 3);
+    }
+
+    static void AddPolygonFan(List<Vector3> v, List<Color> c, List<int> t,
+        Vector3 center, float radius, int sides, Color colCenter, Color colEdge,
+        System.Random rng)
+    {
+        int ci = v.Count;
+        v.Add(center); c.Add(colCenter);
+        for (int i = 0; i < sides; i++)
+        {
+            float a = (float)i / sides * Mathf.PI * 2f;
+            float r = radius * (0.8f + (float)rng.NextDouble() * 0.4f);
+            v.Add(center + new Vector3(Mathf.Cos(a) * r, Mathf.Sin(a) * r, 0));
+            c.Add(colEdge);
+        }
+        for (int i = 0; i < sides; i++)
+        {
+            t.Add(ci); t.Add(ci + 1 + i); t.Add(ci + 1 + (i + 1) % sides);
+        }
+    }
+
+    void BuildCombinedMesh(GameObject parent, string name,
+        List<Vector3> v, List<Color> c, List<int> t, int sortOrder)
+    {
+        if (v.Count == 0) return;
+        var go = new GameObject(name);
+        go.transform.SetParent(parent.transform, false);
+        var mf = go.AddComponent<MeshFilter>();
+        var mr = go.AddComponent<MeshRenderer>();
+        go.AddComponent<RuntimeMeshAutoDestroy>();
+        mr.sortingOrder = sortOrder;
+        mr.sharedMaterial = GetSharedVertexColorMaterial();
+
+        var mesh = new Mesh();
+        mesh.SetVertices(v);
+        mesh.SetColors(c);
+        mesh.SetTriangles(t, 0);
+        mesh.RecalculateBounds();
+        mf.sharedMesh = mesh;
+    }
+
+    // ---- PENHASCOS (Adendo 3) ----
+    void GenerateCliffs(GameObject root, int seed, int biomeId, BiomeVisualConfig biome, float size)
+    {
+        var noise = new SeededNoise(seed + 9000);
+        if (noise.Get(seed, 0) > 0.25f) return; // 25% dos chunks
+
+        var rng = new System.Random(seed + 9001);
+        var go = new GameObject("Cliff");
+        go.transform.SetParent(root.transform, false);
+
+        // SEMPRE na borda do chunk (nunca no centro)
+        int edge = rng.Next(4);
+        float half = size * 0.5f;
+        float along = (float)(rng.NextDouble() * size * 0.5f - size * 0.25f);
+        Vector3 basePos = edge == 0 ? new Vector3(along,  half * 0.85f, 0)
+                        : edge == 1 ? new Vector3(along, -half * 0.85f, 0)
+                        : edge == 2 ? new Vector3(-half * 0.85f, along, 0)
+                        :             new Vector3( half * 0.85f, along, 0);
+        go.transform.localPosition = basePos;
+
+        float worldY = go.transform.position.y;
+        int sortOrder = Mathf.RoundToInt(-worldY * 0.1f + 50f);
+
+        Color topColor = new Color(
+            Mathf.Clamp01(biome.rockColor.r * 1.2f),
+            Mathf.Clamp01(biome.rockColor.g * 1.2f),
+            Mathf.Clamp01(biome.rockColor.b * 1.2f));
+
+        int formations = 2 + rng.Next(3); // 2-4 polígonos agrupados
+        float xCursor = -(formations - 1) * 0.9f;
+        for (int f = 0; f < formations; f++)
+        {
+            float w = 1.5f + (float)rng.NextDouble() * 1.5f; // 1.5-3u
+            float h = 2.5f + (float)rng.NextDouble() * 1.5f; // 2.5-4u
+            var off = new Vector3(xCursor, (float)(rng.NextDouble() * 0.4 - 0.2), 0);
+            xCursor += w * 0.6f;
+
+            // Parede com gradiente vertical (base rockDark → topo +20% brilho)
+            var v = new Vector3[]
+            {
+                off + new Vector3(-w * 0.5f, 0, 0),
+                off + new Vector3( w * 0.5f, 0, 0),
+                off + new Vector3( w * 0.42f, h, 0),
+                off + new Vector3(-w * 0.45f, h * (0.92f + (float)rng.NextDouble() * 0.08f), 0),
+            };
+            CreateQuadMesh(go, v, biome.rockDark, topColor, sortOrder);
+
+            // Faixa escura na base (ilusão de queda)
+            CreateQuad(go, off + new Vector3(0, 0.075f, 0), w, 0.15f,
+                new Color(0f, 0f, 0f, 0.55f), new Color(0f, 0f, 0f, 0.25f), sortOrder + 1);
+
+            // Linha separando o topo da parede
+            CreateQuad(go, off + new Vector3(0, h * 0.72f, 0), w * 0.92f, 0.05f,
+                biome.rockDark, biome.rockDark, sortOrder + 1);
+        }
+        // Sem collider — apenas visual
     }
 
     // ---- PALETAS DOS 5 BIOMAS ----
