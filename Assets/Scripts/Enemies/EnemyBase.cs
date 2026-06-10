@@ -45,8 +45,9 @@ public class EnemyBase : MonoBehaviour
 
     protected float currentHealth;
     public    bool  IsDead => isDead;
-    protected Rigidbody2D rb;
-    protected SpriteRenderer _sr;
+    protected Rigidbody2D        rb;
+    protected SpriteRenderer     _sr;
+    protected CharacterAnimator  _anim;
 
     bool  isDead;
     float _contactTimer;
@@ -66,7 +67,8 @@ public class EnemyBase : MonoBehaviour
         rb.constraints            = RigidbodyConstraints2D.FreezeRotation;
         currentHealth             = maxHealth;
 
-        _sr = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
+        _sr   = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
+        _anim = GetComponent<CharacterAnimator>() ?? GetComponentInChildren<CharacterAnimator>();
         if (_sr == null) Debug.LogError($"[EnemyBase] SpriteRenderer não encontrado em '{gameObject.name}' nem em filhos.");
 
         var col = GetComponent<Collider2D>() ?? GetComponentInChildren<Collider2D>();
@@ -91,8 +93,7 @@ public class EnemyBase : MonoBehaviour
         isDead         = false;
 
         // Reset animator and sprite color so pool-reused enemies start clean
-        var anim = GetComponent<CharacterAnimator>();
-        if (anim != null) anim.ForceState(CharacterAnimator.State.Idle);
+        _anim?.ForceState(CharacterAnimator.State.Idle);
         if (_sr != null) _sr.color = Color.white;
 
         // Re-find player in case the scene was reloaded and the reference became stale
@@ -164,8 +165,7 @@ public class EnemyBase : MonoBehaviour
             desired = toPlayer;
         rb.linearVelocity = desired.normalized * moveSpeed;
 
-        var anim = GetComponent<CharacterAnimator>();
-        if (anim != null) anim.SetState(CharacterAnimator.State.Walk);
+        _anim?.SetState(CharacterAnimator.State.Walk);
 
         if (_sr != null)
         {
@@ -188,13 +188,16 @@ public class EnemyBase : MonoBehaviour
         }
     }
 
+    static readonly Collider2D[] _sepBuffer = new Collider2D[16];
+
     protected Vector2 ComputeSeparation()
     {
-        Vector2 sep    = Vector2.zero;
-        var     nearby = Physics2D.OverlapCircleAll(rb.position, separationRadius);
-        foreach (var col in nearby)
+        Vector2 sep   = Vector2.zero;
+        int     count = Physics2D.OverlapCircleNonAlloc(rb.position, separationRadius, _sepBuffer);
+        for (int i = 0; i < count; i++)
         {
-            if (col.gameObject == gameObject) continue;
+            var col = _sepBuffer[i];
+            if (col == null || col.gameObject == gameObject) continue;
             if (col.GetComponent<EnemyBase>() == null) continue;
             Vector2 away = rb.position - (Vector2)col.transform.position;
             float   d    = away.magnitude;
@@ -229,8 +232,7 @@ public class EnemyBase : MonoBehaviour
         var hitType = isBoss  ? VFXManager.EnemyType.Boss  :
                       isHeavy ? VFXManager.EnemyType.Heavy : VFXManager.EnemyType.Normal;
 
-        var anim = GetComponent<CharacterAnimator>();
-        if (anim != null) anim.SetState(CharacterAnimator.State.Hurt);
+        _anim?.SetState(CharacterAnimator.State.Hurt);
 
         if (currentHealth <= 0.01f)
         {
@@ -240,7 +242,7 @@ public class EnemyBase : MonoBehaviour
         {
             VFXManager.Instance?.SpawnHit(transform.position, hitType);
             StartCoroutine(FlashRed());
-            if (anim != null) StartCoroutine(ResetAnimAfterHurt(anim));
+            if (_anim != null) StartCoroutine(ResetAnimAfterHurt(_anim));
         }
     }
 
@@ -276,8 +278,7 @@ public class EnemyBase : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        var anim = GetComponent<CharacterAnimator>();
-        if (anim != null) anim.SetState(CharacterAnimator.State.Death);
+        _anim?.SetState(CharacterAnimator.State.Death);
 
         var deathType = isBoss  ? VFXManager.EnemyType.Boss  :
                         isHeavy ? VFXManager.EnemyType.Heavy : VFXManager.EnemyType.Normal;

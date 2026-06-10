@@ -10,6 +10,7 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] float orthoSize   = 14f;
 
     Transform _target;
+    Vector3   _velocity; // SmoothDamp state
 
     void Awake()
     {
@@ -34,10 +35,10 @@ public class CameraFollow : MonoBehaviour
     {
         if (_target == null) { FindPlayer(); return; }
 
-        Vector3 desired  = _target.position + offset;
-        Vector3 smoothed = Vector3.Lerp(transform.position, desired, smoothSpeed * Time.deltaTime);
-        smoothed.z       = offset.z;
-        transform.position = smoothed;
+        Vector3 desired = _target.position + offset;
+        desired.z = offset.z;
+        transform.position = Vector3.SmoothDamp(
+            transform.position, desired, ref _velocity, 1f / smoothSpeed);
     }
 
     public void SetTarget(Transform t) => _target = t;
