@@ -25,6 +25,26 @@ public class RuntimeMeshAutoDestroy : MonoBehaviour
     }
 }
 
+// Pulso suave de alpha para as fake lights (sin lento, fase aleatória)
+public class FakeLightPulse : MonoBehaviour
+{
+    public float baseAlpha = 0.25f;
+    public float speed = 1f;
+    public float phase;
+
+    SpriteRenderer _sr;
+
+    void Awake() { _sr = GetComponent<SpriteRenderer>(); }
+
+    void Update()
+    {
+        if (_sr == null) return;
+        var c = _sr.color;
+        c.a = baseAlpha * (0.75f + 0.25f * Mathf.Sin(Time.time * speed + phase));
+        _sr.color = c;
+    }
+}
+
 public class ProceduralSceneGenerator : MonoBehaviour
 {
     public static ProceduralSceneGenerator Instance { get; private set; }
@@ -71,6 +91,8 @@ public class ProceduralSceneGenerator : MonoBehaviour
         float densityMult = density < 0.35f ? 0.3f : density > 0.65f ? 1.5f : 1f;
         bool allowTrees = density >= 0.35f; // área aberta: sem árvores (combate)
 
+        _emissiveSpots.Clear(); // posições candidatas para fake lights (Bloco E)
+
         GenerateGround(chunkRoot, seed, biomeId, biome, chunkSize);
         GenerateRocks(chunkRoot, seed, biomeId, biome, chunkSize); // rochas: distribuição uniforme
         if (allowTrees)
@@ -78,6 +100,7 @@ public class ProceduralSceneGenerator : MonoBehaviour
         GenerateBushes(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
         GenerateGrass(chunkRoot, seed, biomeId, biome, chunkSize, densityMult);
         GenerateCliffs(chunkRoot, seed, biomeId, biome, chunkSize);
+        GenerateFakeLights(chunkRoot, seed, biomeId, biome, chunkSize);
     }
 
     public void ClearChunk(GameObject chunkRoot)
@@ -185,7 +208,10 @@ public class ProceduralSceneGenerator : MonoBehaviour
             float x = (float)(rng.NextDouble() * size * 0.9f - size * 0.45f);
             float y = (float)(rng.NextDouble() * size * 0.9f - size * 0.45f);
             float r = 0.3f + (float)rng.NextDouble() * 0.8f;
-            CreateRock(root, new Vector3(x, y, 0), r, seed + i * 100, biomeId, biome);
+            var pos = new Vector3(x, y, 0);
+            CreateRock(root, pos, r, seed + i * 100, biomeId, biome);
+            if (biomeId == 1 || biomeId == 4) // Khorduum/Arkenfall: rochas emissivas
+                _emissiveSpots.Add(pos);
         }
     }
 
@@ -589,7 +615,10 @@ public class ProceduralSceneGenerator : MonoBehaviour
         {
             float x = (float)(rng.NextDouble() * size * 0.94f - size * 0.47f);
             float y = (float)(rng.NextDouble() * size * 0.94f - size * 0.47f);
-            CreateBush(root, new Vector3(x, y, 0), seed + 5000 + i * 131, biome);
+            var pos = new Vector3(x, y, 0);
+            CreateBush(root, pos, seed + 5000 + i * 131, biome);
+            if (biomeId == 0 || biomeId == 2 || biomeId == 3) // Veremoth/Valdross/Gorveth
+                _emissiveSpots.Add(pos);
         }
     }
 
@@ -784,6 +813,71 @@ public class ProceduralSceneGenerator : MonoBehaviour
                 biome.rockDark, biome.rockDark, sortOrder + 1);
         }
         // Sem collider — apenas visual
+    }
+
+    // ---- FAKE LIGHTS (Bloco E — substituem Light2D, inexistente sem URP) ----
+    readonly List<Vector3> _emissiveSpots = new();
+
+    static Texture2D _radialTex;
+    static Sprite _radialSprite;
+    static Sprite GetRadialSprite()
+    {
+        if (_radialSprite == null)
+        {
+            const int S = 64;
+            _radialTex = new Texture2D(S, S, TextureFormat.RGBA32, false);
+            _radialTex.filterMode = FilterMode.Bilinear;
+            _radialTex.wrapMode = TextureWrapMode.Clamp;
+            var px = new Color32[S * S];
+            float c = (S - 1) * 0.5f;
+            for (int y = 0; y < S; y++)
+                for (int x = 0; x < S; x++)
+                {
+                    float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c)) / c;
+                    float a = Mathf.Clamp01(1f - d);
+                    px[y * S + x] = new Color32(255, 255, 255, (byte)(a * a * 255f)); // falloff quadrático
+                }
+            _radialTex.SetPixels32(px);
+            _radialTex.Apply(false, false);
+            _radialSprite = Sprite.Create(_radialTex, new Rect(0, 0, S, S),
+                new Vector2(0.5f, 0.5f), S);
+        }
+        return _radialSprite;
+    }
+
+    void GenerateFakeLights(GameObject root, int seed, int biomeId,
+        BiomeVisualConfig biome, float size)
+    {
+        var rng = new System.Random(seed + 6000);
+        int count = 2 + rng.Next(3); // 2-4 por chunk
+
+        for (int i = 0; i < count; i++)
+        {
+            // Junto a props emissivos do bioma; fallback: posição aleatória
+            Vector3 pos = _emissiveSpots.Count > 0
+                ? _emissiveSpots[rng.Next(_emissiveSpots.Count)]
+                    + new Vector3((float)(rng.NextDouble() * 0.6 - 0.3),
+                                  (float)(rng.NextDouble() * 0.6 - 0.3), 0)
+                : new Vector3((float)(rng.NextDouble() * size * 0.8f - size * 0.4f),
+                              (float)(rng.NextDouble() * size * 0.8f - size * 0.4f), 0);
+
+            var go = new GameObject("FakeLight");
+            go.transform.SetParent(root.transform, false);
+            go.transform.localPosition = pos;
+            go.transform.localScale = Vector3.one * (2f + (float)rng.NextDouble() * 2f); // 2-4u
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = GetRadialSprite();
+            sr.sortingOrder = 85;
+            var col = biome.particleColor;
+            col.a = 0.25f;
+            sr.color = col;
+
+            var pulse = go.AddComponent<FakeLightPulse>();
+            pulse.baseAlpha = 0.25f;
+            pulse.speed = 0.8f + (float)rng.NextDouble();
+            pulse.phase = (float)(rng.NextDouble() * Mathf.PI * 2f);
+        }
     }
 
     // ---- PALETAS DOS 5 BIOMAS ----
