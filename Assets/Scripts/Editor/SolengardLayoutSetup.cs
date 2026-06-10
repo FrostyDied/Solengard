@@ -250,8 +250,11 @@ public static class SolengardLayoutSetup
             if(baN){ RT(baGO).sizeDelta=new(90,90); EnsureImage(baGO,Hex("#1A0A2A")); EnsureButton(baGO); var lbl=AddLabel(baGO,"BAÚS",16f,Color.white);      lbl.textWrappingMode=TMPro.TextWrappingModes.NoWrap; log.AppendLine("  LeftPanel/BotaoBaus");     total++; }
 
             TryWire(mmmSO,"botaoOfertas",botaoOfertasGO.GetComponent<Button>(),log);
+            botaoOfertasGO.SetActive(false);
             TryWire(mmmSO,"botaoBencaos",botaoBencaosGO.GetComponent<Button>(),log);
+            botaoBencaosGO.SetActive(false);
             TryWire(mmmSO,"botaoBaus",   botaoBausGO.GetComponent<Button>(),   log);
+            botaoBausGO.SetActive(false);
         }
 
         // RightPanel — remove if empty (BotaoOferta is now at canvas level)
@@ -264,7 +267,8 @@ public static class SolengardLayoutSetup
           if(boN){ EnsureImage(bo,Hex("#3A1A0A")); EnsureButton(bo); var lbl=AddLabel(bo,"OFERTA\nQUENTE!",22f,Hex("#FF6600")); lbl.textWrappingMode=TMPro.TextWrappingModes.NoWrap; log.AppendLine("  BotaoOferta (borda direita)"); total++; }
           var ofertaImg = bo.GetComponent<Image>() ?? bo.AddComponent<Image>();
           var ofertaSprite = LoadUI("action_button_base.png");
-          if(ofertaSprite != null){ ofertaImg.sprite = ofertaSprite; ofertaImg.type = Image.Type.Simple; ofertaImg.color = new Color(1f,0.4f,0f,1f); } }
+          if(ofertaSprite != null){ ofertaImg.sprite = ofertaSprite; ofertaImg.type = Image.Type.Simple; ofertaImg.color = new Color(1f,0.4f,0f,1f); }
+          bo.SetActive(false); }
 
         // PlayButton
         GameObject playButtonGO;
