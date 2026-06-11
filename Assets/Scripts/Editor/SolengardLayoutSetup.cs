@@ -119,7 +119,7 @@ public static class SolengardLayoutSetup
             var (go, isNew) = FindOrCreateUI(canvasTr, "BG");
             if (isNew) { StretchFull(RT(go)); EnsureImage(go, Hex("#0A0A1A")); log.AppendLine("  BG"); total++; }
             // Fundo dark fantasy — força reimport como Sprite se necessário
-            const string BG_PATH = "Assets/Art/UI/Backgournds/menu_background.png";
+            const string BG_PATH = "Assets/Art/UI/Backgrounds/menu_background.png";
             var bgImporter = AssetImporter.GetAtPath(BG_PATH) as TextureImporter;
             if (bgImporter != null && bgImporter.textureType != TextureImporterType.Sprite)
             {
@@ -192,7 +192,7 @@ public static class SolengardLayoutSetup
             var tr=go.transform;
 
             // Always apply all positions — re-running layout corrects existing scenes
-            { var (c,n)=FindOrCreateUI(tr,"TextoTitulo"); SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,350),new(800,100)); var t=EnsureTMP(c,"SOLENGARD",72f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold; if(n){ log.AppendLine("  CenterArea/TextoTitulo"); total++; } }
+            { var (c,n)=FindOrCreateUI(tr,"TextoTitulo"); SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,350),new(800,100)); var t=EnsureTMP(c,"SOLENGARD",72f,Hex("#C8A0FF")); t.fontStyle=FontStyles.Bold; t.gameObject.SetActive(false); /* arte de fundo já contém o título SOLENGARD */ if(n){ log.AppendLine("  CenterArea/TextoTitulo"); total++; } }
 
             var (tGO,tN)=FindOrCreateUI(tr,"TextoTemporada");
             textoTemporadaGO=tGO;
@@ -1902,5 +1902,367 @@ public static class SolengardLayoutSetup
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorUtility.DisplayDialog("Solengard", "✓ Fonte de teste aplicada em MISSÕES e JOGAR.\n\nVerifique se o Õ de MISSÕES renderiza corretamente.", "OK");
+    }
+
+    static void SkinPanel(GameObject host, Color corBg)
+    {
+        if (host == null) { Debug.LogWarning("[SkinPanel] host nulo."); return; }
+        const string POPUP = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Popups/Popup_02_White.prefab";
+        var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(POPUP);
+        if (prefab == null) { Debug.LogWarning($"[SkinPanel] Prefab não encontrado: {POPUP}"); return; }
+
+        // Remove skin anterior (idempotente)
+        var antigo = host.transform.Find("[PanelSkin]");
+        if (antigo != null) Object.DestroyImmediate(antigo.gameObject);
+
+        // Desativa Image do root do painel (a skin assume o fundo)
+        var hostImg = host.GetComponent<UnityEngine.UI.Image>();
+        if (hostImg != null) { hostImg.sprite = null; hostImg.color = new Color(0,0,0,0); hostImg.enabled = false; }
+
+        // Instancia o popup como filho de FUNDO
+        var skin = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab, host.transform);
+        skin.name = "[PanelSkin]";
+
+        var srt = skin.GetComponent<RectTransform>();
+        if (srt == null) srt = skin.AddComponent<RectTransform>();
+        srt.anchorMin = Vector2.zero; srt.anchorMax = Vector2.one;
+        srt.offsetMin = Vector2.zero; srt.offsetMax = Vector2.zero;
+        srt.localScale = Vector3.one;
+        srt.SetAsFirstSibling(); // fundo atrás de todo o conteúdo
+
+        // Raycast off em tudo da skin (não bloqueia interação do conteúdo)
+        foreach (var img in skin.GetComponentsInChildren<UnityEngine.UI.Image>(true))
+            img.raycastTarget = false;
+
+        // Recolore o Bg
+        var bgTr = skin.transform.Find("Bg");
+        if (bgTr != null)
+        {
+            var bgImg = bgTr.GetComponent<UnityEngine.UI.Image>();
+            if (bgImg != null) bgImg.color = corBg;
+        }
+
+        // Remove textos demo do prefab (Text_Title, Text_Description)
+        foreach (var tmp in skin.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+            Object.DestroyImmediate(tmp.gameObject);
+
+        // Remove Content_Demo se existir
+        var demoTr = skin.transform.Find("Content_Demo");
+        if (demoTr != null) Object.DestroyImmediate(demoTr.gameObject);
+
+        UnityEditor.EditorUtility.SetDirty(host);
+    }
+
+    [MenuItem("Solengard/TESTE Skin PainelConfig")]
+    static void TesteSkinPainelConfig()
+    {
+        var canvas = GameObject.Find("Canvas");
+        if (canvas == null) { Debug.LogWarning("[SkinPanel] Canvas não encontrado."); return; }
+        var painel = canvas.transform.Find("PainelConfiguracoes");
+        if (painel == null) { Debug.LogWarning("[SkinPanel] PainelConfiguracoes não encontrado."); return; }
+
+        SkinPanel(painel.gameObject, Hex("#1A0A2E"));
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorUtility.DisplayDialog("Solengard", "✓ Skin aplicada no PainelConfiguracoes.", "OK");
+    }
+
+    [MenuItem("Solengard/Construir Config (conteudo)")]
+    static void PopularPainelConfiguracoes()
+    {
+        const string SLIDER_PREFAB = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Slider/Slider_Basic_Rectangle_White.prefab";
+        const string SWITCH_PREFAB = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_UI_Etc/Switch_White.prefab";
+        const string FLAG_BASE = "Assets/Layer Lab/GUI Pro-FantasyRPG/ResourcesData/Sprites/Component/Icon_Flag/";
+        const string BTN = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Buttons/Button_Rectangle_01_Convex_White.prefab";
+
+        var canvas = GameObject.Find("Canvas");
+        if (canvas == null) { Debug.LogWarning("[Config] Canvas não encontrado."); return; }
+        var painelTr = canvas.transform.Find("PainelConfiguracoes");
+        if (painelTr == null) { Debug.LogWarning("[Config] PainelConfiguracoes não encontrado."); return; }
+        var painel = painelTr.gameObject;
+
+        for (int i = painel.transform.childCount - 1; i >= 0; i--)
+        {
+            var c = painel.transform.GetChild(i);
+            if (c.name != "[PanelSkin]") Object.DestroyImmediate(c.gameObject);
+        }
+
+        var content = new GameObject("ConfigContent", typeof(RectTransform));
+        content.transform.SetParent(painel.transform, false);
+        var crt = content.GetComponent<RectTransform>();
+        crt.anchorMin = new Vector2(0.07f, 0.05f);
+        crt.anchorMax = new Vector2(0.93f, 0.93f);
+        crt.offsetMin = Vector2.zero; crt.offsetMax = Vector2.zero;
+
+        float y = 1f;
+
+        RectTransform NovaLinha(string nome, float alturaFrac, float gap, ref float cursorY)
+        {
+            var go = new GameObject(nome, typeof(RectTransform));
+            go.transform.SetParent(content.transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0, cursorY - alturaFrac);
+            rt.anchorMax = new Vector2(1, cursorY);
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            cursorY -= (alturaFrac + gap);
+            return rt;
+        }
+
+        void RecolorSlider(GameObject sliderGO)
+        {
+            var slider = sliderGO.GetComponent<UnityEngine.UI.Slider>();
+            if (slider == null) return;
+            slider.interactable = true;
+
+            // Garante que o root do slider tem Image com raycast (área clicável)
+            var rootImg = sliderGO.GetComponent<UnityEngine.UI.Image>();
+            if (rootImg == null) rootImg = sliderGO.AddComponent<UnityEngine.UI.Image>();
+            rootImg.color = Hex("#1A1A3A");
+            rootImg.raycastTarget = true; // CRÍTICO: captura o clique/drag
+
+            // Fill roxo
+            if (slider.fillRect != null)
+            {
+                var fillImg = slider.fillRect.GetComponent<UnityEngine.UI.Image>();
+                if (fillImg != null) { fillImg.color = Hex("#C8A0FF"); fillImg.raycastTarget = false; }
+            }
+
+            // Background filho (se houver)
+            var bgTr = sliderGO.transform.Find("Background");
+            if (bgTr != null)
+            {
+                var bi = bgTr.GetComponent<UnityEngine.UI.Image>();
+                if (bi != null) { bi.color = Hex("#1A1A3A"); bi.raycastTarget = true; }
+            }
+
+            // Cria handle visual se não existir (thumb dourado)
+            if (slider.handleRect == null)
+            {
+                var handle = new GameObject("Handle", typeof(RectTransform));
+                handle.transform.SetParent(sliderGO.transform, false);
+                var hrt = handle.GetComponent<RectTransform>();
+                hrt.sizeDelta = new Vector2(28, 36);
+                hrt.anchorMin = new Vector2(0, 0.5f);
+                hrt.anchorMax = new Vector2(0, 0.5f);
+                var himg = handle.AddComponent<UnityEngine.UI.Image>();
+                himg.color = Hex("#FFD700");
+                himg.raycastTarget = false;
+                slider.handleRect = hrt;
+                slider.targetGraphic = himg;
+            }
+        }
+
+        void LinhaAudio(string nome, string label, float alturaFrac, ref float cursorY)
+        {
+            var linha = NovaLinha(nome, alturaFrac, 0.015f, ref cursorY);
+
+            var lbl = AddLabel(linha.gameObject, label, 28f, Color.white);
+            var lblRt = lbl.GetComponent<RectTransform>();
+            lblRt.anchorMin = new Vector2(0, 0); lblRt.anchorMax = new Vector2(0.28f, 1);
+            lblRt.offsetMin = Vector2.zero; lblRt.offsetMax = Vector2.zero;
+            lbl.alignment = TMPro.TextAlignmentOptions.Left;
+
+            // Switch construído do zero (Toggle puro funciona; prefab Switch_White bloqueia)
+            // Usa sprites do GUI Pro como decoração visual
+            const string SWITCH_SPRITE_BASE = "Assets/Layer Lab/GUI Pro-FantasyRPG/ResourcesData/Sprites/Component/UI_Etc/";
+            {
+                var swGO = new GameObject(nome + "_Switch", typeof(RectTransform));
+                swGO.transform.SetParent(linha, false);
+                var swrt = swGO.GetComponent<RectTransform>();
+                swrt.anchorMin = new Vector2(0.30f, 0.15f); swrt.anchorMax = new Vector2(0.46f, 0.85f);
+                swrt.offsetMin = Vector2.zero; swrt.offsetMax = Vector2.zero;
+
+                // Background do switch (Image + raycast pra capturar clique)
+                var bgImg = swGO.AddComponent<UnityEngine.UI.Image>();
+                var bgSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(SWITCH_SPRITE_BASE + "Switch_Bg_White_Bg.png");
+                if (bgSprite != null) { bgImg.sprite = bgSprite; bgImg.type = UnityEngine.UI.Image.Type.Sliced; }
+                bgImg.color = Hex("#2A1060");
+                bgImg.raycastTarget = true;
+
+                // Toggle no root (como o teste que funcionou)
+                var toggle = swGO.AddComponent<UnityEngine.UI.Toggle>();
+                toggle.interactable = true;
+                toggle.isOn = true;
+                toggle.targetGraphic = bgImg;
+
+                // Handle (thumb dourado que desliza)
+                var handle = new GameObject("Handle", typeof(RectTransform));
+                handle.transform.SetParent(swGO.transform, false);
+                var hrt = handle.GetComponent<RectTransform>();
+                hrt.anchorMin = new Vector2(0.55f, 0.1f); hrt.anchorMax = new Vector2(0.95f, 0.9f);
+                hrt.offsetMin = Vector2.zero; hrt.offsetMax = Vector2.zero;
+                var handleImg = handle.AddComponent<UnityEngine.UI.Image>();
+                var handleSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(SWITCH_SPRITE_BASE + "Switch_Handle_On.png");
+                if (handleSprite != null) handleImg.sprite = handleSprite;
+                handleImg.color = Color.white;
+                handleImg.raycastTarget = false;
+                // NÃO setar toggle.graphic — deixa o UpdateSwitchVisual controlar a visibilidade manualmente
+                toggle.graphic = null;
+                // Toggle Transition None pra Unity não interferir no visual
+                toggle.toggleTransition = UnityEngine.UI.Toggle.ToggleTransition.None;
+            }
+
+            var sliderPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(SLIDER_PREFAB);
+            if (sliderPrefab != null)
+            {
+                var sl = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(sliderPrefab, linha);
+                sl.name = nome + "_Slider";
+                var slrt = sl.GetComponent<RectTransform>();
+                slrt.anchorMin = new Vector2(0.50f, 0.3f); slrt.anchorMax = new Vector2(1f, 0.7f);
+                slrt.offsetMin = Vector2.zero; slrt.offsetMax = Vector2.zero;
+                slrt.localScale = Vector3.one;
+                var slider = sl.GetComponent<UnityEngine.UI.Slider>();
+                if (slider != null) { slider.minValue = 0f; slider.maxValue = 1f; slider.value = 0.8f; }
+                RecolorSlider(sl);
+            }
+        }
+
+        // ── TÍTULO ──
+        {
+            var t = NovaLinha("Titulo", 0.09f, 0.03f, ref y);
+            var tmp = AddLabel(t.gameObject, "CONFIGURAÇÕES", 40f, Hex("#FFD700"));
+            tmp.alignment = TMPro.TextAlignmentOptions.Center;
+            tmp.fontStyle = TMPro.FontStyles.Bold;
+        }
+
+        // ── ÁUDIO ──
+        LinhaAudio("Musica", "Música", 0.10f, ref y);
+        LinhaAudio("SFX", "Efeitos", 0.10f, ref y);
+
+        // ── IDIOMA ──
+        {
+            var linha = NovaLinha("LinhaIdioma", 0.11f, 0.025f, ref y);
+            var go = new GameObject("BtnIdioma", typeof(RectTransform));
+            go.transform.SetParent(linha, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.05f, 0.12f); rt.anchorMax = new Vector2(0.95f, 0.88f);
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            EnsureButton(go);
+            AddLabel(go, "Idioma: Português", 26f, Color.white);
+            var flag = new GameObject("Flag", typeof(RectTransform));
+            flag.transform.SetParent(go.transform, false);
+            var frt = flag.GetComponent<RectTransform>();
+            frt.anchorMin = new Vector2(0.04f, 0.2f); frt.anchorMax = new Vector2(0.15f, 0.8f);
+            frt.offsetMin = Vector2.zero; frt.offsetMax = Vector2.zero;
+            var fimg = flag.AddComponent<UnityEngine.UI.Image>();
+            var flagSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(FLAG_BASE + "icon_language_flag_prt.png");
+            if (flagSprite != null) fimg.sprite = flagSprite;
+            fimg.raycastTarget = false;
+            SkinElement(go, BTN, Hex("#2A1060"));
+        }
+
+        // ── CONTA / LOGIN ──
+        {
+            var linha = NovaLinha("LinhaConta", 0.11f, 0.025f, ref y);
+            var go = new GameObject("BtnConta", typeof(RectTransform));
+            go.transform.SetParent(linha, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.05f, 0.12f); rt.anchorMax = new Vector2(0.95f, 0.88f);
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            EnsureButton(go);
+            AddLabel(go, "Conta / Login", 26f, Color.white);
+            SkinElement(go, BTN, Hex("#1A4A90"));
+        }
+
+        // ── RESTAURAR COMPRAS ──
+        {
+            var linha = NovaLinha("LinhaRestaurar", 0.11f, 0.025f, ref y);
+            var go = new GameObject("BtnRestaurar", typeof(RectTransform));
+            go.transform.SetParent(linha, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.05f, 0.12f); rt.anchorMax = new Vector2(0.95f, 0.88f);
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            EnsureButton(go);
+            AddLabel(go, "Restaurar Compras", 26f, Color.white);
+            SkinElement(go, BTN, Hex("#2A1060"));
+        }
+
+        // ── PRIVACIDADE + CRÉDITOS (lado a lado) ──
+        {
+            var linha = NovaLinha("LinhaInfo", 0.10f, 0.025f, ref y);
+            void MiniBotao(string nome, string texto, float xMin, float xMax)
+            {
+                var go = new GameObject(nome, typeof(RectTransform));
+                go.transform.SetParent(linha, false);
+                var rt = go.GetComponent<RectTransform>();
+                rt.anchorMin = new Vector2(xMin, 0.12f); rt.anchorMax = new Vector2(xMax, 0.88f);
+                rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+                EnsureButton(go);
+                AddLabel(go, texto, 22f, Color.white);
+                SkinElement(go, BTN, Hex("#2A1060"));
+            }
+            MiniBotao("BtnPrivacidade", "Privacidade", 0.05f, 0.48f);
+            MiniBotao("BtnCreditos", "Créditos", 0.52f, 0.95f);
+        }
+
+        // ── BOTÃO FECHAR (X) ──
+        {
+            var go = new GameObject("BtnFecharConfig", typeof(RectTransform));
+            go.transform.SetParent(content.transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.88f, 0.93f); rt.anchorMax = new Vector2(0.99f, 1.0f);
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            EnsureButton(go);
+            AddLabel(go, "X", 28f, Color.white);
+            SkinElement(go, BTN, Hex("#8B2020"));
+        }
+
+        // ── Garante SettingsManager na cena ──
+        var smGO = GameObject.Find("SettingsManager");
+        if (smGO == null)
+        {
+            smGO = new GameObject("SettingsManager");
+            smGO.AddComponent(System.Type.GetType("Solengard.Core.SettingsManager, Assembly-CSharp"));
+            Debug.Log("[Config] GameObject SettingsManager criado na cena.");
+        }
+
+        // ── Anexa ConfigUIBinder ao painel ──
+        var binderType = System.Type.GetType("Solengard.UI.ConfigUIBinder, Assembly-CSharp");
+        if (binderType != null)
+        {
+            if (painel.GetComponent(binderType) == null)
+            {
+                painel.AddComponent(binderType);
+                Debug.Log("[Config] ConfigUIBinder anexado ao PainelConfiguracoes.");
+            }
+        }
+        else Debug.LogWarning("[Config] Tipo ConfigUIBinder não encontrado.");
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[Config] PainelConfiguracoes populado (refinado).");
+        EditorUtility.DisplayDialog("Solengard", "✓ Config refinada construída.", "OK");
+    }
+
+    [MenuItem("Solengard/TESTE Toggle Puro")]
+    static void TesteTogglePuro()
+    {
+        var canvas = GameObject.Find("Canvas");
+        if (canvas == null) { Debug.LogWarning("[TestToggle] Canvas não encontrado."); return; }
+        var painel = canvas.transform.Find("PainelConfiguracoes");
+        if (painel == null) { Debug.LogWarning("[TestToggle] Painel não encontrado."); return; }
+
+        // Remove teste anterior
+        var antigo = painel.Find("ToggleTeste");
+        if (antigo != null) Object.DestroyImmediate(antigo.gameObject);
+
+        // Cria um Toggle Unity puro, simples, grande, no centro
+        var go = new GameObject("ToggleTeste", typeof(RectTransform));
+        go.transform.SetParent(painel, false);
+        var rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.3f, 0.45f);
+        rt.anchorMax = new Vector2(0.7f, 0.55f);
+        rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+
+        var img = go.AddComponent<UnityEngine.UI.Image>();
+        img.color = new Color(1f, 0f, 0f, 1f); // vermelho sólido, bem visível
+        img.raycastTarget = true;
+
+        var toggle = go.AddComponent<UnityEngine.UI.Toggle>();
+        toggle.interactable = true;
+        toggle.isOn = true;
+        toggle.targetGraphic = img;
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[TestToggle] Toggle puro vermelho criado no centro do painel.");
+        EditorUtility.DisplayDialog("Solengard", "Toggle vermelho criado. Adicione listener no ConfigUIBinder e teste o clique.", "OK");
     }
 }
