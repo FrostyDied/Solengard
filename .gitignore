@@ -122,3 +122,12 @@ Assets/Hovl Studio.meta
 !Assets/Art/UI/**
 !Assets/Art/Fonts/
 !Assets/Art/Fonts/**
+
+# Third-party Asset Store packages (~1GB) - reimport from Asset Store with license
+# Not redistributed in repo per Unity/LayerLab EULA
+/[Aa]ssets/Feel/
+/[Aa]ssets/Feel.meta
+/[Aa]ssets/Layer Lab/
+/[Aa]ssets/Layer Lab.meta
+/[Aa]ssets/Ultimate Magic Spells/
+/[Aa]ssets/Ultimate Magic Spells.meta
