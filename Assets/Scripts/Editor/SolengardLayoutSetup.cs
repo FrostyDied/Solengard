@@ -1174,6 +1174,134 @@ public static class SolengardLayoutSetup
         }
     }
 
+    // ── Skin Element: instancia prefab GUI Pro como filho visual (não destrói lógica) ──
+    static void SkinElement(GameObject host, string prefabPath, Color corBg, string labelTexto = null)
+    {
+        if (host == null) { Debug.LogWarning("[Skin] host nulo."); return; }
+
+        var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (prefab == null) { Debug.LogWarning($"[Skin] Prefab não encontrado: {prefabPath}"); return; }
+
+        // 1. Remove skin anterior se existir (idempotente — pode rodar várias vezes)
+        var skinAntigo = host.transform.Find("[Skin]");
+        if (skinAntigo != null) Object.DestroyImmediate(skinAntigo.gameObject);
+
+        // 2. Desativa a Image do root do host (se houver) — a skin assume o visual
+        var hostImg = host.GetComponent<UnityEngine.UI.Image>();
+        if (hostImg != null) { hostImg.sprite = null; hostImg.color = new Color(0,0,0,0); hostImg.enabled = false; }
+
+        // 3. Instancia o prefab visual como filho
+        var skin = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab, host.transform);
+        skin.name = "[Skin]";
+
+        // 4. Stretch full dentro do host
+        var srt = skin.GetComponent<RectTransform>();
+        if (srt == null) srt = skin.AddComponent<RectTransform>();
+        srt.anchorMin = Vector2.zero; srt.anchorMax = Vector2.one;
+        srt.offsetMin = Vector2.zero; srt.offsetMax = Vector2.zero;
+        srt.localScale = Vector3.one;
+        srt.SetAsFirstSibling(); // skin atrás de tudo (Label fica na frente)
+
+        // 5. Desliga raycast de TODAS as Images da skin (cliques passam pro Button do host)
+        foreach (var img in skin.GetComponentsInChildren<UnityEngine.UI.Image>(true))
+            img.raycastTarget = false;
+
+        // 6. Recolore o filho "Bg" da skin com a cor do Solengard
+        var bgTr = skin.transform.Find("Bg");
+        UnityEngine.UI.Image bgImg = null;
+        if (bgTr != null)
+        {
+            bgImg = bgTr.GetComponent<UnityEngine.UI.Image>();
+            if (bgImg != null) bgImg.color = corBg;
+        }
+        else Debug.LogWarning($"[Skin] Filho 'Bg' não encontrado no prefab {prefab.name}");
+
+        // 7. Reconecta Button.targetGraphic para o Bg da skin (estados visuais funcionam)
+        var btn = host.GetComponent<UnityEngine.UI.Button>();
+        if (btn != null && bgImg != null) btn.targetGraphic = bgImg;
+
+        // 8. Remove o TMP de demonstração que vem dentro do prefab (Text / Text_Title etc)
+        foreach (var tmp in skin.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+            Object.DestroyImmediate(tmp.gameObject);
+
+        // 9. Garante que o Label do HOST (nosso texto real) fica na frente da skin
+        var labelTr = host.transform.Find("Label");
+        if (labelTr != null)
+        {
+            labelTr.SetAsLastSibling();
+            if (labelTexto != null)
+            {
+                var tmp = labelTr.GetComponent<TMPro.TextMeshProUGUI>();
+                if (tmp != null) tmp.text = labelTexto;
+            }
+        }
+
+        UnityEditor.EditorUtility.SetDirty(host);
+    }
+
+    static void ApplyButtonLayers(GameObject go, Color corBg, Color corBorder, string labelTexto = null)
+    {
+        const string BASE = "Assets/Layer Lab/GUI Pro-FantasyRPG/ResourcesData/Sprites/Component/";
+        var spriteBg       = AssetDatabase.LoadAssetAtPath<Sprite>(BASE + "Button/Button_Rectangle_01_Convex_White_Bg.png");
+        var spriteBorder   = AssetDatabase.LoadAssetAtPath<Sprite>(BASE + "Button/Button_Rectangle_01_Convex_White_Border.png");
+        var spriteLight    = AssetDatabase.LoadAssetAtPath<Sprite>(BASE + "Button/Button_Rectangle_01_Convex_White_Light.png");
+        var spriteGradient = AssetDatabase.LoadAssetAtPath<Sprite>(BASE + "Button/Button_Rectangle_01_Convex_White_Gradient.png");
+        if (spriteBg == null) { Debug.LogWarning($"[ApplyButtonLayers] Sprite Bg não encontrado em {BASE}Button/"); return; }
+        // Desativa Image do root em vez de destruir (evita MissingReferenceException na closure)
+        var rootImg = go.GetComponent<UnityEngine.UI.Image>();
+        if (rootImg != null)
+        {
+            rootImg.sprite = null;
+            rootImg.color = new Color(0, 0, 0, 0);
+            rootImg.enabled = false;
+        }
+
+        // Captura o transform antes da closure para evitar acesso a componente destruído
+        var goTransform = go.transform;
+
+        // Helper interno para criar/atualizar filho de layer
+        UnityEngine.UI.Image EnsureLayer(string childName, UnityEngine.Sprite sprite, UnityEngine.Color cor, int siblingIndex)
+        {
+            var child = goTransform.Find(childName);
+            if (child == null)
+            {
+                var newGO = new GameObject(childName);
+                newGO.transform.SetParent(goTransform, false);
+                child = newGO.transform;
+            }
+            child.SetSiblingIndex(siblingIndex);
+            var img = child.GetComponent<UnityEngine.UI.Image>();
+            if (img == null) img = child.gameObject.AddComponent<UnityEngine.UI.Image>();
+            img.sprite = sprite;
+            img.type = UnityEngine.UI.Image.Type.Sliced;
+            img.color = cor;
+            img.pixelsPerUnitMultiplier = 1f;
+            img.raycastTarget = false;
+            var rt = child.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            return img;
+        }
+        EnsureLayer("Border",   spriteBorder   ?? spriteBg, corBorder,              0);
+        var bgImg = EnsureLayer("Bg",           spriteBg,   corBg,                  1);
+        EnsureLayer("Light",    spriteLight    ?? spriteBg, new Color(1,1,1,0.25f), 2);
+        EnsureLayer("Gradient", spriteGradient ?? spriteBg, new Color(0,0,0,0.20f), 3);
+        var btn = go.GetComponent<UnityEngine.UI.Button>();
+        if (btn != null) btn.targetGraphic = bgImg;
+        if (labelTexto != null)
+        {
+            var labelTr = go.transform.Find("Label");
+            if (labelTr != null)
+            {
+                var tmp = labelTr.GetComponent<TMPro.TextMeshProUGUI>();
+                if (tmp != null) { tmp.text = labelTexto; labelTr.SetAsLastSibling(); }
+            }
+        }
+        EditorUtility.SetDirty(go);
+    }
+
     static TextMeshProUGUI EnsureTMP(GameObject go, string text, float size, Color color)
     {
         var t=go.GetComponent<TextMeshProUGUI>()??go.AddComponent<TextMeshProUGUI>();
@@ -1272,5 +1400,507 @@ public static class SolengardLayoutSetup
         EditorUtility.DisplayDialog("Solengard Layout",
             $"Abra a cena '{expected}' antes de executar este layout.\n\nCena atual: '{EditorSceneManager.GetActiveScene().name}'","OK");
         return false;
+    }
+
+    // ── Aplicar Tema GUI Pro ────────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Aplicar Tema GUI Pro")]
+    static void AplicarTemaGUIPro()
+    {
+        int total = 0;
+
+        void Apply(Transform parent, string childName, string sprite, Color cor)
+        {
+            if (parent == null) { Debug.LogWarning($"[Tema] Parent nulo ao buscar '{childName}'"); return; }
+            var t = parent.Find(childName);
+            if (t != null) { ApplyGUISprite(t.gameObject, sprite, cor); total++; Debug.Log($"[Tema] {parent.name}/{childName}"); }
+            else            Debug.LogWarning($"[Tema] GO não encontrado: {parent.name}/{childName}");
+        }
+
+        void ApplyGO(GameObject go, string label, string sprite, Color cor)
+        {
+            if (go != null) { ApplyGUISprite(go, sprite, cor); total++; Debug.Log($"[Tema] {label}"); }
+            else             Debug.LogWarning($"[Tema] GO não encontrado: {label}");
+        }
+
+        // ── MainMenu ──────────────────────────────────────────────────────────────
+        var canvasGO = GameObject.Find("Canvas");
+        if (canvasGO == null)
+        {
+            Debug.LogWarning("[Tema] Canvas não encontrado — execute também na cena MainMenu.");
+        }
+        else
+        {
+            var canvasTr = canvasGO.transform;
+
+            Apply(canvasTr, "TopBar", "Frame/PanelFrame_01_Bg.png", Hex("#0A0A1A"));
+
+            var bottomTabsTr = canvasTr.Find("BottomTabs");
+            if (bottomTabsTr != null)
+                foreach (var tab in new[] { "TabLoja", "TabMissoes", "TabPasse", "TabConfigs" })
+                    Apply(bottomTabsTr, tab, "Frame/TabMenu_01_Focus_White.png", Hex("#8B2535"));
+            else
+                Debug.LogWarning("[Tema] BottomTabs não encontrado.");
+
+            foreach (var nome in new[] { "PainelLoja", "PainelMissoes", "PainelConfiguracoes", "PainelPasse" })
+                Apply(canvasTr, nome, "Popup/Popup_02_White_Bg.png", Hex("#1A0A2E"));
+
+            var lojaTr = canvasTr.Find("PainelLoja");
+            if (lojaTr != null)
+            {
+                Apply(lojaTr, "HeaderLoja", "Label-Title/Title_Ribbon_01_Purple.png", Hex("#FFD700"));
+
+                var abasLojaTr = lojaTr.Find("AbasLoja");
+                if (abasLojaTr != null)
+                    foreach (var b in new[] { "BtnPersonagens", "BtnUpgrades", "BtnDiamantes" })
+                        Apply(abasLojaTr, b, "Frame/TabMenu_01_Focus_White.png", Hex("#2A1060"));
+                else
+                    Debug.LogWarning("[Tema] AbasLoja não encontrado.");
+
+                var abaPersonagens = lojaTr.Find("AbaPersonagens");
+                if (abaPersonagens != null)
+                    foreach (Transform card in abaPersonagens)
+                        Apply(card, "BtnComprar", "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#5A1090"));
+                else
+                    Debug.LogWarning("[Tema] AbaPersonagens não encontrado.");
+
+                var abaUpgrades = lojaTr.Find("AbaUpgrades");
+                if (abaUpgrades != null)
+                    foreach (Transform child in abaUpgrades)
+                        if (child.name.StartsWith("UpRow_"))
+                            Apply(child, "BtnUpgrade", "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#5A1090"));
+                else
+                    Debug.LogWarning("[Tema] AbaUpgrades não encontrado.");
+
+                var abaDiamantes = lojaTr.Find("AbaDiamantes");
+                if (abaDiamantes != null)
+                {
+                    foreach (Transform card in abaDiamantes)
+                        if (card.name.StartsWith("CardPacote_"))
+                            Apply(card, "BtnPacote", "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#5A1090"));
+                    Apply(abaDiamantes, "BtnVideo", "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#5A1090"));
+                }
+                else
+                    Debug.LogWarning("[Tema] AbaDiamantes não encontrado.");
+            }
+            else
+                Debug.LogWarning("[Tema] PainelLoja não encontrado.");
+
+            var popupTr = canvasTr.Find("PopupRecompensa");
+            if (popupTr != null)
+            {
+                ApplyGO(popupTr.gameObject, "PopupRecompensa", "Popup/Popup_02_White_Bg.png", Hex("#1A0A2E"));
+                Apply(popupTr, "BotaoColetarRecompensa", "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#FFD700"));
+            }
+            else
+                Debug.LogWarning("[Tema] PopupRecompensa não encontrado.");
+        }
+
+        // ── SessionRestoreCanvas ──────────────────────────────────────────────────
+        var srcGO = GameObject.Find("SessionRestoreCanvas");
+        if (srcGO != null)
+        {
+            var panelTr = srcGO.transform.Find("SessionRestorePanel");
+            if (panelTr != null)
+            {
+                ApplyGO(panelTr.gameObject, "SessionRestorePanel", "Popup/Popup_02_White_Bg.png", Hex("#1A0A2E"));
+                Apply(panelTr, "BotaoContinuar", "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#5A1090"));
+                Apply(panelTr, "BotaoNovaRun",   "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#2A1060"));
+            }
+            else
+                Debug.LogWarning("[Tema] SessionRestorePanel não encontrado.");
+        }
+        else
+            Debug.LogWarning("[Tema] SessionRestoreCanvas não encontrado.");
+
+        // ── GameScene — HUD Canvas ────────────────────────────────────────────────
+        var hudGO = GameObject.Find("HUD Canvas");
+        if (hudGO != null)
+        {
+            var hudTr = hudGO.transform;
+
+            Apply(hudTr, "HUDBackground", "Frame/PanelFrame_01_Bg.png",                     Hex("#0A0A1A"));
+            Apply(hudTr, "PauseButton",   "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#5A1090"));
+
+            var topBarTr = hudTr.Find("TopBar");
+            if (topBarTr != null)
+            {
+                var avatarTr = topBarTr.Find("Avatar");
+                if (avatarTr != null)
+                    Apply(avatarTr, "Inner", "Frame/SlotFrame_Circle_White_Bg.png", Hex("#2A1060"));
+                else
+                    Debug.LogWarning("[Tema] HUD/TopBar/Avatar não encontrado.");
+
+                for (int i = 0; i < 5; i++)
+                {
+                    var slotTr = topBarTr.Find($"BoostSlot{i}");
+                    if (slotTr != null)
+                        Apply(slotTr, "Inner", "Frame/SlotFrame_Circle_White_Bg.png", Hex("#2A1060"));
+                    else
+                        Debug.LogWarning($"[Tema] BoostSlot{i} não encontrado.");
+                }
+            }
+            else
+                Debug.LogWarning("[Tema] HUD/TopBar não encontrado.");
+        }
+        else
+            Debug.LogWarning("[Tema] HUD Canvas não encontrado — execute também na cena GameScene.");
+
+        // ── PauseCanvas ───────────────────────────────────────────────────────────
+        var pcGO = GameObject.Find("PauseCanvas");
+        if (pcGO != null)
+        {
+            var pausePanelTr = pcGO.transform.Find("PausePanel");
+            if (pausePanelTr != null)
+            {
+                ApplyGO(pausePanelTr.gameObject, "PausePanel", "Popup/Popup_02_White_Bg.png", Hex("#1A0A2E"));
+                Apply(pausePanelTr, "BotaoRetomar",            "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#5A1090"));
+                Apply(pausePanelTr, "BotaoMenuPrincipalPause", "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#2A1060"));
+            }
+            else
+                Debug.LogWarning("[Tema] PausePanel não encontrado.");
+        }
+        else
+            Debug.LogWarning("[Tema] PauseCanvas não encontrado — execute também na cena GameScene.");
+
+        // ── GameOverCanvas ────────────────────────────────────────────────────────
+        var gcGO = GameObject.Find("GameOverCanvas");
+        if (gcGO != null)
+        {
+            var gamePanelTr = gcGO.transform.Find("GameOverPanel");
+            if (gamePanelTr != null)
+            {
+                ApplyGO(gamePanelTr.gameObject, "GameOverPanel", "Popup/Popup_02_White_Bg.png", Hex("#1A0A2E"));
+                Apply(gamePanelTr, "BotaoRessuscitar",    "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#FFD700"));
+                Apply(gamePanelTr, "BotaoJogarNovamente", "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#5A1090"));
+                Apply(gamePanelTr, "BotaoMenuPrincipal",  "Button/Button_Rectangle_01_Convex_White_Bg.png", Hex("#2A1060"));
+            }
+            else
+                Debug.LogWarning("[Tema] GameOverPanel não encontrado.");
+        }
+        else
+            Debug.LogWarning("[Tema] GameOverCanvas não encontrado — execute também na cena GameScene.");
+
+        // ─────────────────────────────────────────────────────────────────────────
+        if (total > 0) EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log($"[Tema] Tema GUI Pro aplicado: {total} elemento(s) modificado(s).");
+        EditorUtility.DisplayDialog(
+            "Solengard — Tema GUI Pro",
+            $"✓ {total} elemento(s) tematizado(s).\n\nExecute nas duas cenas (MainMenu e GameScene) para cobertura completa.",
+            "OK");
+    }
+
+    // ── Reverter Tema (parcial) ─────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Reverter Tema (parcial)")]
+    static void ReverterTemaParcial()
+    {
+        int total = 0;
+
+        void ClearSprite(GameObject go, string label)
+        {
+            if (go == null) { Debug.LogWarning($"[Reverter] GO não encontrado: {label}"); return; }
+            var img = go.GetComponent<UnityEngine.UI.Image>();
+            if (img != null) { img.sprite = null; total++; Debug.Log($"[Reverter] {label}"); }
+        }
+
+        void ClearChild(Transform parent, string childName)
+        {
+            if (parent == null) { Debug.LogWarning($"[Reverter] Parent nulo ao buscar '{childName}'"); return; }
+            var t = parent.Find(childName);
+            if (t != null) ClearSprite(t.gameObject, $"{parent.name}/{childName}");
+            else            Debug.LogWarning($"[Reverter] GO não encontrado: {parent.name}/{childName}");
+        }
+
+        // ── MainMenu ──────────────────────────────────────────────────────────────
+        var canvasGO = GameObject.Find("Canvas");
+        if (canvasGO == null)
+        {
+            Debug.LogWarning("[Reverter] Canvas não encontrado — execute também na cena MainMenu.");
+        }
+        else
+        {
+            var canvasTr = canvasGO.transform;
+
+            ClearChild(canvasTr, "TopBar");
+
+            var bottomTabsTr = canvasTr.Find("BottomTabs");
+            if (bottomTabsTr != null)
+                foreach (var tab in new[] { "TabLoja", "TabMissoes", "TabPasse", "TabConfigs" })
+                    ClearChild(bottomTabsTr, tab);
+            else
+                Debug.LogWarning("[Reverter] BottomTabs não encontrado.");
+
+            foreach (var nome in new[] { "PainelLoja", "PainelMissoes", "PainelConfiguracoes", "PainelPasse" })
+                ClearChild(canvasTr, nome);
+
+            var lojaTr = canvasTr.Find("PainelLoja");
+            if (lojaTr != null)
+            {
+                ClearChild(lojaTr, "HeaderLoja");
+
+                var abasLojaTr = lojaTr.Find("AbasLoja");
+                if (abasLojaTr != null)
+                    foreach (var b in new[] { "BtnPersonagens", "BtnUpgrades", "BtnDiamantes" })
+                        ClearChild(abasLojaTr, b);
+                else
+                    Debug.LogWarning("[Reverter] AbasLoja não encontrado.");
+
+                var abaPersonagens = lojaTr.Find("AbaPersonagens");
+                if (abaPersonagens != null)
+                    foreach (Transform card in abaPersonagens)
+                        ClearChild(card, "BtnComprar");
+                else
+                    Debug.LogWarning("[Reverter] AbaPersonagens não encontrado.");
+
+                var abaUpgrades = lojaTr.Find("AbaUpgrades");
+                if (abaUpgrades != null)
+                    foreach (Transform child in abaUpgrades)
+                        if (child.name.StartsWith("UpRow_"))
+                            ClearChild(child, "BtnUpgrade");
+                else
+                    Debug.LogWarning("[Reverter] AbaUpgrades não encontrado.");
+
+                var abaDiamantes = lojaTr.Find("AbaDiamantes");
+                if (abaDiamantes != null)
+                {
+                    foreach (Transform card in abaDiamantes)
+                        if (card.name.StartsWith("CardPacote_"))
+                            ClearChild(card, "BtnPacote");
+                    ClearChild(abaDiamantes, "BtnVideo");
+                }
+                else
+                    Debug.LogWarning("[Reverter] AbaDiamantes não encontrado.");
+            }
+            else
+                Debug.LogWarning("[Reverter] PainelLoja não encontrado.");
+
+            var popupTr = canvasTr.Find("PopupRecompensa");
+            if (popupTr != null)
+            {
+                ClearSprite(popupTr.gameObject, "PopupRecompensa");
+                ClearChild(popupTr, "BotaoColetarRecompensa");
+            }
+            else
+                Debug.LogWarning("[Reverter] PopupRecompensa não encontrado.");
+        }
+
+        // ── SessionRestoreCanvas ──────────────────────────────────────────────────
+        var srcGO = GameObject.Find("SessionRestoreCanvas");
+        if (srcGO != null)
+        {
+            var panelTr = srcGO.transform.Find("SessionRestorePanel");
+            if (panelTr != null)
+            {
+                ClearSprite(panelTr.gameObject, "SessionRestorePanel");
+                ClearChild(panelTr, "BotaoContinuar");
+                ClearChild(panelTr, "BotaoNovaRun");
+            }
+            else
+                Debug.LogWarning("[Reverter] SessionRestorePanel não encontrado.");
+        }
+        else
+            Debug.LogWarning("[Reverter] SessionRestoreCanvas não encontrado.");
+
+        // ── GameScene — HUD Canvas ────────────────────────────────────────────────
+        var hudGO = GameObject.Find("HUD Canvas");
+        if (hudGO != null)
+        {
+            var hudTr = hudGO.transform;
+
+            ClearChild(hudTr, "HUDBackground");
+            ClearChild(hudTr, "PauseButton");
+
+            var topBarTr = hudTr.Find("TopBar");
+            if (topBarTr != null)
+            {
+                var avatarTr = topBarTr.Find("Avatar");
+                if (avatarTr != null)
+                    ClearChild(avatarTr, "Inner");
+                else
+                    Debug.LogWarning("[Reverter] HUD/TopBar/Avatar não encontrado.");
+
+                for (int i = 0; i < 5; i++)
+                {
+                    var slotTr = topBarTr.Find($"BoostSlot{i}");
+                    if (slotTr != null)
+                        ClearChild(slotTr, "Inner");
+                    else
+                        Debug.LogWarning($"[Reverter] BoostSlot{i} não encontrado.");
+                }
+            }
+            else
+                Debug.LogWarning("[Reverter] HUD/TopBar não encontrado.");
+        }
+        else
+            Debug.LogWarning("[Reverter] HUD Canvas não encontrado — execute também na cena GameScene.");
+
+        // ── PauseCanvas — apenas fundo do painel (botões mantidos) ───────────────
+        var pcGO = GameObject.Find("PauseCanvas");
+        if (pcGO != null)
+        {
+            var pausePanelTr = pcGO.transform.Find("PausePanel");
+            if (pausePanelTr != null)
+                ClearSprite(pausePanelTr.gameObject, "PausePanel");
+            else
+                Debug.LogWarning("[Reverter] PausePanel não encontrado.");
+        }
+        else
+            Debug.LogWarning("[Reverter] PauseCanvas não encontrado — execute também na cena GameScene.");
+
+        // ── GameOverCanvas — apenas fundo do painel (botões mantidos) ────────────
+        var gcGO = GameObject.Find("GameOverCanvas");
+        if (gcGO != null)
+        {
+            var gamePanelTr = gcGO.transform.Find("GameOverPanel");
+            if (gamePanelTr != null)
+                ClearSprite(gamePanelTr.gameObject, "GameOverPanel");
+            else
+                Debug.LogWarning("[Reverter] GameOverPanel não encontrado.");
+        }
+        else
+            Debug.LogWarning("[Reverter] GameOverCanvas não encontrado — execute também na cena GameScene.");
+
+        // ─────────────────────────────────────────────────────────────────────────
+        if (total > 0) EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log($"[Reverter] Sprites removidos: {total} elemento(s).");
+        EditorUtility.DisplayDialog(
+            "Solengard — Reverter Tema (parcial)",
+            $"✓ {total} elemento(s) revertido(s).\n\nBotões de ação mantidos.\n\nExecute nas duas cenas para cobertura completa.",
+            "OK");
+    }
+
+    [MenuItem("Solengard/Aplicar Layers Botão JOGAR")]
+    static void AplicarLayersPlayButton()
+    {
+        var canvas = GameObject.Find("Canvas");
+        if (canvas == null) { Debug.LogWarning("[Layers] Canvas não encontrado."); return; }
+        var playBtn = canvas.transform.Find("PlayButton");
+        if (playBtn == null) { Debug.LogWarning("[Layers] PlayButton não encontrado."); return; }
+        ApplyButtonLayers(playBtn.gameObject, Hex("#8B2535"), Hex("#3A0A15"), "> JOGAR");
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorUtility.DisplayDialog("Solengard", "✓ Layers aplicadas no PlayButton.", "OK");
+    }
+
+    [MenuItem("Solengard/TESTE Skin PlayButton")]
+    static void TesteSkinPlayButton()
+    {
+        var canvas = GameObject.Find("Canvas");
+        if (canvas == null) { Debug.LogWarning("[Skin] Canvas não encontrado."); return; }
+        var pb = canvas.transform.Find("PlayButton");
+        if (pb == null) { Debug.LogWarning("[Skin] PlayButton não encontrado."); return; }
+
+        SkinElement(
+            pb.gameObject,
+            "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Buttons/Button_Rectangle_01_Convex_White.prefab",
+            Hex("#8B2535"),
+            "> JOGAR");
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorUtility.DisplayDialog("Solengard", "✓ Skin aplicada no PlayButton.\n\nVerifique o relevo do botão.", "OK");
+    }
+
+    [MenuItem("Solengard/Skin MainMenu (Fase 1)")]
+    static void SkinMainMenuFase1()
+    {
+        const string BTN = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Buttons/Button_Rectangle_01_Convex_White.prefab";
+        int total = 0;
+
+        var canvas = GameObject.Find("Canvas");
+        if (canvas == null) { Debug.LogWarning("[Skin] Canvas não encontrado — abra a cena MainMenu."); return; }
+        var canvasTr = canvas.transform;
+
+        void Skin(Transform parent, string child, Color cor)
+        {
+            if (parent == null) return;
+            var t = parent.Find(child);
+            if (t != null) { SkinElement(t.gameObject, BTN, cor); total++; }
+            else Debug.LogWarning($"[Skin] Não encontrado: {parent.name}/{child}");
+        }
+
+        // ── PlayButton (vinho, já validado) ──
+        Skin(canvasTr, "PlayButton", Hex("#8B2535"));
+
+        // ── BottomTabs — cor neutra escura bonita nos 4 visíveis ──
+        var tabs = canvasTr.Find("BottomTabs");
+        if (tabs != null)
+            foreach (var tab in new[] { "TabLoja", "TabMissoes", "TabPasse", "TabConfigs" })
+                Skin(tabs, tab, Hex("#1A1A2E"));
+
+        // ── TopBar / BotaoConfiguracoes ──
+        var topbar = canvasTr.Find("TopBar");
+        if (topbar != null) Skin(topbar, "BotaoConfiguracoes", Hex("#2A2A3E"));
+
+        // ── PainelLoja ──
+        var loja = canvasTr.Find("PainelLoja");
+        if (loja != null)
+        {
+            // Abas da loja — roxo escuro neutro
+            var abas = loja.Find("AbasLoja");
+            if (abas != null)
+                foreach (var b in new[] { "BtnPersonagens", "BtnUpgrades", "BtnDiamantes" })
+                    Skin(abas, b, Hex("#2A1060"));
+
+            // Botões comprar classe — roxo primário
+            var abaPers = loja.Find("AbaPersonagens");
+            if (abaPers != null)
+                foreach (Transform card in abaPers)
+                    Skin(card, "BtnComprar", Hex("#5A1090"));
+
+            // Botões comprar upgrade — roxo secundário
+            var abaUp = loja.Find("AbaUpgrades");
+            if (abaUp != null)
+                foreach (Transform child in abaUp)
+                    if (child.name.StartsWith("UpRow_"))
+                        Skin(child, "BtnUpgrade", Hex("#2A1060"));
+
+            // Botões comprar diamante — dourado
+            var abaDia = loja.Find("AbaDiamantes");
+            if (abaDia != null)
+            {
+                foreach (Transform card in abaDia)
+                    if (card.name.StartsWith("CardPacote_"))
+                        Skin(card, "BtnPacote", Hex("#B8860B"));
+                // BtnVideo — verde discreto
+                Skin(abaDia, "BtnVideo", Hex("#1A5020"));
+            }
+        }
+
+        // ── PopupRecompensa / Coletar — dourado ──
+        var popup = canvasTr.Find("PopupRecompensa");
+        if (popup != null) Skin(popup, "BotaoColetarRecompensa", Hex("#B8860B"));
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log($"[Skin] MainMenu Fase 1: {total} botões skinados.");
+        EditorUtility.DisplayDialog("Solengard — Skin MainMenu", $"✓ {total} botões skinados com GUI Pro.", "OK");
+    }
+
+    [MenuItem("Solengard/TESTE Fonte GUI Pro")]
+    static void TesteFonteGUIPro()
+    {
+        var fontPath = "Assets/Layer Lab/GUI Pro-FantasyRPG/ResourcesData/Fonts/JosefinSans-Bold SDF.asset";
+        var fontAsset = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>(fontPath);
+        if (fontAsset == null) { Debug.LogWarning($"[Fonte] Não encontrada: {fontPath}"); return; }
+
+        var canvas = GameObject.Find("Canvas");
+        if (canvas == null) { Debug.LogWarning("[Fonte] Canvas não encontrado."); return; }
+
+        void AplicarFonte(string caminho)
+        {
+            var t = canvas.transform.Find(caminho);
+            if (t == null) { Debug.LogWarning($"[Fonte] Não achou: {caminho}"); return; }
+            var label = t.Find("Label");
+            if (label != null)
+            {
+                var tmp = label.GetComponent<TMPro.TextMeshProUGUI>();
+                if (tmp != null) { tmp.font = fontAsset; Debug.Log($"[Fonte] Aplicada em {caminho}: '{tmp.text}'"); }
+            }
+        }
+
+        AplicarFonte("BottomTabs/TabMissoes");
+        AplicarFonte("PlayButton");
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorUtility.DisplayDialog("Solengard", "✓ Fonte de teste aplicada em MISSÕES e JOGAR.\n\nVerifique se o Õ de MISSÕES renderiza corretamente.", "OK");
     }
 }
