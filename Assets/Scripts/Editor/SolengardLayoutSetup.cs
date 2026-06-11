@@ -2269,4 +2269,213 @@ public static class SolengardLayoutSetup
         Debug.Log("[TestToggle] Toggle puro vermelho criado no centro do painel.");
         EditorUtility.DisplayDialog("Solengard", "Toggle vermelho criado. Adicione listener no ConfigUIBinder e teste o clique.", "OK");
     }
+
+    [MenuItem("Solengard/GUIPro/1 - Montar Home")]
+    static void MontarHomeGUIPro()
+    {
+        const string HOME_PREFAB = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_DemoScene_Panels/Home.prefab";
+
+        var sceneName = EditorSceneManager.GetActiveScene().name;
+        if (sceneName != "MainMenu_GUIPro")
+        {
+            if (!EditorUtility.DisplayDialog("Atenção",
+                $"Cena atual: {sceneName}\n\nEste setup é para MainMenu_GUIPro. Continuar mesmo assim?", "Continuar", "Cancelar"))
+                return;
+        }
+
+        // Desativa o Canvas antigo (mantém de referência)
+        var canvasAntigo = GameObject.Find("Canvas");
+        if (canvasAntigo != null)
+        {
+            canvasAntigo.SetActive(false);
+            Debug.Log("[GUIPro] Canvas antigo desativado (referência).");
+        }
+
+        // Remove Home anterior se já foi montado (idempotente)
+        var homeAntigo = GameObject.Find("HomeGUIPro");
+        if (homeAntigo != null) Object.DestroyImmediate(homeAntigo);
+
+        // Acha ou cria um Canvas para o Home novo
+        var canvasNovo = GameObject.Find("CanvasGUIPro");
+        if (canvasNovo == null)
+        {
+            canvasNovo = new GameObject("CanvasGUIPro");
+            var cv = canvasNovo.AddComponent<Canvas>();
+            cv.renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasNovo.AddComponent<UnityEngine.UI.CanvasScaler>();
+            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080, 1920);
+            scaler.matchWidthOrHeight = 0.5f;
+            canvasNovo.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+            Debug.Log("[GUIPro] CanvasGUIPro criado.");
+        }
+
+        // Instancia o Home como filho do canvas novo
+        var homePrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(HOME_PREFAB);
+        if (homePrefab == null) { Debug.LogWarning($"[GUIPro] Home.prefab não encontrado: {HOME_PREFAB}"); return; }
+
+        var home = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(homePrefab, canvasNovo.transform);
+        home.name = "HomeGUIPro";
+        var hrt = home.GetComponent<RectTransform>();
+        if (hrt != null)
+        {
+            hrt.anchorMin = Vector2.zero; hrt.anchorMax = Vector2.one;
+            hrt.offsetMin = Vector2.zero; hrt.offsetMax = Vector2.zero;
+            hrt.localScale = Vector3.one;
+        }
+
+        // Renomeia os GameObjects-chave para os nomes que o backend espera
+        void Renomear(string deNome, string paraNome)
+        {
+            var t = FindDeepInRoot(home.transform, deNome);
+            if (t != null) { t.name = paraNome; Debug.Log($"[GUIPro] Renomeado: {deNome} -> {paraNome}"); }
+            else Debug.LogWarning($"[GUIPro] Não encontrado para renomear: {deNome}");
+        }
+
+        Renomear("Button_Play", "PlayButton");
+        Renomear("Button_Top_Setting", "BotaoConfiguracoes");
+
+        // Desativa elementos P2W / não usados
+        void Desativar(string nome)
+        {
+            var t = FindDeepInRoot(home.transform, nome);
+            if (t != null) t.gameObject.SetActive(false);
+        }
+        Desativar("HomePackage 0");
+        Desativar("HomePackage 1");
+        Desativar("HomePackage 2");
+        Desativar("SubMenuCommunity");
+        Desativar("SubMenuFriends");
+        Desativar("Button_BossDungeon");
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[GUIPro] Home montado. Próximo: renomear tabs e wirar backend.");
+        EditorUtility.DisplayDialog("Solengard GUI Pro", "✓ Home montado na cena paralela.\n\nVerifique visualmente. Próximo passo: tabs + wire.", "OK");
+    }
+
+    static Transform FindDeepInRoot(Transform root, string nome)
+    {
+        if (root.name == nome) return root;
+        foreach (Transform child in root)
+        {
+            var found = FindDeepInRoot(child, nome);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    [MenuItem("Solengard/GUIPro/2 - Wirar Tabs e Botoes")]
+    static void WirarHomeGUIPro()
+    {
+        var canvasNovo = GameObject.Find("CanvasGUIPro");
+        if (canvasNovo == null) { Debug.LogWarning("[GUIPro] CanvasGUIPro não encontrado. Rode o passo 1 primeiro."); return; }
+        var home = GameObject.Find("HomeGUIPro");
+        if (home == null) { Debug.LogWarning("[GUIPro] HomeGUIPro não encontrado. Rode o passo 1 primeiro."); return; }
+
+        // 1. Renomear elementos do SubMenu (bottom nav) para os nomes do backend
+        void Renomear(string de, string para)
+        {
+            var t = FindDeepInRoot(home.transform, de);
+            if (t != null) { t.name = para; Debug.Log($"[GUIPro] {de} -> {para}"); }
+            else Debug.LogWarning($"[GUIPro] Não encontrado: {de}");
+        }
+        Renomear("Shop",          "TabLoja");
+        Renomear("SubMenuMission","TabMissoes");
+        Renomear("Heroes",        "TabPasse");
+        Renomear("SubMenuRanking","TabRanking");
+
+        // Desativar tabs sem equivalente
+        void Desativar(string nome)
+        {
+            var t = FindDeepInRoot(home.transform, nome);
+            if (t != null) t.gameObject.SetActive(false);
+        }
+        Desativar("Inventory");
+        Desativar("SubMenuReward");
+
+        // 2. Garantir Button em cada tab renomeado
+        void GarantirButton(string nome)
+        {
+            var t = FindDeepInRoot(home.transform, nome);
+            if (t != null && t.GetComponent<UnityEngine.UI.Button>() == null)
+            {
+                t.gameObject.AddComponent<UnityEngine.UI.Button>();
+                Debug.Log($"[GUIPro] Button adicionado em {nome}");
+            }
+        }
+        GarantirButton("TabLoja");
+        GarantirButton("TabMissoes");
+        GarantirButton("TabPasse");
+        GarantirButton("TabRanking");
+        GarantirButton("PlayButton");
+        GarantirButton("BotaoConfiguracoes");
+
+        // 3. Criar containers de painel vazios (inativos) — preenchidos nos passos seguintes
+        GameObject CriarPainel(string nome)
+        {
+            var existente = FindDeepInRoot(canvasNovo.transform, nome);
+            if (existente != null) return existente.gameObject;
+            var go = new GameObject(nome, typeof(RectTransform));
+            go.transform.SetParent(canvasNovo.transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            go.SetActive(false);
+            return go;
+        }
+        var painelLoja    = CriarPainel("PainelLoja");
+        var painelMissoes = CriarPainel("PainelMissoes");
+        var painelRanking = CriarPainel("PainelRanking");
+        var painelConfig  = CriarPainel("PainelConfiguracoes");
+
+        // Popup recompensa + filhos que o MainMenuManager espera (evita UnassignedReferenceException)
+        var popupRecompensa = CriarPainel("PopupRecompensa");
+        GameObject CriarFilho(GameObject pai, string nome, bool comTMP)
+        {
+            var existente = pai.transform.Find(nome);
+            if (existente != null) return existente.gameObject;
+            var go = new GameObject(nome, typeof(RectTransform));
+            go.transform.SetParent(pai.transform, false);
+            if (comTMP) go.AddComponent<TMPro.TextMeshProUGUI>();
+            return go;
+        }
+        var txtRecDia  = CriarFilho(popupRecompensa, "TextoRecompensaDia",        true);
+        var txtRecDiam = CriarFilho(popupRecompensa, "TextoRecompensaDiamantes",   true);
+        var btnColetar = CriarFilho(popupRecompensa, "BotaoColetarRecompensa",     false);
+        if (btnColetar.GetComponent<UnityEngine.UI.Button>() == null)
+            btnColetar.AddComponent<UnityEngine.UI.Button>();
+
+        // 4. MainMenuManager no CanvasGUIPro + TryWire
+        var mmm   = canvasNovo.GetComponent<MainMenuManager>() ?? canvasNovo.AddComponent<MainMenuManager>();
+        var mmmSO = new SerializedObject(mmm);
+        var log   = new System.Text.StringBuilder();
+
+        Button BtnDe(string nome)
+        {
+            var t = FindDeepInRoot(home.transform, nome);
+            return t != null ? t.GetComponent<UnityEngine.UI.Button>() : null;
+        }
+
+        TryWire(mmmSO, "botaoJogar",         BtnDe("PlayButton"),        log);
+        TryWire(mmmSO, "botaoConfiguracoes",  BtnDe("BotaoConfiguracoes"),log);
+        TryWire(mmmSO, "botaoLoja",           BtnDe("TabLoja"),           log);
+        TryWire(mmmSO, "botaoMissoes",        BtnDe("TabMissoes"),        log);
+        TryWire(mmmSO, "botaoPasse",          BtnDe("TabPasse"),          log);
+        TryWire(mmmSO, "botaoRanking",        BtnDe("TabRanking"),        log);
+        TryWire(mmmSO, "painelLoja",                  painelLoja,                                          log);
+        TryWire(mmmSO, "painelMissoes",               painelMissoes,                                       log);
+        TryWire(mmmSO, "painelRanking",               painelRanking,                                       log);
+        TryWire(mmmSO, "painelConfiguracoes",         painelConfig,                                        log);
+        TryWire(mmmSO, "popupRecompensa",             popupRecompensa,                                     log);
+        TryWire(mmmSO, "textoRecompensaDia",          txtRecDia.GetComponent<TMPro.TextMeshProUGUI>(),     log);
+        TryWire(mmmSO, "textoRecompensaDiamantes",    txtRecDiam.GetComponent<TMPro.TextMeshProUGUI>(),    log);
+        TryWire(mmmSO, "botaoColetarRecompensa",      btnColetar.GetComponent<UnityEngine.UI.Button>(),    log);
+
+        mmmSO.ApplyModifiedPropertiesWithoutUndo();
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log($"[GUIPro] Wire concluído:\n{log}");
+        EditorUtility.DisplayDialog("Solengard GUI Pro",
+            "✓ Backend wired no Home.\n\nTeste o PLAY em Play mode.", "OK");
+    }
 }
