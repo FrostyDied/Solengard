@@ -106,16 +106,15 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ss]ceneDependencyCache*
 
 # Assets de arte - grande demais para o Git
-Assets/Art/
+# Usa * em vez de / pra permitir negações de subpastas abaixo
+Assets/Art/*
+Assets/Art.meta
 
 # Plugins de terceiros (DOTween, Hovl Studio) - instalar via Unity Asset Store
 Assets/Plugins/
 Assets/Plugins.meta
 Assets/Hovl Studio/
 Assets/Hovl Studio.meta
-
-# Manter só os prefabs e sprites que forem usados nos prefabs
-!Assets/Art/Characters/Enemies/Slime/PNG/
 
 # UI e Fonts - pequenos, incluir no Git
 !Assets/Art/UI/

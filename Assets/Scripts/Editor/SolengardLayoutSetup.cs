@@ -117,7 +117,8 @@ public static class SolengardLayoutSetup
         // BG
         {
             var (go, isNew) = FindOrCreateUI(canvasTr, "BG");
-            if (isNew) { StretchFull(RT(go)); EnsureImage(go, Hex("#0A0A1A")); log.AppendLine("  BG"); total++; }
+            StretchFull(RT(go)); // sempre reposiciona (não só na criação)
+            if (isNew) { EnsureImage(go, Hex("#0A0A1A")); log.AppendLine("  BG"); total++; }
             // Fundo dark fantasy — força reimport como Sprite se necessário
             const string BG_PATH = "Assets/Art/UI/Backgrounds/menu_background.png";
             var bgImporter = AssetImporter.GetAtPath(BG_PATH) as TextureImporter;
@@ -197,11 +198,13 @@ public static class SolengardLayoutSetup
             var (tGO,tN)=FindOrCreateUI(tr,"TextoTemporada");
             textoTemporadaGO=tGO;
             SetRect(RT(tGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,280),new(600,60)); EnsureTMP(tGO,"Temporada 1",28f,Hex("#8080AA"));
+            tGO.SetActive(false); // ocultar até temporadas serem implementadas
             if(tN){ log.AppendLine("  CenterArea/TextoTemporada"); total++; }
 
             var (sGO,sN)=FindOrCreateUI(tr,"TextoStreak");
             textoStreakGO=sGO;
             SetRect(RT(sGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,230),new(400,60)); EnsureTMP(sGO,"* Dia 1",28f,Hex("#FFD700"));
+            sGO.SetActive(false); // ocultar até streak/login serem implementados
             if(sN){ log.AppendLine("  CenterArea/TextoStreak"); total++; }
 
             // SeasonBanner — always apply position
@@ -209,7 +212,8 @@ public static class SolengardLayoutSetup
               SetRect(RT(bn),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(0,120),new(700,180));
               if(bnN){ EnsureImage(bn,Hex("#1E0A3C")); log.AppendLine("  CenterArea/SeasonBanner"); total++; }
               var (bnt,bntN)=FindOrCreateUI(bn.transform,"TextoSeasonBanner");
-              if(bntN){ StretchFull(RT(bnt)); var tmp=EnsureTMP(bnt,"> Temporada das Sombras\nComplete 50 waves para ganhar a skin lendaria",28f,Color.white); tmp.textWrappingMode=TMPro.TextWrappingModes.Normal; log.AppendLine("  SeasonBanner/TextoSeasonBanner"); total++; } }
+              if(bntN){ StretchFull(RT(bnt)); var tmp=EnsureTMP(bnt,"> Temporada das Sombras\nComplete 50 waves para ganhar a skin lendaria",28f,Color.white); tmp.textWrappingMode=TMPro.TextWrappingModes.Normal; log.AppendLine("  SeasonBanner/TextoSeasonBanner"); total++; }
+              bn.SetActive(false); } // ocultar até sistema de temporadas ser implementado
 
             // FeaturedContent — always apply position
             { var (fc,fcN)=FindOrCreateUI(tr,"FeaturedContent");
