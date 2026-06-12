@@ -16,7 +16,8 @@ public class PermanentUpgradeData
     public string nome;
     public string descricao;
     public int maxLevel;
-    public int diamondCostPerLevel;
+    public int   diamondCostPerLevel;
+    public int[] levelCosts; // custo progressivo por nível; se null, usa diamondCostPerLevel
     public float incrementoPerLevel; // % ou flat dependendo do upgrade
 }
 
@@ -35,7 +36,7 @@ public class PermanentUpgradeSystem : MonoBehaviour
         new() { id=PermanentUpgradeId.Area,          nome="Área",         descricao="Área de impacto +5% por nível",                 maxLevel=2, diamondCostPerLevel=300,   incrementoPerLevel=0.05f  },
         new() { id=PermanentUpgradeId.Velocidade,    nome="Velocidade",   descricao="Velocidade dos projéteis +10% por nível",       maxLevel=2, diamondCostPerLevel=300,   incrementoPerLevel=0.10f  },
         new() { id=PermanentUpgradeId.Duracao,       nome="Duração",      descricao="Duração de projéteis +15% por nível",           maxLevel=2, diamondCostPerLevel=300,   incrementoPerLevel=0.15f  },
-        new() { id=PermanentUpgradeId.Quantidade,    nome="Quantidade",   descricao="+1 projétil simultâneo",                        maxLevel=1, diamondCostPerLevel=5000,  incrementoPerLevel=1f     },
+        new() { id=PermanentUpgradeId.Quantidade,    nome="Quantidade",   descricao="+1 projétil simultâneo por nível",              maxLevel=2, diamondCostPerLevel=2500,  incrementoPerLevel=1f,    levelCosts=new[]{2500,4000} },
         new() { id=PermanentUpgradeId.Movimento,     nome="Movimento",    descricao="Velocidade de movimento +5% por nível",         maxLevel=2, diamondCostPerLevel=300,   incrementoPerLevel=0.05f  },
         new() { id=PermanentUpgradeId.Magnetismo,    nome="Magnetismo",   descricao="Raio de coleta de XP +25% por nível",           maxLevel=2, diamondCostPerLevel=300,   incrementoPerLevel=0.25f  },
         new() { id=PermanentUpgradeId.Sorte,         nome="Sorte",        descricao="Chance de drops raros +10% por nível",          maxLevel=3, diamondCostPerLevel=600,   incrementoPerLevel=0.10f  },
@@ -84,7 +85,9 @@ public class PermanentUpgradeSystem : MonoBehaviour
         if (data == null) return false;
         int currentLevel = GetLevel(id);
         if (currentLevel >= data.maxLevel) return false;
-        int cost = data.diamondCostPerLevel;
+        int cost = (data.levelCosts != null && currentLevel < data.levelCosts.Length)
+            ? data.levelCosts[currentLevel]
+            : data.diamondCostPerLevel;
         if (!DiamondSystem.Instance.SpendDiamonds(cost)) return false;
         PlayerPrefs.SetInt($"perm_upgrade_{id}", currentLevel + 1);
         PlayerPrefs.Save();
@@ -96,6 +99,15 @@ public class PermanentUpgradeSystem : MonoBehaviour
 
     public static PermanentUpgradeData GetData(PermanentUpgradeId id) =>
         System.Array.Find(Upgrades, u => u.id == id);
+
+    public static int GetCusto(PermanentUpgradeId id, int level)
+    {
+        var data = GetData(id);
+        if (data == null) return 0;
+        if (data.levelCosts != null && level >= 0 && level < data.levelCosts.Length)
+            return data.levelCosts[level];
+        return data.diamondCostPerLevel;
+    }
 
     // Retorna total de dificuldade extra da Maldição (0.0 a 0.5)
     public float MaldicaoDifficultyBonus =>

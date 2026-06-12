@@ -482,7 +482,7 @@ public class PlayerClassManager : MonoBehaviour
                 CurrentClass.attackInterval,
                 CurrentClass.attackType,
                 CurrentClass.attackArc,
-                CurrentClass.projectileCount);
+                CurrentClass.projectileCount + (int)(perm?.GetBonus(PermanentUpgradeId.Quantidade) ?? 0f));
             attack.attackDamage   *= perm?.GetBonus(PermanentUpgradeId.Poder)  ?? 1f;
             attack.attackRange    *= perm?.GetBonus(PermanentUpgradeId.Area)   ?? 1f;
             attack.attackCooldown /= perm?.GetBonus(PermanentUpgradeId.Recarga) ?? 1f;

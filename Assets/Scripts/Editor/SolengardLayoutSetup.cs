@@ -28,6 +28,36 @@ public static class SolengardLayoutSetup
         return AssetDatabase.LoadAssetAtPath<Sprite>(path);
     }
 
+    static readonly string ICONS_UI   = "Assets/Art/UI/Icons/";
+    static readonly string BG_UI      = "Assets/Art/UI/Backgrounds/";
+    static readonly string BTN_GUIPRO = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Buttons/Button_Rectangle_01_Convex_White.prefab";
+    static Sprite LoadBG(string name)
+    {
+        string path = BG_UI + name;
+        var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (imp != null && (imp.textureType != TextureImporterType.Sprite || imp.spriteImportMode != SpriteImportMode.Single))
+        {
+            imp.textureType      = TextureImporterType.Sprite;
+            imp.spriteImportMode = SpriteImportMode.Single;
+            imp.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+    }
+    static Sprite LoadIcon(string name)
+    {
+        string path = ICONS_UI + name;
+        var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+        // Must check spriteImportMode too: textureType=8 already but spriteMode=2 (Multiple)
+        // makes LoadAssetAtPath<Sprite> return null — force Single on every call that needs fixing.
+        if (imp != null && (imp.textureType != TextureImporterType.Sprite || imp.spriteImportMode != SpriteImportMode.Single))
+        {
+            imp.textureType      = TextureImporterType.Sprite;
+            imp.spriteImportMode = SpriteImportMode.Single;
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+        }
+        return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+    }
+
     // ── Menu items ──────────────────────────────────────────────────────────────
 
     [MenuItem("Solengard/Layout MainMenu")]
@@ -156,8 +186,9 @@ public static class SolengardLayoutSetup
             topBarGO.transform.SetSiblingIndex(1);
 
             var topBarImg = topBarGO.GetComponent<Image>() ?? topBarGO.AddComponent<Image>();
-            var topBarSprite = LoadUI("hud_container.png");
-            if(topBarSprite != null){ topBarImg.sprite = topBarSprite; topBarImg.type = Image.Type.Simple; topBarImg.color = Color.white; }
+            var topBarBG = LoadBG("topbar_background.png");
+            if (topBarBG != null) { topBarImg.sprite = topBarBG; topBarImg.color = Color.white; topBarImg.type = Image.Type.Simple; topBarImg.preserveAspect = false; }
+            topBarImg.raycastTarget = false;
 
             var tr = go.transform;
 
@@ -173,13 +204,26 @@ public static class SolengardLayoutSetup
 
             var (dGO,dN)=FindReparentOrCreateUI(tr,canvasTr,"TextoDiamantes");
             textoDiamantesGO=dGO;
-            if(dN){ SetRect(RT(dGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(80,0),new(220,56)); EnsureTMP(dGO,"0 DIA",36f,Hex("#FFD700")); log.AppendLine("  TopBar/TextoDiamantes"); total++; }
+            if(dN){ SetRect(RT(dGO),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(110,0),new(160,56)); EnsureTMP(dGO,"0",36f,Hex("#FFD700")); log.AppendLine("  TopBar/TextoDiamantes"); total++; }
+            // Ícone de diamante à esquerda do número
+            var (icoDia,icoDiaN)=FindReparentOrCreateUI(tr,canvasTr,"IcoDiamante");
+            SetRect(RT(icoDia),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(50,0),new(44,44));
+            var icoDiaImg = icoDia.GetComponent<UnityEngine.UI.Image>() ?? icoDia.AddComponent<UnityEngine.UI.Image>();
+            var gemSp = LoadIcon("icon_diamante.png");
+            if(gemSp!=null){ icoDiaImg.sprite=gemSp; icoDiaImg.color=Color.white; icoDiaImg.preserveAspect=true; }
+            icoDiaImg.raycastTarget=false;
 
-            { var (c,n)=FindReparentOrCreateUI(tr,canvasTr,"TextoMoedas"); if(n){ SetRect(RT(c),new(.5f,.5f),new(.5f,.5f),new(.5f,.5f),new(310,0),new(220,56)); EnsureTMP(c,"0 G",36f,Hex("#C0C0C0")); log.AppendLine("  TopBar/TextoMoedas"); total++; } }
+            { var moedasT = tr.Find("TextoMoedas"); if(moedasT!=null) Object.DestroyImmediate(moedasT.gameObject); }
 
             var (cfgGO,cfgN)=FindReparentOrCreateUI(tr,canvasTr,"BotaoConfiguracoes");
             botaoConfigGO=cfgGO;
-            if(cfgN){ SetRect(RT(cfgGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-60,0),new(70,70)); EnsureImage(cfgGO,Hex("#1A1A2A")); EnsureButton(cfgGO); AddLabel(cfgGO,"⚙",32f,Color.white); log.AppendLine("  TopBar/BotaoConfiguracoes"); total++; }
+            if(cfgN){ SetRect(RT(cfgGO),new(1,.5f),new(1,.5f),new(1,.5f),new(-60,0),new(70,70)); EnsureImage(cfgGO,Hex("#1A1A2A")); EnsureButton(cfgGO); log.AppendLine("  TopBar/BotaoConfiguracoes"); total++; }
+            // Sprite de engrenagem em vez do emoji ⚙
+            var cfgLabel = cfgGO.transform.Find("Label");
+            if(cfgLabel!=null) Object.DestroyImmediate(cfgLabel.gameObject);
+            var cfgImg = cfgGO.GetComponent<UnityEngine.UI.Image>() ?? cfgGO.AddComponent<UnityEngine.UI.Image>();
+            var gearSp = LoadIcon("icon_config.png");
+            if(gearSp!=null){ cfgImg.sprite=gearSp; cfgImg.color=Color.white; cfgImg.preserveAspect=true; }
 
             TryWire(mmmSO,"textoDiamantes",    textoDiamantesGO.GetComponent<TextMeshProUGUI>(),log);
             TryWire(mmmSO,"botaoConfiguracoes",botaoConfigGO.GetComponent<Button>(),log);
@@ -354,7 +398,9 @@ public static class SolengardLayoutSetup
             if(isNew){ EnsureImage(go,Hex(color)); go.SetActive(false); log.AppendLine($"  {name}"); total++; }
             var imgFundo = go.GetComponent<UnityEngine.UI.Image>();
             if (imgFundo == null) imgFundo = go.AddComponent<UnityEngine.UI.Image>();
-            if (imgFundo.color.a < 0.99f || imgFundo.color == Color.white) imgFundo.color = Hex(color);
+            var panelBG = LoadBG("panel_background.png");
+            if (panelBG != null) { imgFundo.sprite = panelBG; imgFundo.color = Color.white; imgFundo.type = UnityEngine.UI.Image.Type.Simple; imgFundo.preserveAspect = false; }
+            else if (imgFundo.color.a < 0.99f || imgFundo.color == Color.white) imgFundo.color = Hex(color);
             imgFundo.raycastTarget = true;
             TryWire(mmmSO,field,go,log);
             // Botão X de fechar nos painéis que precisam (auto-liga via BotaoFecharPainel)
@@ -375,10 +421,16 @@ public static class SolengardLayoutSetup
               EnsureImage(h,Hex("#1A0A2E")); total++; }
               { var (t,_)=FindOrCreateUI(h.transform,"TituloLoja");
                 SetRect(RT(t),new(0,0),new(.65f,1),new(0,.5f),new(20,0),Vector2.zero);
-                var tmp=EnsureTMP(t,"LOJA",42f,Color.white); tmp.fontStyle=FontStyles.Bold; }
+                var tmp=EnsureTMP(t,"LOJA",42f,Color.white); tmp.fontStyle=FontStyles.Bold; tmp.alignment=TMPro.TextAlignmentOptions.Left; }
+              var (icH,_)=FindOrCreateUI(h.transform,"IcoDiamanteHeader");
+              SetRect(RT(icH),new(.65f,0),new(.65f,1),new(0,.5f),new(8,0),new(36,36));
+              var icHImg=icH.GetComponent<UnityEngine.UI.Image>()??icH.AddComponent<UnityEngine.UI.Image>();
+              var icHSp=LoadIcon("icon_diamante.png");
+              if(icHSp!=null){ icHImg.sprite=icHSp; icHImg.color=Color.white; icHImg.preserveAspect=true; }
+              icHImg.raycastTarget=false;
               var (sGO,_)=FindOrCreateUI(h.transform,"TextoSaldo");
-              SetRect(RT(sGO),new(.65f,0),new(.88f,1),new(1,.5f),new(-8,0),Vector2.zero);
-              var sTMP=EnsureTMP(sGO,"💎 0",32f,Hex("#FFD700")); sTMP.alignment=TextAlignmentOptions.Right;
+              SetRect(RT(sGO),new(.65f,0),new(.88f,1),new(0,.5f),new(50,0),Vector2.zero);
+              var sTMP=EnsureTMP(sGO,"0",32f,Hex("#FFD700")); sTMP.alignment=TMPro.TextAlignmentOptions.Left;
               TryWire(lojaSO,"textoSaldo",sGO.GetComponent<TextMeshProUGUI>(),log); }
 
             // Botão X de fechar
@@ -406,6 +458,7 @@ public static class SolengardLayoutSetup
             if(apn){ SetRect(RT(apGO),new(0,0),new(1,1),new(.5f,.5f),new(0,-205),new(0,-205));
             EnsureImage(apGO,Hex("#0D0D1F")); total++; }
             TryWire(lojaSO,"abaPersonagens",apGO,log);
+            { var i=apGO.GetComponent<UnityEngine.UI.Image>(); if(i!=null){ i.sprite=null; i.color=new Color(0,0,0,0); } }
             {
                 var classesData=LojaController.GetClasses();
                 float cW=240f, cH=180f, padX=20f, padY=20f;
@@ -442,6 +495,7 @@ public static class SolengardLayoutSetup
             if(aun){ SetRect(RT(auGO),new(0,0),new(1,1),new(.5f,.5f),new(0,-205),new(0,-205));
             EnsureImage(auGO,Hex("#0D0D1F")); auGO.SetActive(false); total++; }
             TryWire(lojaSO,"abaUpgrades",auGO,log);
+            { var i=auGO.GetComponent<UnityEngine.UI.Image>(); if(i!=null){ i.sprite=null; i.color=new Color(0,0,0,0); } }
             {
                 var cats = new (string nome, PermanentUpgradeId[] ids)[] {
                     ("Ofensa",     new[]{PermanentUpgradeId.Poder, PermanentUpgradeId.Recarga}),
@@ -454,14 +508,14 @@ public static class SolengardLayoutSetup
                 float yPos = -20f;
                 foreach(var (catNome, catIds) in cats){
                     var (catLbl,_)=FindOrCreateUI(auGO.transform,$"Cat_{catNome}");
-                    SetRect(RT(catLbl),new(0,1),new(1,1),new(.5f,1),new(0,yPos),new(0,36));
+                    SetRect(RT(catLbl),new(0,1),new(1,1),new(.5f,1),new(0,yPos),new(-60,36));
                     EnsureTMP(catLbl,catNome,22f,Hex("#C8A0FF")).fontStyle=FontStyles.Bold;
                     yPos -= 40f;
                     foreach(var uid in catIds){
                         var data=PermanentUpgradeSystem.GetData(uid);
                         if(data==null) continue;
                         var (row,_)=FindOrCreateUI(auGO.transform,$"UpRow_{uid}");
-                        SetRect(RT(row),new(0,1),new(1,1),new(.5f,1),new(0,yPos),new(0,52));
+                        SetRect(RT(row),new(0,1),new(1,1),new(.5f,1),new(0,yPos),new(-60,52));
                         EnsureImage(row,Hex("#151530"));
                         var (rnm,_)=FindOrCreateUI(row.transform,"Nome");
                         SetRect(RT(rnm),new(0,0),new(.6f,1),new(0,.5f),new(12,0),Vector2.zero);
@@ -488,6 +542,7 @@ public static class SolengardLayoutSetup
             if(adn){ SetRect(RT(adGO),new(0,0),new(1,1),new(.5f,.5f),new(0,-205),new(0,-205));
             EnsureImage(adGO,Hex("#0D0D1F")); adGO.SetActive(false); total++; }
             TryWire(lojaSO,"abaDiamantes",adGO,log);
+            { var i=adGO.GetComponent<UnityEngine.UI.Image>(); if(i!=null){ i.sprite=null; i.color=new Color(0,0,0,0); } }
             {
                 var pacotes=LojaController.GetPacotes();
                 float py=80f;
@@ -1449,7 +1504,7 @@ public static class SolengardLayoutSetup
     [MenuItem("Solengard/Skin MainMenu (Fase 1)")]
     static void SkinMainMenuFase1()
     {
-        const string BTN = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Buttons/Button_Rectangle_01_Convex_White.prefab";
+        string BTN = BTN_GUIPRO;
         int total = 0;
 
         var canvas = GameObject.Find("Canvas");
@@ -1472,10 +1527,6 @@ public static class SolengardLayoutSetup
         if (tabs != null)
             foreach (var tab in new[] { "TabLoja", "TabMissoes", "TabPasse", "TabConfigs" })
                 Skin(tabs, tab, Hex("#1A1A2E"));
-
-        // ── TopBar / BotaoConfiguracoes ──
-        var topbar = canvasTr.Find("TopBar");
-        if (topbar != null) Skin(topbar, "BotaoConfiguracoes", Hex("#2A2A3E"));
 
         // ── PainelLoja ──
         var loja = canvasTr.Find("PainelLoja");
@@ -1576,7 +1627,7 @@ public static class SolengardLayoutSetup
         const string SLIDER_PREFAB = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Slider/Slider_Basic_Rectangle_White.prefab";
         const string SWITCH_PREFAB = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_UI_Etc/Switch_White.prefab";
         const string FLAG_BASE = "Assets/Layer Lab/GUI Pro-FantasyRPG/ResourcesData/Sprites/Component/Icon_Flag/";
-        const string BTN = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Buttons/Button_Rectangle_01_Convex_White.prefab";
+        string BTN = BTN_GUIPRO;
 
         var canvas = GameObject.Find("Canvas");
         if (canvas == null) { Debug.LogWarning("[Config] Canvas não encontrado."); return; }
@@ -1808,6 +1859,8 @@ public static class SolengardLayoutSetup
             EnsureButton(go);
             AddLabel(go, "X", 28f, Color.white);
             SkinElement(go, BTN, Hex("#8B2020"));
+            var bfImg = go.GetComponent<UnityEngine.UI.Image>();
+            if (bfImg != null) { bfImg.color = new Color(0,0,0,0); bfImg.enabled = true; }
         }
 
         // ── Garante SettingsManager na cena ──
@@ -1854,6 +1907,10 @@ public static class SolengardLayoutSetup
         var img = go.GetComponent<UnityEngine.UI.Image>();
         img.color = Hex("#8B2535");
         img.raycastTarget = true;
+        SkinElement(go, BTN_GUIPRO, Hex("#8B2020"));
+        // SkinElement desativa a Image do host — reabilita transparente para o Button receber raycasts
+        img.color = new Color(0, 0, 0, 0);
+        img.enabled = true;
 
         var txtGO = new GameObject("X", typeof(RectTransform));
         txtGO.transform.SetParent(go.transform, false);
@@ -1870,5 +1927,47 @@ public static class SolengardLayoutSetup
             go.AddComponent(tipoFechar);
 
         return go;
+    }
+
+    [MenuItem("Solengard/DEBUG Botao Config")]
+    static void DebugBotaoConfig()
+    {
+        var canvas = GameObject.Find("Canvas");
+        if (canvas == null) { Debug.LogError("[DEBUG] Canvas não encontrado na cena."); return; }
+
+        // ── BotaoConfiguracoes ──────────────────────────────────────────────
+        var topBar = canvas.transform.Find("TopBar");
+        var cfgTr  = topBar?.Find("BotaoConfiguracoes");
+        if (cfgTr == null) { Debug.LogError("[DEBUG] BotaoConfiguracoes não encontrado em Canvas/TopBar."); return; }
+
+        var btn = cfgTr.GetComponent<Button>();
+        var img = cfgTr.GetComponent<Image>();
+        Debug.Log($"[DEBUG] BotaoConfiguracoes encontrado.\n" +
+                  $"  Button: {(btn != null ? "OK" : "AUSENTE")}\n" +
+                  $"  Button.interactable: {btn?.interactable}\n" +
+                  $"  Image: {(img != null ? "OK" : "AUSENTE")}\n" +
+                  $"  Image.sprite: {(img?.sprite != null ? img.sprite.name : "NULL ← PROBLEMA")}\n" +
+                  $"  Image.raycastTarget: {img?.raycastTarget}\n" +
+                  $"  sizeDelta: {cfgTr.GetComponent<RectTransform>()?.sizeDelta}");
+
+        // ── MainMenuManager ─────────────────────────────────────────────────
+        var mmm = UnityEngine.Object.FindFirstObjectByType<MainMenuManager>();
+        if (mmm == null) { Debug.LogError("[DEBUG] MainMenuManager não encontrado na cena."); return; }
+
+        var so = new UnityEditor.SerializedObject(mmm);
+        var fBtn   = so.FindProperty("botaoConfiguracoes");
+        var fPanel = so.FindProperty("painelConfiguracoes");
+        Debug.Log($"[DEBUG] MainMenuManager campos:\n" +
+                  $"  botaoConfiguracoes → {(fBtn?.objectReferenceValue != null ? fBtn.objectReferenceValue.name : "NULL ← PROBLEMA")}\n" +
+                  $"  painelConfiguracoes → {(fPanel?.objectReferenceValue != null ? fPanel.objectReferenceValue.name : "NULL ← PROBLEMA")}");
+
+        // ── Ícones ──────────────────────────────────────────────────────────
+        var gearSp = LoadIcon("icon_config.png");
+        var gemSp  = LoadIcon("icon_diamante.png");
+        Debug.Log($"[DEBUG] Sprites carregados:\n" +
+                  $"  icon_config.png  → {(gearSp != null ? gearSp.name : "NULL ← spriteMode errado")}\n" +
+                  $"  icon_diamante.png → {(gemSp != null ? gemSp.name : "NULL ← spriteMode errado")}");
+
+        Debug.Log("[DEBUG] Concluído. Verifique o Console acima.");
     }
 }

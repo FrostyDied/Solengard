@@ -82,6 +82,8 @@ public class PlayerHealth : MonoBehaviour
         if (PlayerClassManager.Instance?.HasBoost("pele_ferro") == true && currentHealth / maxHealth < 0.30f)
             amount *= 0.80f;
 
+        amount = Mathf.Max(amount - (PermanentUpgradeSystem.Instance?.GetBonus(PermanentUpgradeId.Armadura) ?? 0f), 0f);
+
         Debug.Log($"[PlayerHealth] TakeDamage({amount:F1}) — HP: {currentHealth:F0}/{maxHealth:F0}");
 
         currentHealth = Mathf.Max(currentHealth - amount, 0f);
