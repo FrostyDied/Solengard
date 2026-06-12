@@ -357,6 +357,9 @@ public static class SolengardLayoutSetup
             if (imgFundo.color.a < 0.99f || imgFundo.color == Color.white) imgFundo.color = Hex(color);
             imgFundo.raycastTarget = true;
             TryWire(mmmSO,field,go,log);
+            // Botão X de fechar nos painéis que precisam (auto-liga via BotaoFecharPainel)
+            if (name == "PainelMissoes" || name == "PainelPasse" || name == "PainelRanking")
+                CriarBotaoFechar(go.transform, "BtnFechar");
         }
 
         // ── PainelLoja ────────────────────────────────────────────────────────────
@@ -1861,6 +1864,10 @@ public static class SolengardLayoutSetup
         tmp.text = "X"; tmp.fontSize = 40;
         tmp.alignment = TMPro.TextAlignmentOptions.Center;
         tmp.color = Color.white; tmp.raycastTarget = false;
+
+        var tipoFechar = System.Type.GetType("Solengard.UI.BotaoFecharPainel, Assembly-CSharp");
+        if (tipoFechar != null && go.GetComponent(tipoFechar) == null)
+            go.AddComponent(tipoFechar);
 
         return go;
     }
