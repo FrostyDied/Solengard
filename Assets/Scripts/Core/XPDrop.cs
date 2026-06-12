@@ -65,7 +65,8 @@ public class XPDrop : MonoBehaviour
     void Collect()
     {
         VFXManager.Instance?.SpawnXPCollect(transform.position);
-        XPSystem.Instance?.AddXP(xpValue);
+        float cresMult = PermanentUpgradeSystem.Instance?.GetBonus(PermanentUpgradeId.Crescimento) ?? 1f;
+        XPSystem.Instance?.AddXP(Mathf.RoundToInt(xpValue * cresMult));
         Destroy(gameObject);
     }
 

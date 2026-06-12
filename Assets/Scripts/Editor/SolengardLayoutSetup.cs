@@ -502,7 +502,7 @@ public static class SolengardLayoutSetup
                     ("Defesa",     new[]{PermanentUpgradeId.Armadura, PermanentUpgradeId.VidaMaxima, PermanentUpgradeId.Recuperacao}),
                     ("Ataque",     new[]{PermanentUpgradeId.Area, PermanentUpgradeId.Velocidade, PermanentUpgradeId.Duracao, PermanentUpgradeId.Quantidade}),
                     ("Mobilidade", new[]{PermanentUpgradeId.Movimento, PermanentUpgradeId.Magnetismo}),
-                    ("Progressao", new[]{PermanentUpgradeId.Sorte, PermanentUpgradeId.Crescimento, PermanentUpgradeId.Riqueza}),
+                    ("Progressao", new[]{PermanentUpgradeId.Crescimento, PermanentUpgradeId.Riqueza}),
                     ("Especiais",  new[]{PermanentUpgradeId.Maldicao, PermanentUpgradeId.Ressurreicao, PermanentUpgradeId.PoderEspecial}),
                 };
                 float yPos = -20f;

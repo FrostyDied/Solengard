@@ -492,6 +492,9 @@ public class PlayerClassManager : MonoBehaviour
         if (controller != null)
             controller.SetMoveSpeed(CurrentClass.moveSpeed * (perm?.GetBonus(PermanentUpgradeId.Movimento) ?? 1f));
 
+        float magBonus = (perm?.GetBonus(PermanentUpgradeId.Magnetismo) ?? 1f) - 1f;
+        XPDrop.GlobalMagnetRadius += magBonus * 2f;
+
         playerGO.transform.localScale = Vector3.one * CurrentClass.worldScale;
 
         var anim = playerGO.GetComponent<CharacterAnimator>();

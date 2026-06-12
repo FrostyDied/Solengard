@@ -66,7 +66,7 @@ public class RunRewardSystem : MonoBehaviour
             causeOfDeath   = runData.causeOfDeath,
             lastDeathCause = runData.lastDeathCause,
             score          = score,
-            diamondsEarned = Mathf.Max(1, score / 10)
+            diamondsEarned = Mathf.Max(1, Mathf.RoundToInt((score / 10f) * (PermanentUpgradeSystem.Instance?.DiamondBonus ?? 1f)))
         };
 
         Debug.Log($"[RunReward] Diamonds a entregar={summary.diamondsEarned}");

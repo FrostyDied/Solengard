@@ -159,10 +159,11 @@ public class PlayerAttack : MonoBehaviour
 
         Vector2 dirToEnemy = ((Vector2)(nearestEnemy.transform.position - transform.position)).normalized;
 
+        float velMult = PermanentUpgradeSystem.Instance?.GetBonus(PermanentUpgradeId.Velocidade) ?? 1f;
         StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
         StartCoroutine(ProceduralVFX.StarProjectile(
             transform.position, dirToEnemy,
-            speed: 14f, range: attackRange,
+            speed: 14f * velMult, range: attackRange,
             color: new Color(0.9f, 0.1f, 0.1f),
             onHit: enemy =>
             {
@@ -195,26 +196,28 @@ public class PlayerAttack : MonoBehaviour
         Vector2 dir = ((Vector2)(target.transform.position - transform.position)).normalized;
         float range = attackRange;
 
+        float velMult     = PermanentUpgradeSystem.Instance?.GetBonus(PermanentUpgradeId.Velocidade) ?? 1f;
+        float duracaoMult = PermanentUpgradeSystem.Instance?.GetBonus(PermanentUpgradeId.Duracao)    ?? 1f;
         StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
         StartCoroutine(ProceduralVFX.EnergyBolt(
             transform.position, dir,
-            speed: 18f, range: range,
+            speed: 18f * velMult, range: range,
             coreColor:  new Color(0.2f, 0.6f, 1f),
             trailColor: new Color(1f, 0.6f, 0.1f),
             size: 0.2f,
             onHit: hitPos =>
             {
-                ApplyDamageAtPointPublic(hitPos, 0.5f, dmg);
+                ApplyDamageAtPointPublic(hitPos, 0.5f * duracaoMult, dmg);
                 if (fragmentacao)
                 {
                     Vector2[] cardinals = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
                     foreach (var c in cardinals)
                         StartCoroutine(ProceduralVFX.EnergyBolt(
-                            hitPos, c, speed: 14f, range: range * 0.5f,
+                            hitPos, c, speed: 14f * velMult, range: range * 0.5f,
                             coreColor:  new Color(0.4f, 0.7f, 1f),
                             trailColor: new Color(1f, 0.7f, 0.2f),
                             size: 0.12f,
-                            onHit: h2 => ApplyDamageAtPointPublic(h2, 0.4f, dmg * 0.3f)));
+                            onHit: h2 => ApplyDamageAtPointPublic(h2, 0.4f * duracaoMult, dmg * 0.3f)));
                 }
             }
         ));
@@ -229,7 +232,8 @@ public class PlayerAttack : MonoBehaviour
 
         var target = targets[0];
         Vector2 dir = ((Vector2)(target.transform.position - transform.position)).normalized;
-        float aoeRadius = (PlayerClassManager.Instance?.HasBoost("caveira_explosiva") == true) ? 1.2f : 0.5f;
+        float duracaoMult = PermanentUpgradeSystem.Instance?.GetBonus(PermanentUpgradeId.Duracao) ?? 1f;
+        float aoeRadius = ((PlayerClassManager.Instance?.HasBoost("caveira_explosiva") == true) ? 1.2f : 0.5f) * duracaoMult;
 
         StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
         StartCoroutine(ProceduralVFX.SkullProjectile(
@@ -248,6 +252,7 @@ public class PlayerAttack : MonoBehaviour
     void AttackCacador()
     {
         if (GetNearestEnemy(attackRange) == null) return;
+        float velMult = PermanentUpgradeSystem.Instance?.GetBonus(PermanentUpgradeId.Velocidade) ?? 1f;
         StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
         var mgr = PlayerClassManager.Instance;
         bool flechasPerfurantes = mgr?.HasBoost("flechas_perfurantes") ?? false;
@@ -260,7 +265,7 @@ public class PlayerAttack : MonoBehaviour
                 ? PlayerController.Instance.FacingDirection : Vector2.right;
             StartCoroutine(ProceduralVFX.ArrowStreak(
                 transform, facing,
-                speed: 12f, range: range,
+                speed: 12f * velMult, range: range,
                 color: new Color(0.4f, 0.9f, 1f)
             ));
             StartCoroutine(ProceduralVFX.CrescentSlash(
@@ -277,7 +282,7 @@ public class PlayerAttack : MonoBehaviour
 
             StartCoroutine(ProceduralVFX.ArrowStreak(
                 transform, dirToTarget,
-                speed: 12f, range: range,
+                speed: 12f * velMult, range: range,
                 color: new Color(0.4f, 0.9f, 1f),
                 onHit: enemy =>
                 {

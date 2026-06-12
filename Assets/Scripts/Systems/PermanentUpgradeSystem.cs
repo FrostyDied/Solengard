@@ -5,7 +5,7 @@ public enum PermanentUpgradeId
 {
     Poder, Armadura, VidaMaxima, Recuperacao, Recarga,
     Area, Velocidade, Duracao, Quantidade, Movimento,
-    Magnetismo, Sorte, Crescimento, Riqueza, Maldicao, Ressurreicao,
+    Magnetismo, Crescimento, Riqueza, Maldicao, Ressurreicao,
     PoderEspecial
 }
 
@@ -39,7 +39,6 @@ public class PermanentUpgradeSystem : MonoBehaviour
         new() { id=PermanentUpgradeId.Quantidade,   nome="Quantidade",     descricao="+1 projétil simultâneo por nível",              maxLevel=2, diamondCostPerLevel=2500,  incrementoPerLevel=1f,     levelCosts=new[]{2500,4000}              },
         new() { id=PermanentUpgradeId.Movimento,    nome="Movimento",      descricao="Velocidade de movimento +5% por nível",         maxLevel=3, diamondCostPerLevel=150,   incrementoPerLevel=0.05f,  levelCosts=new[]{150,250,350}            },
         new() { id=PermanentUpgradeId.Magnetismo,   nome="Magnetismo",     descricao="Raio de coleta de XP +25% por nível",           maxLevel=3, diamondCostPerLevel=300,   incrementoPerLevel=0.25f,  levelCosts=new[]{300,400,500}            },
-        new() { id=PermanentUpgradeId.Sorte,        nome="Sorte",          descricao="Chance de drops raros +10% por nível",          maxLevel=3, diamondCostPerLevel=600,   incrementoPerLevel=0.10f,  levelCosts=new[]{600,800,1000}           },
         new() { id=PermanentUpgradeId.Crescimento,  nome="Crescimento",    descricao="XP ganho por kill +3% por nível",               maxLevel=5, diamondCostPerLevel=400,   incrementoPerLevel=0.03f,  levelCosts=new[]{400,550,700,850,1000}   },
         new() { id=PermanentUpgradeId.Riqueza,      nome="Riqueza",        descricao="Diamantes ganhos +3% por nível",                maxLevel=4, diamondCostPerLevel=200,   incrementoPerLevel=0.03f,  levelCosts=new[]{200,350,500,650}        },
         new() { id=PermanentUpgradeId.Maldicao,     nome="Maldição",       descricao="+10% dificuldade e +10% recompensas por nível", maxLevel=5, diamondCostPerLevel=100,   incrementoPerLevel=0.10f,  levelCosts=new[]{100,150,200,250,300}    },
