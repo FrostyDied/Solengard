@@ -2348,6 +2348,14 @@ public static class SolengardLayoutSetup
         Desativar("SubMenuFriends");
         Desativar("Button_BossDungeon");
 
+        // Desliga raycast do Background full-rect (bloqueia cliques nos tabs)
+        var bg = FindDeepInRoot(home.transform, "Background");
+        if (bg != null)
+        {
+            var bgImg = bg.GetComponent<UnityEngine.UI.Image>();
+            if (bgImg != null) { bgImg.raycastTarget = false; Debug.Log("[GUIPro] Background raycast desligado."); }
+        }
+
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         Debug.Log("[GUIPro] Home montado. Próximo: renomear tabs e wirar backend.");
         EditorUtility.DisplayDialog("Solengard GUI Pro", "✓ Home montado na cena paralela.\n\nVerifique visualmente. Próximo passo: tabs + wire.", "OK");
@@ -2424,9 +2432,13 @@ public static class SolengardLayoutSetup
             return go;
         }
         var painelLoja    = CriarPainel("PainelLoja");
+        var painelPasse   = CriarPainel("PainelPasse");
         var painelMissoes = CriarPainel("PainelMissoes");
         var painelRanking = CriarPainel("PainelRanking");
         var painelConfig  = CriarPainel("PainelConfiguracoes");
+        var painelOfertas = CriarPainel("PainelOfertas");
+        var painelBencaos = CriarPainel("PainelBencaos");
+        var painelBaus    = CriarPainel("PainelBaus");
 
         // Popup recompensa + filhos que o MainMenuManager espera (evita UnassignedReferenceException)
         var popupRecompensa = CriarPainel("PopupRecompensa");
@@ -2463,9 +2475,13 @@ public static class SolengardLayoutSetup
         TryWire(mmmSO, "botaoPasse",          BtnDe("TabPasse"),          log);
         TryWire(mmmSO, "botaoRanking",        BtnDe("TabRanking"),        log);
         TryWire(mmmSO, "painelLoja",                  painelLoja,                                          log);
+        TryWire(mmmSO, "painelPasse",                 painelPasse,                                         log);
         TryWire(mmmSO, "painelMissoes",               painelMissoes,                                       log);
         TryWire(mmmSO, "painelRanking",               painelRanking,                                       log);
         TryWire(mmmSO, "painelConfiguracoes",         painelConfig,                                        log);
+        TryWire(mmmSO, "painelOfertas",               painelOfertas,                                       log);
+        TryWire(mmmSO, "painelBencaos",               painelBencaos,                                       log);
+        TryWire(mmmSO, "painelBaus",                  painelBaus,                                          log);
         TryWire(mmmSO, "popupRecompensa",             popupRecompensa,                                     log);
         TryWire(mmmSO, "textoRecompensaDia",          txtRecDia.GetComponent<TMPro.TextMeshProUGUI>(),     log);
         TryWire(mmmSO, "textoRecompensaDiamantes",    txtRecDiam.GetComponent<TMPro.TextMeshProUGUI>(),    log);
@@ -2477,5 +2493,178 @@ public static class SolengardLayoutSetup
         Debug.Log($"[GUIPro] Wire concluído:\n{log}");
         EditorUtility.DisplayDialog("Solengard GUI Pro",
             "✓ Backend wired no Home.\n\nTeste o PLAY em Play mode.", "OK");
+    }
+
+    [MenuItem("Solengard/GUIPro/3 - Montar Paineis")]
+    static void MontarPaineisGUIPro()
+    {
+        var canvasNovo = GameObject.Find("CanvasGUIPro");
+        if (canvasNovo == null) { Debug.LogWarning("[GUIPro] CanvasGUIPro não encontrado. Rode passos 1 e 2."); return; }
+
+        string Base(string nome) => $"Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_DemoScene_Panels/{nome}.prefab";
+
+        GameObject MontarPainel(string container, string prefabNome, System.Action<GameObject> pos = null)
+        {
+            var cont = FindDeepInRoot(canvasNovo.transform, container);
+            if (cont == null) { Debug.LogWarning($"[GUIPro] Container {container} não encontrado."); return null; }
+            for (int i = cont.childCount - 1; i >= 0; i--)
+                Object.DestroyImmediate(cont.GetChild(i).gameObject);
+            var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(Base(prefabNome));
+            if (prefab == null) { Debug.LogWarning($"[GUIPro] Prefab {prefabNome} não encontrado."); return null; }
+            var inst = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab, cont);
+            inst.name = prefabNome + "_Visual";
+            var rt = inst.GetComponent<RectTransform>();
+            if (rt != null) { rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero; rt.localScale = Vector3.one; }
+            pos?.Invoke(inst);
+            Debug.Log($"[GUIPro] {container} <- {prefabNome}");
+            return inst;
+        }
+
+        // Missões — visual puro
+        MontarPainel("PainelMissoes", "Mission");
+
+        // Ranking — visual puro
+        MontarPainel("PainelRanking", "Ranking");
+
+        // Recompensa — renomeia Button_Close para o nome que o backend já wired
+        MontarPainel("PopupRecompensa", "RewardDaily", inst => {
+            var close = FindDeepInRoot(inst.transform, "Button_Close");
+            if (close != null) {
+                close.name = "BotaoColetarRecompensa";
+                if (close.GetComponent<UnityEngine.UI.Button>() == null)
+                    close.gameObject.AddComponent<UnityEngine.UI.Button>();
+            }
+        });
+
+        // Config — Settings.prefab + renomeia controles para o ConfigUIBinder achar por nome
+        MontarPainel("PainelConfiguracoes", "Settings", inst => {
+            var switches = inst.GetComponentsInChildren<UnityEngine.UI.Toggle>(true);
+            if (switches.Length >= 1) switches[0].gameObject.name = "Musica_Switch";
+            if (switches.Length >= 2) switches[1].gameObject.name = "SFX_Switch";
+            var sliders = inst.GetComponentsInChildren<UnityEngine.UI.Slider>(true);
+            if (sliders.Length >= 1) sliders[0].gameObject.name = "Musica_Slider";
+            if (sliders.Length >= 2) sliders[1].gameObject.name = "SFX_Slider";
+            Debug.Log($"[GUIPro] Config: {switches.Length} switches, {sliders.Length} sliders renomeados.");
+        });
+
+        // Anexa ConfigUIBinder ao container PainelConfiguracoes (não ao filho Settings_Visual)
+        var painelConfig = FindDeepInRoot(canvasNovo.transform, "PainelConfiguracoes");
+        if (painelConfig != null)
+        {
+            var binderType = System.Type.GetType("Solengard.UI.ConfigUIBinder, Assembly-CSharp");
+            if (binderType != null && painelConfig.GetComponent(binderType) == null)
+            {
+                painelConfig.gameObject.AddComponent(binderType);
+                Debug.Log("[GUIPro] ConfigUIBinder anexado ao PainelConfiguracoes.");
+            }
+        }
+
+        // Garante SettingsManager na cena
+        if (GameObject.Find("SettingsManager") == null)
+        {
+            var smGO = new GameObject("SettingsManager");
+            var smType = System.Type.GetType("Solengard.Core.SettingsManager, Assembly-CSharp");
+            if (smType != null) smGO.AddComponent(smType);
+            Debug.Log("[GUIPro] SettingsManager criado.");
+        }
+
+        // CRÍTICO: desativar todos os painéis (só abrem ao clicar no tab)
+        // Senão o painel ativo cobre a tela e bloqueia os cliques dos tabs
+        foreach (var nome in new[] { "PainelLoja", "PainelPasse", "PainelMissoes", "PainelRanking",
+                                      "PainelConfiguracoes", "PainelOfertas", "PainelBencaos", "PainelBaus",
+                                      "PopupRecompensa" })
+        {
+            var p = FindDeepInRoot(canvasNovo.transform, nome);
+            if (p != null) { p.gameObject.SetActive(false); Debug.Log($"[GUIPro] {nome} desativado."); }
+        }
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[GUIPro] Painéis montados.");
+        EditorUtility.DisplayDialog("Solengard GUI Pro",
+            "✓ Missões, Ranking, Recompensa e Config montados com prefabs GUI Pro.", "OK");
+    }
+
+    [MenuItem("Solengard/GUIPro/DEBUG Tabs")]
+    static void DebugTabs()
+    {
+        var home = GameObject.Find("HomeGUIPro");
+        if (home == null) { Debug.LogWarning("[DEBUG] HomeGUIPro não encontrado."); return; }
+
+        string[] tabs = { "TabLoja", "TabMissoes", "TabPasse", "TabRanking", "PlayButton", "BotaoConfiguracoes" };
+        foreach (var nome in tabs)
+        {
+            var t = FindDeepInRoot(home.transform, nome);
+            if (t == null) { Debug.LogWarning($"[DEBUG] {nome}: NÃO ENCONTRADO"); continue; }
+
+            var btn = t.GetComponent<UnityEngine.UI.Button>();
+            var img = t.GetComponent<UnityEngine.UI.Image>();
+            var listeners = btn != null ? btn.onClick.GetPersistentEventCount() : -1;
+            var ativo = t.gameObject.activeInHierarchy;
+            var interactable = btn != null ? btn.interactable.ToString() : "sem Button";
+            var raycast = img != null ? img.raycastTarget.ToString() : "sem Image";
+
+            Debug.Log($"[DEBUG] {nome}: ativo={ativo} | Button={(btn!=null)} | interactable={interactable} | Image.raycast={raycast} | path={GetPath(t)}");
+        }
+
+        // Verifica se há algum elemento full-rect cobrindo a bottom nav
+        var canvas = GameObject.Find("CanvasGUIPro");
+        if (canvas != null)
+        {
+            Debug.Log("[DEBUG] === Elementos full-rect que podem bloquear raycast ===");
+            foreach (var img in canvas.GetComponentsInChildren<UnityEngine.UI.Image>(false))
+            {
+                if (img.raycastTarget)
+                {
+                    var rt = img.GetComponent<RectTransform>();
+                    if (rt.anchorMin == Vector2.zero && rt.anchorMax == Vector2.one)
+                        Debug.Log($"[DEBUG] FULL-RECT com raycast: {GetPath(img.transform)}");
+                }
+            }
+        }
+    }
+
+    static string GetPath(Transform t)
+    {
+        string path = t.name;
+        while (t.parent != null) { t = t.parent; path = t.name + "/" + path; }
+        return path;
+    }
+
+    [MenuItem("Solengard/GUIPro/DEBUG Containers")]
+    static void DebugContainers()
+    {
+        var home = GameObject.Find("HomeGUIPro");
+        if (home == null) { Debug.LogWarning("[DEBUG] HomeGUIPro não encontrado."); return; }
+
+        foreach (var nome in new[] { "HomeMenu", "SubMenu", "Home" })
+        {
+            var t = FindDeepInRoot(home.transform, nome);
+            if (t == null) { Debug.LogWarning($"[DEBUG] {nome}: não encontrado"); continue; }
+
+            var cg = t.GetComponent<CanvasGroup>();
+            var img = t.GetComponent<UnityEngine.UI.Image>();
+            var grid = t.GetComponent<UnityEngine.UI.GridLayoutGroup>();
+            var horiz = t.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>();
+
+            string cgInfo = cg != null ? $"CanvasGroup(interactable={cg.interactable}, blocksRaycast={cg.blocksRaycasts}, alpha={cg.alpha})" : "sem CanvasGroup";
+            string imgInfo = img != null ? $"Image(raycast={img.raycastTarget})" : "sem Image";
+            string layoutInfo = grid != null ? "GridLayout" : (horiz != null ? "HorizontalLayout" : "sem layout");
+
+            Debug.Log($"[DEBUG] {nome}: ativo={t.gameObject.activeInHierarchy} | {cgInfo} | {imgInfo} | {layoutInfo}");
+        }
+
+        // Verificar se HomeMenu ou SubMenu têm CanvasGroup nos pais que bloqueia
+        var subMenu = FindDeepInRoot(home.transform, "SubMenu");
+        if (subMenu != null)
+        {
+            Debug.Log("[DEBUG] === Subindo a cadeia de pais do SubMenu ===");
+            var cur = subMenu;
+            while (cur != null)
+            {
+                var cg = cur.GetComponent<CanvasGroup>();
+                if (cg != null) Debug.Log($"[DEBUG] PAI {cur.name}: CanvasGroup(interactable={cg.interactable}, blocksRaycast={cg.blocksRaycasts})");
+                cur = cur.parent;
+            }
+        }
     }
 }
