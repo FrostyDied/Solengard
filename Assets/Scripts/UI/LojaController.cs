@@ -30,17 +30,26 @@ public class LojaController : MonoBehaviour
         ("hunter",      "Caçador",    2000),
     };
 
-    // Dados dos pacotes IAP
-    static readonly (string productId, string nome, int diamantes, string preco)[] Pacotes = {
-        ("pacote_100_diamantes", "Iniciante",    500,   "R$4,99"),
-        ("pacote_500_diamantes", "Aventureiro",  1500,  "R$12,99"),
-        ("pacote_1000_diamantes","Herói",         4000,  "R$24,99"),
+    // Dados dos pacotes IAP. "bonus" = percentual exibido (+X%), "diamantes" já é o total final.
+    static readonly (string productId, string nome, int diamantes, string preco, int bonus, string badge)[] Pacotes = {
+        ("pacote_diamantes_1", "Iniciante",   200,  "R$4,99",   0,  ""),
+        ("pacote_diamantes_2", "Aventureiro", 450,  "R$9,99",   12, ""),
+        ("pacote_diamantes_3", "Herói",       1000, "R$19,99",  25, "MAIS POPULAR"),
+        ("pacote_diamantes_4", "Lenda",       2800, "R$49,99",  40, "MELHOR VALOR"),
+        ("pacote_diamantes_5", "Mítico",      6000, "R$99,99",  50, ""),
     };
 
     void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+    }
+
+    void Start()
+    {
+        btnAbaPersonagens?.onClick.AddListener(() => AbrirAba(abaPersonagens));
+        btnAbaUpgrades?.onClick.AddListener(() => AbrirAba(abaUpgrades));
+        btnAbaDiamantes?.onClick.AddListener(() => AbrirAba(abaDiamantes));
     }
 
     void OnEnable()
@@ -137,5 +146,5 @@ public class LojaController : MonoBehaviour
 
     // Acesso estático aos dados para o Layout Setup
     public static (string id, string nome, int preco)[] GetClasses() => Classes;
-    public static (string productId, string nome, int diamantes, string preco)[] GetPacotes() => Pacotes;
+    public static (string productId, string nome, int diamantes, string preco, int bonus, string badge)[] GetPacotes() => Pacotes;
 }

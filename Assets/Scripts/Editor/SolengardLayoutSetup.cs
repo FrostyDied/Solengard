@@ -350,7 +350,12 @@ public static class SolengardLayoutSetup
         foreach (var (name,field,color) in panels)
         {
             var (go,isNew)=FindOrCreateUI(canvasTr,name);
-            if(isNew){ StretchFull(RT(go)); EnsureImage(go,Hex(color)); go.SetActive(false); log.AppendLine($"  {name}"); total++; }
+            StretchFull(RT(go)); // sempre — painel existente pode ter âncoras antigas
+            if(isNew){ EnsureImage(go,Hex(color)); go.SetActive(false); log.AppendLine($"  {name}"); total++; }
+            var imgFundo = go.GetComponent<UnityEngine.UI.Image>();
+            if (imgFundo == null) imgFundo = go.AddComponent<UnityEngine.UI.Image>();
+            if (imgFundo.color.a < 0.99f || imgFundo.color == Color.white) imgFundo.color = Hex(color);
+            imgFundo.raycastTarget = true;
             TryWire(mmmSO,field,go,log);
         }
 
@@ -369,9 +374,13 @@ public static class SolengardLayoutSetup
                 SetRect(RT(t),new(0,0),new(.65f,1),new(0,.5f),new(20,0),Vector2.zero);
                 var tmp=EnsureTMP(t,"LOJA",42f,Color.white); tmp.fontStyle=FontStyles.Bold; }
               var (sGO,_)=FindOrCreateUI(h.transform,"TextoSaldo");
-              SetRect(RT(sGO),new(.65f,0),new(1,1),new(1,.5f),new(-16,0),Vector2.zero);
+              SetRect(RT(sGO),new(.65f,0),new(.88f,1),new(1,.5f),new(-8,0),Vector2.zero);
               var sTMP=EnsureTMP(sGO,"💎 0",32f,Hex("#FFD700")); sTMP.alignment=TextAlignmentOptions.Right;
               TryWire(lojaSO,"textoSaldo",sGO.GetComponent<TextMeshProUGUI>(),log); }
+
+            // Botão X de fechar
+            var btnFecharLoja = CriarBotaoFechar(lojaTr, "BtnFecharLoja");
+            TryWire(mmmSO, "botaoFecharLoja", btnFecharLoja.GetComponent<UnityEngine.UI.Button>(), log);
 
             // Abas
             { var (ab,abn)=FindOrCreateUI(lojaTr,"AbasLoja");
@@ -480,27 +489,43 @@ public static class SolengardLayoutSetup
                 var pacotes=LojaController.GetPacotes();
                 float py=80f;
                 for(int i=0;i<pacotes.Length;i++){
-                    var (pid,pnome,pdias,ppreco)=pacotes[i];
+                    var (pid,pnome,pdias,ppreco,pbonus,pbadge)=pacotes[i];
                     var (card,cn)=FindOrCreateUI(adGO.transform,$"CardPacote_{i}");
-                    if(cn){
-                        SetRect(RT(card),new(.5f,1),new(.5f,1),new(.5f,1),new(0,py-i*180f),new(460,160));
-                        EnsureImage(card,Hex("#0A1E40"));
-                        var (nm,_)=FindOrCreateUI(card.transform,"Info");
-                        SetRect(RT(nm),new(0,0),new(.6f,1),new(0,.5f),new(16,0),Vector2.zero);
-                        EnsureTMP(nm,$"{pnome}\n💎 {pdias}",26f,Color.white);
-                        var (btn,bn)=FindOrCreateUI(card.transform,"BtnPacote");
-                        if(bn){ SetRect(RT(btn),new(.6f,.1f),new(1,.9f),new(1,.5f),new(-12,0),Vector2.zero);
-                        EnsureImage(btn,Hex("#1A4A90")); EnsureButton(btn);
-                        AddLabel(btn,ppreco,22f,Color.white); total++;
-                        var lojaCtrl=lojaGO.GetComponent<LojaController>();
-                        var pbtComp=btn.GetComponent<UnityEngine.UI.Button>();
-                        if(pbtComp!=null && lojaCtrl!=null){
-                            string cpid=pid;
-                            pbtComp.onClick.RemoveAllListeners();
-                            pbtComp.onClick.AddListener(()=>lojaCtrl.ComprarDiamantes(cpid));
-                        }}
-                        log.AppendLine($"  Loja/Pacote_{i}"); total++;
+                    SetRect(RT(card),new(.5f,1),new(.5f,1),new(.5f,1),new(0,py-i*185f),new(460,170));
+                    if(cn){ EnsureImage(card,Hex("#0A1E40")); total++; }
+
+                    // Badge (faixa no topo do card)
+                    if(!string.IsNullOrEmpty(pbadge)){
+                        var (bdg,_)=FindOrCreateUI(card.transform,"Badge");
+                        SetRect(RT(bdg),new(0,1),new(1,1),new(.5f,1),new(0,0),new(0,30));
+                        EnsureImage(bdg,Hex(pbadge=="MELHOR VALOR"?"#8B2535":"#FFD700"));
+                        var (btxt,_)=FindOrCreateUI(bdg.transform,"BadgeText");
+                        StretchFull(RT(btxt));
+                        var btmp=EnsureTMP(btxt,pbadge,18f,pbadge=="MELHOR VALOR"?Color.white:Color.black);
+                        btmp.alignment=TMPro.TextAlignmentOptions.Center; btmp.fontStyle=TMPro.FontStyles.Bold;
                     }
+
+                    // Info (esquerda 60%): nome + diamantes + bônus
+                    var (info,_)=FindOrCreateUI(card.transform,"Info");
+                    SetRect(RT(info),new(0,0),new(.6f,1),new(0,.5f),new(20,0),Vector2.zero);
+                    string infoTxt=$"{pnome}\n<size=130%>💎 {pdias}</size>";
+                    if(pbonus>0) infoTxt+=$"\n<color=#FFD700>+{pbonus}% BÔNUS</color>";
+                    var itmp=EnsureTMP(info,infoTxt,24f,Color.white);
+                    itmp.alignment=TMPro.TextAlignmentOptions.Left;
+
+                    // Botão de compra (direita)
+                    var (btnP,btnPn)=FindOrCreateUI(card.transform,"BtnPacote");
+                    SetRect(RT(btnP),new(.62f,.5f),new(.62f,.5f),new(.5f,.5f),new(80f,0),new(150f,90f));
+                    if(btnPn){ EnsureImage(btnP,Hex("#5A1090")); EnsureButton(btnP); }
+                    var (precoTxt,_)=FindOrCreateUI(btnP.transform,"Preco");
+                    StretchFull(RT(precoTxt));
+                    var ptmp=EnsureTMP(precoTxt,ppreco,22f,Color.white);
+                    ptmp.alignment=TMPro.TextAlignmentOptions.Center;
+                    string pidL=pid;
+                    var pbtComp=btnP.GetComponent<UnityEngine.UI.Button>();
+                    if(pbtComp!=null){ pbtComp.onClick.RemoveAllListeners(); pbtComp.onClick.AddListener(()=>LojaController.Instance?.ComprarDiamantes(pidL)); }
+
+                    log.AppendLine($"  Loja/Pacote_{i}"); total++;
                 }
                 var (vbtn,vbn)=FindOrCreateUI(adGO.transform,"BtnVideo");
                 if(vbn){ SetRect(RT(vbtn),new(.5f,1),new(.5f,1),new(.5f,1),new(0,py-pacotes.Length*180f-20f),new(460,70));
@@ -1806,5 +1831,37 @@ public static class SolengardLayoutSetup
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         Debug.Log("[Config] PainelConfiguracoes populado (refinado).");
         EditorUtility.DisplayDialog("Solengard", "✓ Config refinada construída.", "OK");
+    }
+
+    static GameObject CriarBotaoFechar(Transform painelPai, string nomeBotao = "BtnFechar")
+    {
+        var existente = painelPai.Find(nomeBotao);
+        if (existente != null) return existente.gameObject;
+
+        var go = new GameObject(nomeBotao, typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
+        go.transform.SetParent(painelPai, false);
+
+        var rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(1f, 1f);
+        rt.anchorMax = new Vector2(1f, 1f);
+        rt.pivot     = new Vector2(1f, 1f);
+        rt.anchoredPosition = new Vector2(-35f, -45f);
+        rt.sizeDelta        = new Vector2(75f, 75f);
+
+        var img = go.GetComponent<UnityEngine.UI.Image>();
+        img.color = Hex("#8B2535");
+        img.raycastTarget = true;
+
+        var txtGO = new GameObject("X", typeof(RectTransform));
+        txtGO.transform.SetParent(go.transform, false);
+        var txtRT = txtGO.GetComponent<RectTransform>();
+        txtRT.anchorMin = Vector2.zero; txtRT.anchorMax = Vector2.one;
+        txtRT.offsetMin = Vector2.zero; txtRT.offsetMax = Vector2.zero;
+        var tmp = txtGO.AddComponent<TMPro.TextMeshProUGUI>();
+        tmp.text = "X"; tmp.fontSize = 40;
+        tmp.alignment = TMPro.TextAlignmentOptions.Center;
+        tmp.color = Color.white; tmp.raycastTarget = false;
+
+        return go;
     }
 }

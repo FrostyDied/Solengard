@@ -15,6 +15,7 @@ public class MainMenuManager : MonoBehaviour
     public Button botaoMissoes;
     public Button botaoRanking;
     public Button botaoConfiguracoes;
+    [SerializeField] Button botaoFecharLoja;
 
     [Header("Atalhos laterais (LeftPanel)")]
     [SerializeField] Button botaoOfertas;
@@ -98,6 +99,13 @@ public class MainMenuManager : MonoBehaviour
         painel?.SetActive(true);
     }
 
+    public void FecharTodos()
+    {
+        foreach (var p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking,
+                                   painelConfiguracoes, painelOfertas, painelBencaos, painelBaus })
+            if (p != null) p.SetActive(false);
+    }
+
     // ── UI ───────────────────────────────────────────────────────────────────────
 
     void ConfigurarBotoes()
@@ -116,6 +124,7 @@ public class MainMenuManager : MonoBehaviour
         botaoBencaos?.onClick.AddListener(AbrirBencaos);
         botaoBaus?.onClick.AddListener(AbrirBaus);
         botaoColetarRecompensa?.onClick.AddListener(ColetarRecompensaDiaria);
+        botaoFecharLoja?.onClick.AddListener(FecharTodos);
     }
 
     void AtualizarInfosJogador()
