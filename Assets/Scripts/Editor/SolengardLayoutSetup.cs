@@ -60,9 +60,14 @@ public static class SolengardLayoutSetup
 
     // ── Menu items ──────────────────────────────────────────────────────────────
 
-    [MenuItem("Solengard/Layout MainMenu")]
+    [MenuItem("Solengard/Legacy (NAO USAR)/Layout MainMenu (destrutivo)")]
     static void LayoutMainMenu()
     {
+        if (!EditorUtility.DisplayDialog(
+            "Gerador destrutivo (legado)",
+            "Este comando DESTRÓI e recria o Canvas do MainMenu do zero, REGREDINDO a cena viva " +
+            "(que agora é a fonte da verdade).\n\nUse apenas como referência histórica.\n\nContinuar mesmo assim?",
+            "Sim, rodar mesmo assim", "Cancelar")) return;
         if (!ValidateScene(MAIN_MENU_SCENE)) return;
         var scene = EditorSceneManager.GetActiveScene();
         var log   = new StringBuilder();
@@ -81,7 +86,7 @@ public static class SolengardLayoutSetup
         EditorUtility.DisplayDialog("Solengard Layout MainMenu — Concluído", sb.ToString(), "OK");
     }
 
-    [MenuItem("Solengard/Layout MainMenu", validate = true)]
+    [MenuItem("Solengard/Legacy (NAO USAR)/Layout MainMenu (destrutivo)", validate = true)]
     static bool ValidateLayoutMainMenu() =>
         EditorSceneManager.GetActiveScene().name == MAIN_MENU_SCENE;
 

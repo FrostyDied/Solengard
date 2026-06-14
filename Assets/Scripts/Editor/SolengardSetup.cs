@@ -530,9 +530,14 @@ public static class SolengardSetup
 
     // ── Create MainMenu Scene ────────────────────────────────────────────────────
 
-    [MenuItem("Solengard/Create MainMenu Scene")]
+    [MenuItem("Solengard/Legacy (NAO USAR)/Create MainMenu Scene (destrutivo)")]
     static void CreateMainMenuScene()
     {
+        if (!EditorUtility.DisplayDialog(
+            "Gerador destrutivo (legado)",
+            "Este comando recria a cena MainMenu inteira do zero, REGREDINDO a cena viva " +
+            "(que agora é a fonte da verdade).\n\nUse apenas como referência histórica.\n\nContinuar mesmo assim?",
+            "Sim, rodar mesmo assim", "Cancelar")) return;
         Debug.Log("[SolengardSetup] CreateMainMenuScene iniciado");
         try
         {
