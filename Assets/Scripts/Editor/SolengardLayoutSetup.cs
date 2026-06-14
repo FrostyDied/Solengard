@@ -1609,7 +1609,6 @@ public static class SolengardLayoutSetup
     static void PopularPainelConfiguracoes()
     {
         const string SLIDER_PREFAB = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Slider/Slider_Basic_Rectangle_White.prefab";
-        const string SWITCH_PREFAB = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_UI_Etc/Switch_White.prefab";
         const string FLAG_BASE = "Assets/Layer Lab/GUI Pro-FantasyRPG/ResourcesData/Sprites/Component/Icon_Flag/";
         string BTN = BTN_GUIPRO;
 
@@ -2021,4 +2020,175 @@ public static class SolengardLayoutSetup
 
         Debug.Log("[DEBUG] Concluído. Verifique o Console acima.");
     }
+
+    // ── Passo 6: Validador NAO-destrutivo do MainMenu ────────────────────────────
+    // Percorre a cena e REPORTA problemas. 100% read-only: nenhum SetRect, AddComponent,
+    // Destroy ou SetDirty. So le e loga. Secoes:
+    //   A) refs nulas no MainMenuManager
+    //   B) botoes da Loja sem MenuButtonAction / acao invalida
+    //   C) invariante de raycast (host Image dos botoes + camadas de skin)
+    //   D) singletons de sistema presentes na cena (ausencia = info, bootstrap cria em runtime)
+    //   E) layout da Loja: valores que o codigo geraria vs a cena viva (PASS/DIFF aritmetico)
+    [MenuItem("Solengard/Validar MainMenu (read-only)")]
+    static void ValidarMainMenu()
+    {
+        if (!ValidateScene(MAIN_MENU_SCENE)) return;
+        var canvas = GameObject.Find("Canvas");
+        if (canvas == null) { EditorUtility.DisplayDialog("Solengard — Validar MainMenu", "Canvas nao encontrado na cena.", "OK"); return; }
+        var canvasTr = canvas.transform;
+
+        var sb = new StringBuilder("══════ VALIDAR MAINMENU (read-only) ══════\n");
+        int issues = 0;
+        void Fail(string msg) { issues++; sb.AppendLine("  DIFF " + msg); }
+        void Ok(string msg)   { sb.AppendLine("  OK   " + msg); }
+        void Info(string msg) { sb.AppendLine("  --   " + msg); }
+
+        bool Approx(Vector2 a, Vector2 b) => Mathf.Abs(a.x - b.x) < 0.5f && Mathf.Abs(a.y - b.y) < 0.5f;
+        string V(Vector2 v) => $"({v.x},{v.y})";
+
+        // ── A) Refs nulas no MainMenuManager ──────────────────────────────────
+        // Refs conhecidas como pendentes de feature futura: campo NULL aqui e
+        // intencional (a feature ainda nao existe), entao reportamos como INFO (--)
+        // e NAO contamos como problema. Qualquer OUTRO campo null continua DIFF.
+        var refsPendentes = new System.Collections.Generic.Dictionary<string, string>
+        {
+            { "botaoRanking", "feature futura: Ranking depende de backend online" },
+        };
+        sb.AppendLine("\n[A] MainMenuManager — refs serializadas:");
+        var mmm = UnityEngine.Object.FindFirstObjectByType<MainMenuManager>(FindObjectsInactive.Include);
+        if (mmm == null) { Fail("MainMenuManager AUSENTE na cena."); }
+        else
+        {
+            var so = new SerializedObject(mmm);
+            var it = so.GetIterator();
+            int nulls = 0;
+            for (bool enter = true; it.NextVisible(enter); enter = false)
+            {
+                if (it.propertyType != SerializedPropertyType.ObjectReference) continue;
+                if (it.name == "m_Script") continue;
+                if (it.objectReferenceValue != null) continue;
+                if (refsPendentes.TryGetValue(it.name, out var motivo))
+                    Info($"{it.name}: pendente ({motivo})");
+                else { Fail($"campo NULL: {it.name}"); nulls++; }
+            }
+            if (nulls == 0) Ok("todas as refs preenchidas (ignorando pendencias conhecidas).");
+        }
+
+        // ── B) Botoes da Loja: MenuButtonAction + acao valida ──────────────────
+        sb.AppendLine("\n[B] Botoes da Loja — MenuButtonAction:");
+        var painelLoja = canvasTr.Find("PainelLoja");
+        if (painelLoja == null) Fail("PainelLoja AUSENTE.");
+        else
+        {
+            void CheckMBA(Transform btn, string path, Solengard.UI.MenuAction esperada, bool precisaParam)
+            {
+                if (btn == null) { Fail($"botao AUSENTE: {path}"); return; }
+                var mba = btn.GetComponent<Solengard.UI.MenuButtonAction>();
+                if (mba == null) { Fail($"sem MenuButtonAction: {path}"); return; }
+                if (mba.acao != esperada) { Fail($"acao errada em {path}: {mba.acao} (esperado {esperada})"); return; }
+                if (precisaParam && string.IsNullOrEmpty(mba.parametro)) { Fail($"parametro vazio em {path} ({esperada})"); return; }
+                Ok($"{path} -> {mba.acao}{(precisaParam ? " ('" + mba.parametro + "')" : "")}");
+            }
+            var abaPers = painelLoja.Find("AbaPersonagens");
+            foreach (var (id, _, _) in LojaController.GetClasses())
+                CheckMBA(abaPers?.Find($"CardClasse_{id}/BtnComprar"), $"CardClasse_{id}/BtnComprar", Solengard.UI.MenuAction.ComprarClasse, true);
+            var abaDia = painelLoja.Find("AbaDiamantes");
+            var pacotes = LojaController.GetPacotes();
+            for (int i = 0; i < pacotes.Length; i++)
+                CheckMBA(abaDia?.Find($"CardPacote_{i}/BtnPacote"), $"CardPacote_{i}/BtnPacote", Solengard.UI.MenuAction.ComprarPacote, true);
+            CheckMBA(abaDia?.Find("BtnVideo"), "BtnVideo", Solengard.UI.MenuAction.AssistirVideo, false);
+        }
+
+        // Outros MenuButtonAction na cena com acao invalida (varre tudo)
+        foreach (var mba in canvas.GetComponentsInChildren<Solengard.UI.MenuButtonAction>(true))
+        {
+            if (mba.acao == Solengard.UI.MenuAction.Nenhuma) Fail($"MenuButtonAction com acao=Nenhuma em '{mba.name}'");
+            bool compra = mba.acao == Solengard.UI.MenuAction.ComprarClasse
+                       || mba.acao == Solengard.UI.MenuAction.ComprarUpgrade
+                       || mba.acao == Solengard.UI.MenuAction.ComprarPacote;
+            if (compra && string.IsNullOrEmpty(mba.parametro)) Fail($"compra sem parametro em '{mba.name}' ({mba.acao})");
+        }
+
+        // ── C) Invariante de raycast ───────────────────────────────────────────
+        sb.AppendLine("\n[C] Invariante de raycast:");
+        int raycastBad = 0;
+        // C1: host Image de cada Button = enabled + raycastTarget (hitbox do Passo 5)
+        foreach (var btn in canvas.GetComponentsInChildren<Button>(true))
+        {
+            var img = btn.GetComponent<Image>();
+            if (img == null) { Info($"Button sem Image no host: '{btn.name}' (alvo de raycast e filho?)"); continue; }
+            if (!img.enabled)        { Fail($"host Image DISABLED (regressao Passo 5): '{btn.name}'"); raycastBad++; }
+            if (!img.raycastTarget)  { Fail($"host Image raycastTarget=false: '{btn.name}'"); raycastBad++; }
+        }
+        // C2: camadas de skin nunca capturam raycast
+        foreach (var t in canvas.GetComponentsInChildren<Transform>(true))
+        {
+            if (t.name != "[Skin]" && t.name != "[PanelSkin]") continue;
+            foreach (var img in t.GetComponentsInChildren<Image>(true))
+                if (img.raycastTarget) { Fail($"skin capturando raycast: '{t.parent?.name}/[Skin]' filho '{img.name}'"); raycastBad++; }
+        }
+        if (raycastBad == 0) Ok("hosts de botao com hitbox correta + skins sem raycast.");
+
+        // ── D) Singletons de sistema (edit mode) ───────────────────────────────
+        sb.AppendLine("\n[D] Singletons na cena (ausencia = OK, SystemsBootstrap cria em runtime):");
+        var sysTypes = new System.Type[]
+        {
+            typeof(DiamondSystem), typeof(PermanentUpgradeSystem), typeof(SeasonPassSystem),
+            typeof(DailyRewardSystem), typeof(IAPSystem), typeof(AdSystem),
+            typeof(AuthSystem), typeof(LocalizationManager),
+        };
+        foreach (var ty in sysTypes)
+        {
+            var inst = UnityEngine.Object.FindFirstObjectByType(ty, FindObjectsInactive.Include);
+            if (inst != null) Ok($"{ty.Name}: presente na cena");
+            else              Info($"{ty.Name}: ausente na cena -> criado em runtime pelo bootstrap");
+        }
+
+        // ── E) Layout da Loja: codigo (formulas) vs cena viva ──────────────────
+        sb.AppendLine("\n[E] Layout da Loja — codigo (gerador) vs cena viva:");
+        int layoutBad = 0;
+        void CheckRect(Transform t, string name, Vector2 posCode, Vector2 sizeCode)
+        {
+            if (t == null) { Fail($"{name}: AUSENTE na cena"); layoutBad++; return; }
+            var rt = t.GetComponent<RectTransform>();
+            if (rt == null) { Fail($"{name}: sem RectTransform"); layoutBad++; return; }
+            bool okP = Approx(rt.anchoredPosition, posCode);
+            bool okS = Approx(rt.sizeDelta, sizeCode);
+            if (okP && okS) Ok($"{name}: pos {V(posCode)} size {V(sizeCode)}");
+            else { Fail($"{name}: codigo pos {V(posCode)} size {V(sizeCode)} | cena pos {V(rt.anchoredPosition)} size {V(rt.sizeDelta)}"); layoutBad++; }
+        }
+        if (painelLoja != null)
+        {
+            // Personagens — mesmas formulas do gerador (linhas 464/469/472)
+            float cW = 320f, cH = 270f, padX = 80f, padY = 50f;
+            var abaPers = painelLoja.Find("AbaPersonagens");
+            var classes = LojaController.GetClasses();
+            for (int i = 0; i < classes.Length; i++)
+            {
+                int col = i % 2, row = i / 2;
+                float x = col == 0 ? -(cW / 2 + padX / 2) : (cW / 2 + padX / 2);
+                float y = 0f - row * (cH + padY);
+                CheckRect(abaPers?.Find($"CardClasse_{classes[i].id}"), $"CardClasse_{classes[i].id}", new Vector2(x, y), new Vector2(cW, cH));
+            }
+            // Diamantes — formulas do gerador (linhas 541/576)
+            var abaDia = painelLoja.Find("AbaDiamantes");
+            float py = 80f;
+            var pacotes = LojaController.GetPacotes();
+            for (int i = 0; i < pacotes.Length; i++)
+                CheckRect(abaDia?.Find($"CardPacote_{i}"), $"CardPacote_{i}", new Vector2(0, py - i * 240f), new Vector2(500, 200));
+            CheckRect(abaDia?.Find("BtnVideo"), "BtnVideo", new Vector2(0, py - pacotes.Length * 240f), new Vector2(500, 100));
+        }
+        if (layoutBad == 0 && painelLoja != null) sb.AppendLine("  => layout Loja SINCRONIZADO (codigo == cena)");
+
+        // ── Resumo ─────────────────────────────────────────────────────────────
+        sb.AppendLine($"\n══════ RESULTADO: {(issues == 0 ? "PASS — nenhum problema" : issues + " problema(s) encontrado(s)")} ══════");
+        if (issues == 0) Debug.Log(sb.ToString());
+        else             Debug.LogWarning(sb.ToString());
+        EditorUtility.DisplayDialog("Solengard — Validar MainMenu",
+            issues == 0 ? "PASS — nenhum problema encontrado.\nVeja o relatorio completo no Console."
+                        : $"{issues} problema(s) encontrado(s).\nVeja os DIFF no Console (warning).", "OK");
+    }
+
+    [MenuItem("Solengard/Validar MainMenu (read-only)", validate = true)]
+    static bool ValidarMainMenu_Validate() => EditorSceneManager.GetActiveScene().name == MAIN_MENU_SCENE;
 }
