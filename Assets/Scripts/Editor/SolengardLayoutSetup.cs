@@ -1256,9 +1256,10 @@ public static class SolengardLayoutSetup
         var skinAntigo = host.transform.Find("[Skin]");
         if (skinAntigo != null) Object.DestroyImmediate(skinAntigo.gameObject);
 
-        // 2. Desativa a Image do root do host (se houver) — a skin assume o visual
+        // 2. Host Image vira hitbox invisível (NUNCA enabled=false) — a skin assume o visual,
+        //    mas o host mantém um alvo de raycast determinístico no retângulo cheio do botão.
         var hostImg = host.GetComponent<UnityEngine.UI.Image>();
-        if (hostImg != null) { hostImg.sprite = null; hostImg.color = new Color(0,0,0,0); hostImg.enabled = false; }
+        if (hostImg != null) { hostImg.sprite = null; hostImg.color = new Color(0,0,0,0); hostImg.enabled = true; hostImg.raycastTarget = true; }
 
         // 3. Instancia o prefab visual como filho
         var skin = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab, host.transform);
