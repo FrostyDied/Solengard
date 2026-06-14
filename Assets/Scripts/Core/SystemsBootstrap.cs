@@ -28,6 +28,7 @@ public static class SystemsBootstrap
         ("[S] SeasonPassSystem",    typeof(SeasonPassSystem)),
         ("[S] DailyRewardSystem",   typeof(DailyRewardSystem)),
         ("[S] IAPSystem",           typeof(IAPSystem)),
+        ("[S] AdSystem",            typeof(AdSystem)),
         ("[S] AuthSystem",          typeof(AuthSystem)),
         ("[S] LocalizationManager", typeof(LocalizationManager)),
     };

@@ -995,6 +995,7 @@ GameObject:
   - component: {fileID: 47625075}
   - component: {fileID: 47625074}
   - component: {fileID: 47625073}
+  - component: {fileID: 47625076}
   m_Layer: 0
   m_Name: BtnComprar
   m_TagString: Untagged
@@ -1105,6 +1106,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 47625071}
   m_CullTransparentMesh: 1
+--- !u!114 &47625076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 47625071}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 12
+  parametro: necromancer
 --- !u!1 &50281413
 GameObject:
   m_ObjectHideFlags: 0
@@ -2762,6 +2777,7 @@ GameObject:
   - component: {fileID: 185998410}
   - component: {fileID: 185998409}
   - component: {fileID: 185998408}
+  - component: {fileID: 185998411}
   m_Layer: 0
   m_Name: BtnPacote
   m_TagString: Untagged
@@ -2872,6 +2888,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 185998406}
   m_CullTransparentMesh: 1
+--- !u!114 &185998411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 185998406}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 14
+  parametro: pacote_diamantes_5
 --- !u!1 &193996104
 GameObject:
   m_ObjectHideFlags: 0
@@ -6383,6 +6413,7 @@ GameObject:
   - component: {fileID: 420227395}
   - component: {fileID: 420227394}
   - component: {fileID: 420227393}
+  - component: {fileID: 420227396}
   m_Layer: 0
   m_Name: BtnPacote
   m_TagString: Untagged
@@ -6493,6 +6524,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 420227391}
   m_CullTransparentMesh: 1
+--- !u!114 &420227396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 420227391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 14
+  parametro: pacote_diamantes_2
 --- !u!1 &427811791
 GameObject:
   m_ObjectHideFlags: 0
@@ -8529,6 +8574,7 @@ GameObject:
   - component: {fileID: 697583530}
   - component: {fileID: 697583529}
   - component: {fileID: 697583528}
+  - component: {fileID: 697583531}
   m_Layer: 0
   m_Name: BtnVideo
   m_TagString: Untagged
@@ -8639,6 +8685,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 697583526}
   m_CullTransparentMesh: 1
+--- !u!114 &697583531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 697583526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 15
+  parametro: 
 --- !u!1 &697934134
 GameObject:
   m_ObjectHideFlags: 0
@@ -10856,6 +10916,7 @@ GameObject:
   - component: {fileID: 863092040}
   - component: {fileID: 863092039}
   - component: {fileID: 863092038}
+  - component: {fileID: 863092041}
   m_Layer: 0
   m_Name: BtnComprar
   m_TagString: Untagged
@@ -10966,6 +11027,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 863092036}
   m_CullTransparentMesh: 1
+--- !u!114 &863092041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 863092036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 12
+  parametro: paladin
 --- !u!1 &863807898
 GameObject:
   m_ObjectHideFlags: 0
@@ -11558,6 +11633,7 @@ GameObject:
   - component: {fileID: 911510422}
   - component: {fileID: 911510421}
   - component: {fileID: 911510420}
+  - component: {fileID: 911510423}
   m_Layer: 0
   m_Name: BtnComprar
   m_TagString: Untagged
@@ -11668,6 +11744,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 911510418}
   m_CullTransparentMesh: 1
+--- !u!114 &911510423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 911510418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 12
+  parametro: assassin
 --- !u!1001 &913187339
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15148,6 +15238,7 @@ GameObject:
   - component: {fileID: 1098779458}
   - component: {fileID: 1098779457}
   - component: {fileID: 1098779456}
+  - component: {fileID: 1098779459}
   m_Layer: 0
   m_Name: BtnPacote
   m_TagString: Untagged
@@ -15258,6 +15349,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1098779454}
   m_CullTransparentMesh: 1
+--- !u!114 &1098779459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1098779454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 14
+  parametro: pacote_diamantes_1
 --- !u!1 &1103352002
 GameObject:
   m_ObjectHideFlags: 0
@@ -16578,6 +16683,7 @@ GameObject:
   - component: {fileID: 1203078326}
   - component: {fileID: 1203078325}
   - component: {fileID: 1203078324}
+  - component: {fileID: 1203078327}
   m_Layer: 0
   m_Name: BtnComprar
   m_TagString: Untagged
@@ -16688,6 +16794,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1203078322}
   m_CullTransparentMesh: 1
+--- !u!114 &1203078327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1203078322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 12
+  parametro: hunter
 --- !u!1 &1203175068
 GameObject:
   m_ObjectHideFlags: 0
@@ -19835,6 +19955,7 @@ GameObject:
   - component: {fileID: 1399160604}
   - component: {fileID: 1399160603}
   - component: {fileID: 1399160602}
+  - component: {fileID: 1399160605}
   m_Layer: 0
   m_Name: BtnPacote
   m_TagString: Untagged
@@ -19945,6 +20066,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1399160600}
   m_CullTransparentMesh: 1
+--- !u!114 &1399160605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1399160600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 14
+  parametro: pacote_diamantes_4
 --- !u!1 &1403681967
 GameObject:
   m_ObjectHideFlags: 0
@@ -22622,6 +22757,7 @@ GameObject:
   - component: {fileID: 1555836600}
   - component: {fileID: 1555836599}
   - component: {fileID: 1555836598}
+  - component: {fileID: 1555836601}
   m_Layer: 0
   m_Name: BtnComprar
   m_TagString: Untagged
@@ -22732,6 +22868,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1555836596}
   m_CullTransparentMesh: 1
+--- !u!114 &1555836601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1555836596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 12
+  parametro: mage
 --- !u!1 &1579813066
 GameObject:
   m_ObjectHideFlags: 0
@@ -26630,6 +26780,7 @@ GameObject:
   - component: {fileID: 1832631991}
   - component: {fileID: 1832631990}
   - component: {fileID: 1832631989}
+  - component: {fileID: 1832631992}
   m_Layer: 0
   m_Name: BtnPacote
   m_TagString: Untagged
@@ -26740,6 +26891,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1832631987}
   m_CullTransparentMesh: 1
+--- !u!114 &1832631992
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1832631987}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acao: 14
+  parametro: pacote_diamantes_3
 --- !u!1 &1845097126
 GameObject:
   m_ObjectHideFlags: 0

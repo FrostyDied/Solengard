@@ -457,6 +457,16 @@ public static class SolengardSetup
         EditorUtility.DisplayDialog("Solengard Debug", "PlayerPrefs limpos.\nPróxima run começará do zero.", "OK");
     }
 
+    // Reseta SO o limite diario de video (preserva diamantes/classes/upgrades).
+    [MenuItem("Solengard/Debug/Resetar Limite de Video")]
+    static void ResetarLimiteVideo()
+    {
+        PlayerPrefs.DeleteKey("ad_video_count");
+        PlayerPrefs.DeleteKey("ad_video_last_utc");
+        PlayerPrefs.Save();
+        Debug.Log("[Debug] Limite de video resetado - botao volta a (0/3)");
+    }
+
     // ── Setup VFX Resources ──────────────────────────────────────────────────────
 
     [MenuItem("Solengard/Setup VFX Resources")]

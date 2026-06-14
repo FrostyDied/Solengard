@@ -478,13 +478,7 @@ public static class SolengardLayoutSetup
                         if(bn){ SetRect(RT(btn),new(.1f,0),new(.9f,0),new(.5f,0),new(0,16),new(0,48));
                         EnsureImage(btn,Hex("#5A1090")); EnsureButton(btn);
                         AddLabel(btn,$"💎 {preco}",22f,Color.white); total++; }
-                        var lojaCtrl=lojaGO.GetComponent<LojaController>();
-                        var btnComp=btn.GetComponent<UnityEngine.UI.Button>();
-                        if(btnComp!=null && lojaCtrl!=null){
-                            string cid=id; int cp=preco;
-                            btnComp.onClick.RemoveAllListeners();
-                            btnComp.onClick.AddListener(()=>lojaCtrl.ComprarClasse(cid,cp));
-                        }
+                        WireMenuButton(btn, Solengard.UI.MenuAction.ComprarClasse, id); // Passo 4: substitui lambda nao-serializada
                         log.AppendLine($"  Loja/Card_{id}"); total++;
                     }
                 }
@@ -574,9 +568,7 @@ public static class SolengardLayoutSetup
                     StretchFull(RT(precoTxt));
                     var ptmp=EnsureTMP(precoTxt,ppreco,22f,Color.white);
                     ptmp.alignment=TMPro.TextAlignmentOptions.Center;
-                    string pidL=pid;
-                    var pbtComp=btnP.GetComponent<UnityEngine.UI.Button>();
-                    if(pbtComp!=null){ pbtComp.onClick.RemoveAllListeners(); pbtComp.onClick.AddListener(()=>LojaController.Instance?.ComprarDiamantes(pidL)); }
+                    WireMenuButton(btnP, Solengard.UI.MenuAction.ComprarPacote, pid); // Passo 4: substitui lambda nao-serializada
 
                     log.AppendLine($"  Loja/Pacote_{i}"); total++;
                 }
@@ -584,12 +576,8 @@ public static class SolengardLayoutSetup
                 if(vbn){ SetRect(RT(vbtn),new(.5f,1),new(.5f,1),new(.5f,1),new(0,py-pacotes.Length*180f-20f),new(460,70));
                 EnsureImage(vbtn,Hex("#1A5020")); EnsureButton(vbtn);
                 AddLabel(vbtn,"Assistir Video  +50 Diamantes",24f,Color.white); total++;
-                var lojaCtrl=lojaGO.GetComponent<LojaController>();
-                var vComp=vbtn.GetComponent<UnityEngine.UI.Button>();
-                if(vComp!=null && lojaCtrl!=null){
-                    vComp.onClick.RemoveAllListeners();
-                    vComp.onClick.AddListener(()=>lojaCtrl.AssistirVideo());
-                }}
+                WireMenuButton(vbtn, Solengard.UI.MenuAction.AssistirVideo); // Passo 4: substitui lambda nao-serializada
+                }
             }
 
             // Feedback
@@ -1923,6 +1911,73 @@ public static class SolengardLayoutSetup
 
         return go;
     }
+
+    // ── MenuButtonAction (Passo 4) ───────────────────────────────────────────────
+    // Anexa MenuButtonAction a um botao existente (idempotente) e define acao+parametro.
+    // Substitui as lambdas-no-Editor que nao serializavam (bug #1). NAO recria nem
+    // reposiciona o botao — apenas adiciona/atualiza o componente.
+    static void WireMenuButton(GameObject btnGO, Solengard.UI.MenuAction acao, string parametro = "")
+    {
+        if (btnGO == null) return;
+        var btn = btnGO.GetComponent<UnityEngine.UI.Button>();
+        if (btn != null) btn.onClick.RemoveAllListeners(); // limpa listener antigo (lambda nao serializava de qualquer forma)
+        var mba = btnGO.GetComponent<Solengard.UI.MenuButtonAction>()
+                  ?? btnGO.AddComponent<Solengard.UI.MenuButtonAction>();
+        mba.acao      = acao;
+        mba.parametro = parametro;
+        EditorUtility.SetDirty(mba);
+    }
+
+    // Comando NAO-destrutivo: religa os botoes da Loja (cards de classe, pacotes, video)
+    // com MenuButtonAction na cena ATUAL, SEM recriar/reposicionar nada. Preserva os
+    // ajustes manuais de tamanho/posicao. Rodar uma vez e salvar a cena.
+    [MenuItem("Solengard/Loja: Religar Botoes (MenuButtonAction)")]
+    static void ReligarBotoesLoja()
+    {
+        if (!ValidateScene(MAIN_MENU_SCENE)) return;
+        var canvas     = GameObject.Find("Canvas");
+        var painelLoja = canvas != null ? canvas.transform.Find("PainelLoja") : null;
+        if (painelLoja == null) { EditorUtility.DisplayDialog("Solengard", "Canvas/PainelLoja nao encontrado na cena.", "OK"); return; }
+
+        var log = new StringBuilder();
+        int n = 0;
+
+        var abaPers = painelLoja.Find("AbaPersonagens");
+        if (abaPers != null)
+        {
+            foreach (var (id, _, _) in LojaController.GetClasses())
+            {
+                var btn = abaPers.Find($"CardClasse_{id}/BtnComprar");
+                if (btn != null) { WireMenuButton(btn.gameObject, Solengard.UI.MenuAction.ComprarClasse, id); log.AppendLine($"  ComprarClasse -> {id}"); n++; }
+                else log.AppendLine($"  AUSENTE: CardClasse_{id}/BtnComprar");
+            }
+        }
+        else log.AppendLine("  AUSENTE: AbaPersonagens");
+
+        var abaDia = painelLoja.Find("AbaDiamantes");
+        if (abaDia != null)
+        {
+            var pacotes = LojaController.GetPacotes();
+            for (int i = 0; i < pacotes.Length; i++)
+            {
+                var btn = abaDia.Find($"CardPacote_{i}/BtnPacote");
+                if (btn != null) { WireMenuButton(btn.gameObject, Solengard.UI.MenuAction.ComprarPacote, pacotes[i].productId); log.AppendLine($"  ComprarPacote -> {pacotes[i].productId}"); n++; }
+                else log.AppendLine($"  AUSENTE: CardPacote_{i}/BtnPacote");
+            }
+            var vbtn = abaDia.Find("BtnVideo");
+            if (vbtn != null) { WireMenuButton(vbtn.gameObject, Solengard.UI.MenuAction.AssistirVideo); log.AppendLine("  AssistirVideo -> BtnVideo"); n++; }
+            else log.AppendLine("  AUSENTE: BtnVideo");
+        }
+        else log.AppendLine("  AUSENTE: AbaDiamantes");
+
+        if (n > 0) EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorUtility.DisplayDialog("Solengard — Religar Botoes Loja",
+            $"{n} botao(oes) religado(s) com MenuButtonAction (sem recriar/reposicionar):\n\n{log}", "OK");
+    }
+
+    [MenuItem("Solengard/Loja: Religar Botoes (MenuButtonAction)", validate = true)]
+    static bool ValidateReligarBotoesLoja() =>
+        EditorSceneManager.GetActiveScene().name == MAIN_MENU_SCENE;
 
     [MenuItem("Solengard/DEBUG Botao Config")]
     static void DebugBotaoConfig()
