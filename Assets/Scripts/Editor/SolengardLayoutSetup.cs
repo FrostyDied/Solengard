@@ -191,8 +191,14 @@ public static class SolengardLayoutSetup
             topBarGO.transform.SetSiblingIndex(1);
 
             var topBarImg = topBarGO.GetComponent<Image>() ?? topBarGO.AddComponent<Image>();
-            var topBarBG = LoadBG("topbar_background.png");
-            if (topBarBG != null) { topBarImg.sprite = topBarBG; topBarImg.color = Color.white; topBarImg.type = Image.Type.Simple; topBarImg.preserveAspect = false; }
+            // Fundo de sombra translucida (sem sprite): #0A0A1A com alpha parcial deixa a
+            // arte do BG transparecer levemente. Sincronizado com o Image da TopBar na cena
+            // (fonte da verdade). Substitui o antigo topbar_background.png roxo.
+            var sombraTopBar = Hex("#0A0A1A"); sombraTopBar.a = 245f / 255f; // alpha calibrado na cena
+            topBarImg.sprite = null;
+            topBarImg.color = sombraTopBar;
+            topBarImg.type = Image.Type.Simple;
+            topBarImg.preserveAspect = false;
             topBarImg.raycastTarget = false;
 
             var tr = go.transform;
