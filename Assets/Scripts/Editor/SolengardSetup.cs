@@ -277,6 +277,7 @@ public static class SolengardSetup
         CreateSceneSystem<ObjectPoolManager>     ("ObjectPoolManager");
         CreateSceneSystem<UpgradeSystem>         ("UpgradeSystem");
         CreateSceneSystem<DiamondSystem>         ("DiamondSystem");
+        CreateSceneSystem<PermanentUpgradeSystem>("PermanentUpgradeSystem");
         CreateSceneSystem<DailyMissionSystem>    ("DailyMissionSystem");
         CreateSceneSystem<DailyRewardSystem>     ("DailyRewardSystem");
         CreateSceneSystem<ScoreSystem>           ("ScoreSystem");
@@ -607,7 +608,8 @@ public static class SolengardSetup
         }
 
         // 4. Singletons — root-level GOs; DontDestroyOnLoad requires scene root (no parent)
-        NewSingleton(null, "[S] DiamondSystem",       typeof(DiamondSystem));
+        NewSingleton(null, "[S] DiamondSystem",        typeof(DiamondSystem));
+        NewSingleton(null, "[S] PermanentUpgrades",   typeof(PermanentUpgradeSystem));
         NewSingleton(null, "[S] SeasonPassSystem",    typeof(SeasonPassSystem));
         NewSingleton(null, "[S] DailyRewardSystem",   typeof(DailyRewardSystem));
         NewSingleton(null, "[S] IAPSystem",           typeof(IAPSystem));
@@ -984,6 +986,7 @@ public static class SolengardSetup
         // ── Core singletons ───────────────────────────────────────────────────────
         total += EnsureSystemObject<GameManager>          ("GameManager",           log);
         total += EnsureSystemObject<DiamondSystem>        ("DiamondSystem",         log);
+        total += EnsureSystemObject<PermanentUpgradeSystem>("PermanentUpgradeSystem", log);
         total += EnsureSystemObject<ScoreSystem>          ("ScoreSystem",           log);
         total += EnsureSystemObject<SeasonPassSystem>     ("SeasonPassSystem",      log);
         total += EnsureSystemObject<DailyRewardSystem>    ("DailyRewardSystem",     log);

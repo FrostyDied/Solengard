@@ -523,14 +523,9 @@ public static class SolengardLayoutSetup
                         var (rbtn,rbn)=FindOrCreateUI(row.transform,"BtnUpgrade");
                         if(rbn){ SetRect(RT(rbtn),new(.6f,.1f),new(1,.9f),new(1,.5f),new(-12,0),Vector2.zero);
                         EnsureImage(rbtn,Hex("#2A1060")); EnsureButton(rbtn);
-                        AddLabel(rbtn,$"💎 {data.diamondCostPerLevel}",18f,Color.white); total++; }
-                        var lojaCtrl=lojaGO.GetComponent<LojaController>();
-                        var rbtnComp=rbtn.GetComponent<UnityEngine.UI.Button>();
-                        if(rbtnComp!=null && lojaCtrl!=null){
-                            PermanentUpgradeId capturedId=uid;
-                            rbtnComp.onClick.RemoveAllListeners();
-                            rbtnComp.onClick.AddListener(()=>lojaCtrl.ComprarUpgrade(capturedId));
-                        }
+                        AddLabel(rbtn,$"💎 {PermanentUpgradeSystem.GetCusto(data.id,0)}",18f,Color.white); total++; }
+                        var wire=rbtn.GetComponent<Solengard.UI.BotaoComprarUpgrade>()??rbtn.AddComponent<Solengard.UI.BotaoComprarUpgrade>();
+                        wire.upgradeId=uid.ToString();
                         yPos -= 56f; total++;
                     }
                     yPos -= 10f;

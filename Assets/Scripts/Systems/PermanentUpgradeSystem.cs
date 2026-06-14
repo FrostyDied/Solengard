@@ -87,6 +87,7 @@ public class PermanentUpgradeSystem : MonoBehaviour
         int cost = (data.levelCosts != null && currentLevel < data.levelCosts.Length)
             ? data.levelCosts[currentLevel]
             : data.diamondCostPerLevel;
+        if (DiamondSystem.Instance == null) return false;
         if (!DiamondSystem.Instance.SpendDiamonds(cost)) return false;
         PlayerPrefs.SetInt($"perm_upgrade_{id}", currentLevel + 1);
         PlayerPrefs.Save();
