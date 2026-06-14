@@ -1610,9 +1610,15 @@ public static class SolengardLayoutSetup
         UnityEditor.EditorUtility.SetDirty(host);
     }
 
-    [MenuItem("Solengard/Construir Config (conteudo)")]
+    [MenuItem("Solengard/Legacy (NAO USAR)/Construir Config (destrutivo)")]
     static void PopularPainelConfiguracoes()
     {
+        if (!EditorUtility.DisplayDialog(
+            "Gerador destrutivo (legado)",
+            "Apaga e recria TODO o conteúdo do PainelConfiguracoes, sobrescrevendo o que já está " +
+            "assado na cena (que agora é a fonte da verdade).\n\nUse apenas como referência histórica " +
+            "ou para regenerar do zero.\n\nContinuar mesmo assim?",
+            "Sim, rodar mesmo assim", "Cancelar")) return;
         const string SLIDER_PREFAB = "Assets/Layer Lab/GUI Pro-FantasyRPG/Prefabs/Prefabs_Component_Slider/Slider_Basic_Rectangle_White.prefab";
         const string FLAG_BASE = "Assets/Layer Lab/GUI Pro-FantasyRPG/ResourcesData/Sprites/Component/Icon_Flag/";
         string BTN = BTN_GUIPRO;
