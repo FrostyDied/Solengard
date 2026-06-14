@@ -461,12 +461,12 @@ public static class SolengardLayoutSetup
             { var i=apGO.GetComponent<UnityEngine.UI.Image>(); if(i!=null){ i.sprite=null; i.color=new Color(0,0,0,0); } }
             {
                 var classesData=LojaController.GetClasses();
-                float cW=240f, cH=180f, padX=20f, padY=20f;
+                float cW=320f, cH=270f, padX=80f, padY=50f;
                 for(int i=0;i<classesData.Length;i++){
                     var (id,nome,preco)=classesData[i];
                     int col=i%2, row=i/2;
                     float x = col==0 ? -(cW/2+padX/2) : (cW/2+padX/2);
-                    float y = 80f - row*(cH+padY);
+                    float y = 0f - row*(cH+padY);
                     var (card,cn)=FindOrCreateUI(apGO.transform,$"CardClasse_{id}");
                     if(cn){
                         SetRect(RT(card),new(.5f,1),new(.5f,1),new(.5f,1),new(x,y),new(cW,cH));
@@ -538,7 +538,7 @@ public static class SolengardLayoutSetup
                 for(int i=0;i<pacotes.Length;i++){
                     var (pid,pnome,pdias,ppreco,pbonus,pbadge)=pacotes[i];
                     var (card,cn)=FindOrCreateUI(adGO.transform,$"CardPacote_{i}");
-                    SetRect(RT(card),new(.5f,1),new(.5f,1),new(.5f,1),new(0,py-i*185f),new(460,170));
+                    SetRect(RT(card),new(.5f,1),new(.5f,1),new(.5f,1),new(0,py-i*240f),new(500,200));
                     if(cn){ EnsureImage(card,Hex("#0A1E40")); total++; }
 
                     // Badge (faixa no topo do card)
@@ -573,7 +573,7 @@ public static class SolengardLayoutSetup
                     log.AppendLine($"  Loja/Pacote_{i}"); total++;
                 }
                 var (vbtn,vbn)=FindOrCreateUI(adGO.transform,"BtnVideo");
-                if(vbn){ SetRect(RT(vbtn),new(.5f,1),new(.5f,1),new(.5f,1),new(0,py-pacotes.Length*180f-20f),new(460,70));
+                if(vbn){ SetRect(RT(vbtn),new(.5f,1),new(.5f,1),new(.5f,1),new(0,py-pacotes.Length*240f),new(500,100));
                 EnsureImage(vbtn,Hex("#1A5020")); EnsureButton(vbtn);
                 AddLabel(vbtn,"Assistir Video  +50 Diamantes",24f,Color.white); total++;
                 WireMenuButton(vbtn, Solengard.UI.MenuAction.AssistirVideo); // Passo 4: substitui lambda nao-serializada
