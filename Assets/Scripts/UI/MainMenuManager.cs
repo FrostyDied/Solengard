@@ -92,6 +92,15 @@ public class MainMenuManager : MonoBehaviour
     public void AbrirBencaos() => AbrirPainel(painelBencaos);
     public void AbrirBaus()    => AbrirPainel(painelBaus);
 
+    // Wrappers públicos para o MenuButtonAction chamar (Passo 3) — delegam à lógica
+    // existente; ConfigurarBotoes() permanece inalterado.
+    public void AbrirLoja()          => AbrirPainel(painelLoja);
+    public void AbrirUpgrades()      { AbrirPainel(painelLoja); LojaController.Instance?.AbrirAbaUpgradesDireto(); }
+    public void AbrirMissoes()       => AbrirPainel(painelMissoes);
+    public void AbrirRanking()       => AbrirPainel(painelRanking);
+    public void AbrirConfiguracoes() => AbrirPainel(painelConfiguracoes);
+    public void ColetarRecompensa()  => ColetarRecompensaDiaria();
+
     void AbrirPainel(GameObject painel)
     {
         foreach (GameObject p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking, painelConfiguracoes, painelOfertas, painelBencaos, painelBaus })
