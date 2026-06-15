@@ -11,7 +11,7 @@ namespace Solengard.UI
         void Start()
         {
             var btn = GetComponent<Button>();
-            var mmm = FindObjectOfType<MainMenuManager>();
+            var mmm = FindAnyObjectByType<MainMenuManager>();
             if (btn != null && mmm != null)
                 btn.onClick.AddListener(mmm.FecharTodos);
         }

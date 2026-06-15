@@ -22,7 +22,7 @@ namespace Solengard.UI
         void OnClick()
         {
             Debug.Log($"[CompraUpgrade] CLIQUE em {gameObject.name}, upgradeId='{upgradeId}'");
-            var loja = FindObjectOfType<LojaController>();
+            var loja = FindAnyObjectByType<LojaController>();
             if (loja == null) { Debug.LogWarning("[CompraUpgrade] LojaController NULL"); return; }
             if (System.Enum.TryParse<PermanentUpgradeId>(upgradeId, out var id)) {
                 Debug.Log($"[CompraUpgrade] Chamando ComprarUpgrade({id})");

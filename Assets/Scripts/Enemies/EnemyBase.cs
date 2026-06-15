@@ -192,8 +192,14 @@ public class EnemyBase : MonoBehaviour
 
     protected Vector2 ComputeSeparation()
     {
-        Vector2 sep   = Vector2.zero;
-        int     count = Physics2D.OverlapCircleNonAlloc(rb.position, separationRadius, _sepBuffer);
+        Vector2 sep = Vector2.zero;
+        // Substitui Physics2D.OverlapCircleNonAlloc (obsoleta no Unity 6). Filtro montado para
+        // replicar EXATAMENTE os defaults da API antiga: triggers conforme o global e máscara
+        // = DefaultRaycastLayers (todas exceto Ignore Raycast). Overload de array = zero-alloc.
+        var filter = new ContactFilter2D();
+        filter.useTriggers = Physics2D.queriesHitTriggers;
+        filter.SetLayerMask(Physics2D.DefaultRaycastLayers);
+        int count = Physics2D.OverlapCircle(rb.position, separationRadius, filter, _sepBuffer);
         for (int i = 0; i < count; i++)
         {
             var col = _sepBuffer[i];
