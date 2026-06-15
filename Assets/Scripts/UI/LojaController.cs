@@ -113,7 +113,7 @@ public class LojaController : MonoBehaviour
         else
         {
             btnVideo.interactable = true;
-            SetTextoVideo($"Assistir Vídeo  +50 💎  ({count}/{AD_MAX})");
+            SetTextoVideo($"Assistir Vídeo  +50 <sprite name=\"diamante\">  ({count}/{AD_MAX})");
         }
     }
 
@@ -124,7 +124,7 @@ public class LojaController : MonoBehaviour
 
     void AtualizarSaldo(int saldo)
     {
-        if (textoSaldo != null) textoSaldo.text = $"💎 {saldo:N0}";
+        if (textoSaldo != null) textoSaldo.text = $"{saldo:N0}";
     }
 
     public void AbrirAba(GameObject aba)
@@ -158,7 +158,8 @@ public class LojaController : MonoBehaviour
         if (classes != null) classes.UnlockClass(classId);
         else { PlayerPrefs.SetInt($"class_unlocked_{classId}", 1); PlayerPrefs.Save(); }
 
-        Feedback($"{classId} desbloqueado!");
+        string nome = System.Array.Find(Classes, c => c.id == classId).nome ?? classId;
+        Feedback($"{nome} desbloqueado!");
         RefreshPersonagens();
     }
 
@@ -197,7 +198,7 @@ public class LojaController : MonoBehaviour
     public void AssistirVideo()
     {
         var ads = AdSystem.Instance;
-        if (ads == null)          { Feedback("Anuncios indisponiveis."); return; } // nunca deref null
+        if (ads == null)          { Feedback("Anúncios indisponíveis!"); return; } // nunca deref null
         if (!ads.IsAdAvailable()) { Feedback("Nenhum vídeo disponível!"); return; }
 
         int  count = PlayerPrefs.GetInt(AD_COUNT_KEY, 0);
@@ -216,7 +217,7 @@ public class LojaController : MonoBehaviour
                 PlayerPrefs.SetString(AD_LAST_KEY, System.DateTime.UtcNow.Ticks.ToString());
                 PlayerPrefs.Save();
                 DiamondSystem.Instance?.AddDiamonds(50);
-                Feedback($"+50 💎 por assistir! ({novo}/{AD_MAX})");
+                Feedback($"+50 diamantes! ({novo}/{AD_MAX})");
                 AtualizarEstadoBotaoVideo(); // reflete (n/3) ou trava no 3º imediatamente
             },
             onSkipped: () => Feedback("Vídeo não concluído — sem recompensa.")
