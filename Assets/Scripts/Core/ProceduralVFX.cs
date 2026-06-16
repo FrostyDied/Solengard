@@ -737,10 +737,12 @@ public static class ProceduralVFX
             for (int i = 0; i < segs; i++)
             {
                 float s = (float)i / (segs - 1);
-                // Forma de C: curva perpendicular que abre e fecha
-                float curve = Mathf.Sin(s * Mathf.PI) * reach * 0.6f;
+                // Forma de C/gancho: bojo proporcional ao comprimento (k=0.4) e
+                // assimétrico (fase 0.7) — pico adiantado e ponta hookada (não volta ao eixo).
+                float fwd   = s * length * reach;
+                float curve = Mathf.Sin(s * Mathf.PI * 0.7f) * length * 0.4f * reach;
                 Vector3 pt  = anchor
-                    + (Vector3)(direction * s * length * reach)
+                    + (Vector3)(direction * fwd)
                     + perp * curve;
                 lr.SetPosition(i, pt);
             }

@@ -15,7 +15,6 @@ public class PlayerAttack : MonoBehaviour
     AttackType _attackType      = AttackType.Melee360;
     float      _attackArc       = 270f;
     int        _projectileCount = 1;
-    bool       _meleeAlt;
     int        _arcanaChargeCount   = 0;
     bool       _golpeLetal_pendente = false;
     bool       _rastroVenenosoAtivo = false;
@@ -90,13 +89,18 @@ public class PlayerAttack : MonoBehaviour
         var mgr = PlayerClassManager.Instance;
         var facing = PlayerController.Instance != null
             ? PlayerController.Instance.FacingDirection : Vector2.right;
-        Vector2 attackDir = _meleeAlt ? -facing : facing;
-        _meleeAlt = !_meleeAlt;
+        Vector2 attackDir = facing;
 
         StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
+        // VFX tem teto visual; o alcance FUNCIONAL do ataque segue attackRange intacto.
+        // TODO: quando existir upgrade permanente de ALCANCE, multiplicar aqui
+        //       (ex.: rangeMult = PermanentUpgradeSystem.Instance?.GetBonus(PermanentUpgradeId.Alcance) ?? 1f);
+        //       avaliar se o hitRadius do dano também cresce junto.
+        float rangeMult = 1f; // placeholder — ponto único de escala do chicote
+        float vfxLength = Mathf.Clamp(attackRange * 0.8f * rangeMult, 3f, 4.5f);
         StartCoroutine(ProceduralVFX.WhipChain(
             transform, attackDir,
-            length: attackRange * 1.4f, duration: 0.4f,
+            length: vfxLength, duration: 0.4f,
             color: new Color(0.6f, 0.85f, 1f)
         ));
 
@@ -104,13 +108,11 @@ public class PlayerAttack : MonoBehaviour
         if (mgr?.HasBoost("sede_sangue") == true)
             dmg *= 1f + (mgr.SedeSangueStacks * 0.05f);
 
-        if (mgr?.HasBoost("corrente_perfurante") == true)
-            ApplyDamageArc(attackDir, 50f, attackRange * 0.8f, dmg);
-        else
-        {
-            var target = GetNearestEnemyInCone(attackDir, 60f);
-            if (target != null) target.TakeDamage(dmg);
-        }
+        // Dano circular pequeno, saindo de onde o chicote varre (à frente do player).
+        // (corrente_perfurante segue redundante — não referenciado aqui, pronto pra redefinir.)
+        float   hitRadius = 1.8f;
+        Vector2 hitCenter = (Vector2)transform.position + attackDir * 1.5f;
+        ApplyDamageCircle(hitCenter, hitRadius, dmg);
     }
 
     // ── Paladino (Melee180) ───────────────────────────────────────────────────────
@@ -386,22 +388,22 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    void ApplyDamageArc(Vector2 dir, float arc, float searchRange, float damage)
+    // Dano em área circular (zero-alloc OverlapCircle). Retorna nº de inimigos atingidos.
+    int ApplyDamageCircle(Vector2 center, float radius, float damage)
     {
-        float r = searchRange > 0f ? searchRange : attackRange;
         var filter = new ContactFilter2D { useTriggers = true, useLayerMask = true };
         filter.SetLayerMask(enemyLayerMask);
         var results = new List<Collider2D>();
-        Physics2D.OverlapCircle(transform.position, r, filter, results);
+        Physics2D.OverlapCircle(center, radius, filter, results);
         var hit = new HashSet<EnemyBase>();
         foreach (var col in results)
         {
             if (col == null) continue;
-            if (arc < 360f && !InArc(col.transform.position, arc, dir)) continue;
             var enemy = col.GetComponent<EnemyBase>() ?? col.GetComponentInParent<EnemyBase>();
             if (enemy == null || enemy.IsDead || !hit.Add(enemy)) continue;
             enemy.TakeDamage(damage);
         }
+        return hit.Count;
     }
 
     void ApplyDamageAtPoint(Vector3 hitPos, float radius)
