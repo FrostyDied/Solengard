@@ -150,9 +150,12 @@ public class PlayerHealth : MonoBehaviour
     // Restaura vida e maxHealth ao retomar uma sessão salva
     public void RestoreHealth(float current, float max)
     {
+        // Defesa em profundidade: um restore no início da run nunca deve gerar um
+        // player morto. Valores inválidos (sessão corrompida) → vida cheia.
+        if (max <= 0f) max = maxHealth > 0f ? maxHealth : 100f;
         maxHealth     = max;
-        currentHealth = Mathf.Clamp(current, 0f, max);
-        isDead        = currentHealth <= 0f;
+        currentHealth = current > 0f ? Mathf.Min(current, max) : max;
+        isDead        = false;
         isInvincible  = false;
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
         Debug.Log($"[PlayerHealth] RestoreHealth: {currentHealth:F0}/{maxHealth:F0}");

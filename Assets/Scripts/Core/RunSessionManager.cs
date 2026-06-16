@@ -39,8 +39,16 @@ public class RunSessionManager : MonoBehaviour
     {
         if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.Playing) return;
 
-        var rd     = GameManager.Instance.currentRunData;
         var player = Object.FindFirstObjectByType<PlayerHealth>();
+        // Nunca persiste um "cadáver": se o player ainda não spawnou (null) ou está
+        // morto/zerado, pula o save em vez de gravar HP 0 (evita sessão corrompida).
+        if (player == null || player.CurrentHealth <= 0f)
+        {
+            Debug.LogWarning("[RunSessionManager] SaveSession ignorado — player nulo ou HP<=0");
+            return;
+        }
+
+        var rd     = GameManager.Instance.currentRunData;
         var weapon = Object.FindFirstObjectByType<PlayerWeapon>();
 
         var session = new RunSessionData
@@ -51,8 +59,8 @@ public class RunSessionManager : MonoBehaviour
                                     : rd.waveReached,
             killCount          = rd.totalKills,
             timeElapsed        = GameManager.Instance.RunTimeSeconds,
-            currentHealth      = player != null ? player.CurrentHealth : 0f,
-            maxHealth          = player != null ? player.maxHealth     : 100f,
+            currentHealth      = player.CurrentHealth,   // garantido != null e > 0
+            maxHealth          = player.maxHealth,
             weaponLevel        = weapon != null ? weapon.level         : 1,
             weaponType         = weapon != null ? weapon.GetType().Name : "",
             activePassiveItems = new List<string>(),

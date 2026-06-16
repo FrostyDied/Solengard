@@ -57,7 +57,7 @@ public class ProductionSafeguard : MonoBehaviour
             invalid = true;
             reason  = $"wave inválida ({s.currentWave})";
         }
-        else if (s.currentHealth < 0 || s.currentHealth > 10000)
+        else if (s.currentHealth <= 0 || s.currentHealth > 10000)
         {
             invalid = true;
             reason  = $"HP inválido ({s.currentHealth})";
