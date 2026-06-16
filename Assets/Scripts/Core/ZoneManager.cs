@@ -68,8 +68,6 @@ public class ZoneManager : MonoBehaviour
 
     [Header("Modo de teste — 0 = desativado")]
     [SerializeField] float testBossSpawnAt = 0f;
-    [Tooltip("Zona inicial para testes (1-5). 0 = comportamento normal.")]
-    public int testStartZone = 0;
 
     readonly int[] _quotaPerMinute = { 30, 50, 80, 110, 140, 170, 200, 240 };
     int   _currentMinute    = 0;
@@ -116,11 +114,36 @@ public class ZoneManager : MonoBehaviour
 
     public void StartZones()
     {
-        CurrentZone = testStartZone > 0
-            ? Mathf.Clamp(testStartZone - 1, 0, zones.Length - 1)
-            : 0;
-        if (testStartZone > 0)
-            Debug.Log($"[Debug] Iniciando direto na Zona {testStartZone} (índice {CurrentZone})");
+        CurrentZone = 0;
+        StartZonesFromCurrent();
+    }
+
+    // Pulo de zona em runtime (ferramenta de teste). Mata todas as corrotinas em voo
+    // (ZoneLoop/SpawnLoop/QuotaTimer/SpawnBoss/transições) antes de re-arrancar, então
+    // não há janela para duplicar spawn nem para um SpawnBoss órfão reativar o loop.
+    public void JumpToZone(int zona1a5)
+    {
+        StopAllCoroutines();
+        ClearEnemies();
+
+        if (_fadeOverlay   != null) { Destroy(_fadeOverlay);   _fadeOverlay   = null; }
+        if (_victoryTextGO != null) { Destroy(_victoryTextGO); _victoryTextGO = null; }
+
+        IsRunning   = false;
+        CurrentZone = Mathf.Clamp(zona1a5 - 1, 0, zones.Length - 1);
+
+        var ph = PlayerController.Instance?.GetComponent<PlayerHealth>();
+        if (ph != null) ph.Curar(ph.MaxHealth);
+        XPSystem.Instance?.ResetLevel();
+
+        Time.timeScale = 1f;
+
+        // Troca de bioma INSTANTÂNEA (sem o tween de 3s do ZoneLoop)
+        var biome = zones[CurrentZone].biome;
+        BiomeSystem.Instance?.SetBiome(biome, instant: true);
+        WorldChunkManager.Instance?.SetBiome((int)biome);
+
+        Debug.Log($"[Zone] JumpToZone → Zona {CurrentZone + 1} ({zones[CurrentZone].nome})");
         StartZonesFromCurrent();
     }
 
@@ -581,11 +604,7 @@ public class ZoneManager : MonoBehaviour
 
     public void RestoreToZone(int zone)
     {
-        // testStartZone (debug) vence a restauração de sessão — sem isto,
-        // uma sessão salva faz "Ir para Zona X" carregar a zona antiga
-        CurrentZone = testStartZone > 0
-            ? Mathf.Clamp(testStartZone - 1, 0, zones.Length - 1)
-            : Mathf.Clamp(zone, 0, zones.Length - 1);
+        CurrentZone = Mathf.Clamp(zone, 0, zones.Length - 1);
         StartZonesFromCurrent();
     }
 

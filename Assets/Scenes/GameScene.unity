@@ -1060,7 +1060,6 @@ MonoBehaviour:
     - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   testBossSpawnAt: 0
-  testStartZone: 4
 --- !u!4 &96858805
 Transform:
   m_ObjectHideFlags: 0
