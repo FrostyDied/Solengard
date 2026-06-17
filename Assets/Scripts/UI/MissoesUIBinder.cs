@@ -142,7 +142,7 @@ public class MissoesUIBinder : MonoBehaviour
         var go = NovoGO(nome, parent);
         var tmp = go.AddComponent<TextMeshProUGUI>();
         tmp.text = texto; tmp.fontSize = size; tmp.color = cor; tmp.alignment = align;
-        tmp.enableWordWrapping = true; tmp.raycastTarget = false;
+        tmp.textWrappingMode = TMPro.TextWrappingModes.Normal; tmp.raycastTarget = false;
         return tmp;
     }
 

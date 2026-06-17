@@ -43,7 +43,7 @@ public static class SolengardMissoesLegadoSetup
     {
         var painel = FindOrCreate(canvas, "PainelMissoes");
         StretchFull(RT(painel));
-        EnsureImage(painel, BG_PANEL);
+        AplicarFundoBlur(painel);
         painel.SetActive(false);
 
         Titulo(painel.transform, "MISSÕES");
@@ -94,7 +94,7 @@ public static class SolengardMissoesLegadoSetup
     {
         var painel = FindOrCreate(canvas, "PainelLegado");
         StretchFull(RT(painel));
-        EnsureImage(painel, BG_PANEL);
+        AplicarFundoBlur(painel);
         painel.SetActive(false);
 
         Titulo(painel.transform, "LEGADO");
@@ -122,7 +122,8 @@ public static class SolengardMissoesLegadoSetup
         // Ranking (placeholder)
         var rank = Card(painel.transform, "CardRanking", "RANKING",
             new Vector2(0.05f, 0.10f), new Vector2(0.95f, 0.26f));
-        var soon = AddTextChild(rank, "RankingSoon", "🏆  Ranking Global — Em breve", 24f,
+        // Sem emoji 🏆 (TMP renderiza como □ sem sprite asset) — texto puro.
+        var soon = AddTextChild(rank, "RankingSoon", "Ranking Global — Em breve", 24f,
             new Color(0.7f, 0.7f, 0.75f), TextAlignmentOptions.Center);
         StretchPad(RT(soon.gameObject), 0.04f);
 
@@ -221,20 +222,44 @@ public static class SolengardMissoesLegadoSetup
         StretchPad(RT(t.gameObject), 0f);
     }
 
+    // Botao X padronizado: delega ao MESMO criador canonico usado por Loja/Config
+    // (SolengardLayoutSetup.CriarBotaoFechar — skin GUI Pro, host Image alpha0+raycast,
+    // glifo X 40px, BotaoFecharPainel -> FecharTodos). Remove qualquer X fora do padrao
+    // antes (idempotente; repara paineis ja construidos com o X antigo vermelho).
     static void CriarBotaoFechar(Transform painel)
     {
-        var go = FindOrCreate(painel, "BtnFechar");
-        var rt = RT(go); rt.anchorMin = new Vector2(0.88f, 0.90f); rt.anchorMax = new Vector2(0.98f, 0.98f);
-        rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
-        EnsureImage(go, new Color(0.4f, 0.1f, 0.1f, 0.9f));
-        if (go.GetComponent<Button>() == null) go.AddComponent<Button>();
-        if (go.GetComponentInChildren<TextMeshProUGUI>(true) == null)
+        var antigo = painel.Find("BtnFechar");
+        if (antigo != null) Object.DestroyImmediate(antigo.gameObject);
+        SolengardLayoutSetup.CriarBotaoFechar(painel, "BtnFechar");
+    }
+
+    // Fundo unico dos paineis de menu (menu_background_Dark.png). Forca import como Sprite
+    // Single (o asset vem como Multiple) e aplica esticado. Mesma imagem de Loja/Config.
+    static void AplicarFundoBlur(GameObject painel)
+    {
+        var img = painel.GetComponent<Image>() ?? painel.AddComponent<Image>();
+        var sprite = CarregarFundoBlur();
+        if (sprite != null)
         {
-            var x = AddTextChild(go, "X", "X", 28f, Color.white, TextAlignmentOptions.Center);
-            StretchPad(RT(x.gameObject), 0f);
+            img.sprite = sprite; img.color = Color.white;
+            img.type = Image.Type.Simple; img.preserveAspect = false;
         }
-        var mba = go.GetComponent<MenuButtonAction>() ?? go.AddComponent<MenuButtonAction>();
-        mba.acao = MenuAction.Fechar;
+        else img.color = BG_PANEL; // fallback solido se o asset sumir
+        img.raycastTarget = true;
+        SolengardBackgroundSetup.RemoverEscurecedor(painel.transform); // limpa camada antiga (fundo ja escuro)
+    }
+
+    const string BLUR_PATH = "Assets/Art/UI/Backgrounds/menu_background_Dark.png";
+    static Sprite CarregarFundoBlur()
+    {
+        var imp = AssetImporter.GetAtPath(BLUR_PATH) as TextureImporter;
+        if (imp != null && (imp.textureType != TextureImporterType.Sprite || imp.spriteImportMode != SpriteImportMode.Single))
+        {
+            imp.textureType = TextureImporterType.Sprite;
+            imp.spriteImportMode = SpriteImportMode.Single;
+            imp.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Sprite>(BLUR_PATH);
     }
 
     static GameObject FindOrCreate(Transform parent, string nome)
@@ -274,7 +299,7 @@ public static class SolengardMissoesLegadoSetup
         if (existente == null) go.transform.SetParent(parent.transform, false);
         var tmp = go.GetComponent<TextMeshProUGUI>() ?? go.AddComponent<TextMeshProUGUI>();
         tmp.text = texto; tmp.fontSize = size; tmp.color = cor; tmp.alignment = align;
-        tmp.enableWordWrapping = true; tmp.raycastTarget = false;
+        tmp.textWrappingMode = TMPro.TextWrappingModes.Normal; tmp.raycastTarget = false;
         return tmp;
     }
 }

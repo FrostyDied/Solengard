@@ -409,10 +409,13 @@ public static class SolengardLayoutSetup
             if(isNew){ EnsureImage(go,Hex(color)); go.SetActive(false); log.AppendLine($"  {name}"); total++; }
             var imgFundo = go.GetComponent<UnityEngine.UI.Image>();
             if (imgFundo == null) imgFundo = go.AddComponent<UnityEngine.UI.Image>();
-            var panelBG = LoadBG("panel_background.png");
+            // Fundo unico dos paineis de menu: menu_background_Dark.png (fonte da verdade = cena;
+            // este gerador legado apenas reaplica para consistencia). NAO afeta a TopBar.
+            var panelBG = LoadBG("menu_background_Dark.png");
             if (panelBG != null) { imgFundo.sprite = panelBG; imgFundo.color = Color.white; imgFundo.type = UnityEngine.UI.Image.Type.Simple; imgFundo.preserveAspect = false; }
             else if (imgFundo.color.a < 0.99f || imgFundo.color == Color.white) imgFundo.color = Hex(color);
             imgFundo.raycastTarget = true;
+            SolengardBackgroundSetup.RemoverEscurecedor(go.transform); // limpa camada antiga (fundo ja escuro)
             TryWire(mmmSO,field,go,log);
             // Botão X de fechar nos painéis que precisam (auto-liga via BotaoFecharPainel)
             if (name == "PainelMissoes" || name == "PainelPasse" || name == "PainelRanking")
@@ -1889,7 +1892,9 @@ public static class SolengardLayoutSetup
         EditorUtility.DisplayDialog("Solengard", "✓ Config refinada construída.", "OK");
     }
 
-    static GameObject CriarBotaoFechar(Transform painelPai, string nomeBotao = "BtnFechar")
+    // internal: reutilizado por SolengardMissoesLegadoSetup para padronizar o X de
+    // Missoes/Legado com o mesmo botao de Loja/Config (mesma skin, hitbox e wiring).
+    internal static GameObject CriarBotaoFechar(Transform painelPai, string nomeBotao = "BtnFechar")
     {
         var existente = painelPai.Find(nomeBotao);
         if (existente != null) return existente.gameObject;
