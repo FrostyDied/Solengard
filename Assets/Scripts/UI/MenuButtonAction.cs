@@ -16,6 +16,7 @@ namespace Solengard.UI
         AbrirMissoes,
         AbrirRanking,
         AbrirConfiguracoes,
+        AbrirLegado,
         AbrirOfertas,
         AbrirBencaos,
         AbrirBaus,
@@ -81,6 +82,7 @@ namespace Solengard.UI
                 case MenuAction.AbrirMissoes:       Menu?.AbrirMissoes();              break;
                 case MenuAction.AbrirRanking:       Menu?.AbrirRanking();              break;
                 case MenuAction.AbrirConfiguracoes: Menu?.AbrirConfiguracoes();        break;
+                case MenuAction.AbrirLegado:        Menu?.AbrirLegado();               break;
                 case MenuAction.AbrirOfertas:       Menu?.AbrirOfertas();              break;
                 case MenuAction.AbrirBencaos:       Menu?.AbrirBencaos();              break;
                 case MenuAction.AbrirBaus:          Menu?.AbrirBaus();                 break;

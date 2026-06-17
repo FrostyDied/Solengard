@@ -1,7 +1,17 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum MissionType { MatarInimigos, SobreviverWaves, ColetarDiamantes, VencerSemTomarDano }
+public enum MissionType
+{
+    MatarInimigos,
+    SobreviverWaves,
+    ColetarDiamantes,
+    VencerSemTomarDano, // mantido p/ compat; fora do pool atual
+    JogarPartida,
+    AlcancarZona,
+    SobreviverTempo
+}
 
 [System.Serializable]
 public class DailyMission
@@ -18,158 +28,230 @@ public class DailyMission
     public bool ProgessoCompleto => progresso >= meta;
 }
 
-// 3 missões diárias renovadas à meia-noite (UTC). Progresso salvo por data em PlayerPrefs.
+// Sistema de missões — DIÁRIAS (reset 24h UTC) e SEMANAIS (reset semana ISO).
+// NOTA: a classe mantém o nome DailyMissionSystem por compat de GUID com a cena;
+// hoje gerencia diárias E semanais. É singleton (criado pelo SystemsBootstrap) e
+// persiste entre cenas. Progresso salvo em PlayerPrefs (seeded por data/semana).
 public class DailyMissionSystem : MonoBehaviour
 {
+    public static DailyMissionSystem Instance { get; private set; }
+
     public static event System.Action<DailyMission> OnMissionCompleted;
+    public static event System.Action               OnMissionsChanged;
 
-    const string PREF_DATA_MISSOES = "sol_mission_date";
-    const string PREF_MISSOES_JSON = "sol_missions";
+    const string PREF_DATA_DIARIAS  = "sol_mission_date";
+    const string PREF_DIARIAS_JSON  = "sol_missions";
+    const string PREF_ID_SEMANAIS   = "sol_weekmission_id";
+    const string PREF_SEMANAIS_JSON = "sol_weekmissions";
 
-    List<DailyMission> missoesHoje = new();
+    List<DailyMission> diarias  = new();
+    List<DailyMission> semanais = new();
     int  ultimoSaldoDiamantes = -1;
-    bool tomouDanoNaWave;
 
-    // Definições do pool de missões com variantes de dificuldade
-    static readonly (MissionType tipo, string desc, int meta, int recompensa)[] poolMissoes =
+    // (tipo, descrição com {0}=meta, meta, recompensa em diamantes)
+    static readonly (MissionType tipo, string desc, int meta, int recompensa)[] poolDiarias =
     {
-        ( MissionType.MatarInimigos,       "Matar {0} inimigos",          50,  10 ),
-        ( MissionType.MatarInimigos,       "Matar {0} inimigos",         100,  20 ),
-        ( MissionType.MatarInimigos,       "Matar {0} inimigos",         200,  30 ),
-        ( MissionType.SobreviverWaves,     "Sobreviver {0} waves",          3,  10 ),
-        ( MissionType.SobreviverWaves,     "Sobreviver {0} waves",          5,  20 ),
-        ( MissionType.SobreviverWaves,     "Sobreviver {0} waves",         10,  30 ),
-        ( MissionType.ColetarDiamantes,    "Coletar {0} diamantes",        10,  15 ),
-        ( MissionType.ColetarDiamantes,    "Coletar {0} diamantes",        25,  20 ),
-        ( MissionType.ColetarDiamantes,    "Coletar {0} diamantes",        50,  25 ),
-        ( MissionType.VencerSemTomarDano,  "Vencer {0} wave sem tomar dano", 1, 30 ),
+        ( MissionType.MatarInimigos,    "Matar {0} inimigos",                50,  10 ),
+        ( MissionType.MatarInimigos,    "Matar {0} inimigos",               100,  20 ),
+        ( MissionType.SobreviverTempo,  "Sobreviver {0}s numa partida",     300,  15 ),
+        ( MissionType.JogarPartida,     "Jogar {0} partida",                  1,  10 ),
+        ( MissionType.AlcancarZona,     "Alcançar a Zona {0}",                2,  20 ),
+        ( MissionType.SobreviverWaves,  "Concluir {0} zonas",                 3,  15 ),
+        ( MissionType.ColetarDiamantes, "Coletar {0} diamantes",             25,  20 ),
     };
+
+    static readonly (MissionType tipo, string desc, int meta, int recompensa)[] poolSemanais =
+    {
+        ( MissionType.MatarInimigos,    "Matar {0} inimigos na semana",     500,  60 ),
+        ( MissionType.JogarPartida,     "Jogar {0} partidas",                10,  50 ),
+        ( MissionType.AlcancarZona,     "Alcançar a Zona {0}",                5, 100 ),
+        ( MissionType.ColetarDiamantes, "Coletar {0} diamantes",            200,  70 ),
+        ( MissionType.SobreviverTempo,  "Sobreviver {0}s numa partida",     600,  60 ),
+    };
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
 
     void OnEnable()
     {
-        EnemyBase.OnEnemyDied           += AoInimigoMorrer;
-        ZoneManager.OnZoneCompleted     += AoWaveConcluida;
-        DiamondSystem.OnDiamondsChanged += AoColetarDiamantes;
-        PlayerHealth.OnHealthChanged    += AoHealthChanged;
+        if (Instance != this) return;
+        EnemyBase.OnEnemyDied              += AoInimigoMorrer;
+        ZoneManager.OnZoneCompleted        += AoZonaConcluida;
+        DiamondSystem.OnDiamondsChanged    += AoColetarDiamantes;
+        RunRewardSystem.OnRunRewardCalculated += AoRunFinalizada;
     }
 
     void OnDisable()
     {
-        EnemyBase.OnEnemyDied           -= AoInimigoMorrer;
-        ZoneManager.OnZoneCompleted     -= AoWaveConcluida;
-        DiamondSystem.OnDiamondsChanged -= AoColetarDiamantes;
-        PlayerHealth.OnHealthChanged    -= AoHealthChanged;
+        if (Instance != this) return;
+        EnemyBase.OnEnemyDied              -= AoInimigoMorrer;
+        ZoneManager.OnZoneCompleted        -= AoZonaConcluida;
+        DiamondSystem.OnDiamondsChanged    -= AoColetarDiamantes;
+        RunRewardSystem.OnRunRewardCalculated -= AoRunFinalizada;
     }
 
-    void AoInimigoMorrer() => UpdateMissionProgress(nameof(MissionType.MatarInimigos), 1);
-
-    void AoWaveConcluida(int w)
+    void Start()
     {
-        if (!tomouDanoNaWave)
-            UpdateMissionProgress(nameof(MissionType.VencerSemTomarDano), 1);
-        tomouDanoNaWave = false;
-        UpdateMissionProgress(nameof(MissionType.SobreviverWaves), 1);
+        CarregarOuGerar();
+        ultimoSaldoDiamantes = DiamondSystem.Instance?.GetBalance() ?? -1;
     }
+
+    // ── Fontes de progresso ───────────────────────────────────────────────────────
+
+    void AoInimigoMorrer() => Progress(MissionType.MatarInimigos, 1);
+
+    void AoZonaConcluida(int zona) => Progress(MissionType.SobreviverWaves, 1);
 
     void AoColetarDiamantes(int novoSaldo)
     {
         if (ultimoSaldoDiamantes < 0) { ultimoSaldoDiamantes = novoSaldo; return; }
         int delta = novoSaldo - ultimoSaldoDiamantes;
-        if (delta > 0) UpdateMissionProgress(nameof(MissionType.ColetarDiamantes), delta);
+        if (delta > 0) Progress(MissionType.ColetarDiamantes, delta);
         ultimoSaldoDiamantes = novoSaldo;
     }
 
-    void AoHealthChanged(float current, float max)
+    void AoRunFinalizada(RunSummary summary)
     {
-        if (current < max) tomouDanoNaWave = true;
+        Progress(MissionType.JogarPartida, 1);
+        ProgressMax(MissionType.AlcancarZona,    summary.waveReached);
+        ProgressMax(MissionType.SobreviverTempo, Mathf.FloorToInt(summary.timeSurvived));
     }
 
-    void Start()
+    // ── API pública ────────────────────────────────────────────────────────────────
+
+    public List<DailyMission> GetDailyMissions()  => diarias;
+    public List<DailyMission> GetWeeklyMissions() => semanais;
+
+    public bool ClaimDaily(int i)  => Claim(diarias, i);
+    public bool ClaimWeekly(int i) => Claim(semanais, i);
+
+    // Tempo restante até o próximo reset (UTC).
+    public TimeSpan TimeUntilDailyReset()
     {
-        CarregarOuGerarMissoes();
-        ultimoSaldoDiamantes = DiamondSystem.Instance?.GetBalance() ?? -1;
+        var now  = DateTime.UtcNow;
+        var next = now.Date.AddDays(1);
+        return next - now;
     }
 
-    // Retorna as missões do dia atual
-    public List<DailyMission> GetTodayMissions() => missoesHoje;
-
-    // Atualiza o progresso de todas as missões do tipo informado
-    public void UpdateMissionProgress(string missionType, int quantidade)
+    public TimeSpan TimeUntilWeeklyReset()
     {
-        if (!System.Enum.TryParse(missionType, out MissionType tipo)) return;
+        var now = DateTime.UtcNow;
+        // próxima segunda-feira 00:00 UTC
+        int diasParaSegunda = ((int)DayOfWeek.Monday - (int)now.DayOfWeek + 7) % 7;
+        if (diasParaSegunda == 0) diasParaSegunda = 7;
+        var next = now.Date.AddDays(diasParaSegunda);
+        return next - now;
+    }
 
-        foreach (DailyMission missao in missoesHoje)
-        {
-            if (missao.concluida || missao.tipo != tipo) continue;
+    // ── Núcleo de progresso ──────────────────────────────────────────────────────
 
-            missao.progresso = Mathf.Min(missao.progresso + quantidade, missao.meta);
-
-            if (missao.ProgessoCompleto && !missao.concluida)
+    void Progress(MissionType tipo, int delta)
+    {
+        bool mudou = false;
+        foreach (var lista in new[] { diarias, semanais })
+            foreach (var m in lista)
             {
-                missao.concluida = true;
-                Debug.Log($"[DailyMissionSystem] Missão concluída: {missao.descricao}");
-                OnMissionCompleted?.Invoke(missao);
+                if (m.recompensaResgatada || m.tipo != tipo) continue;
+                int antes = m.progresso;
+                m.progresso = Mathf.Min(m.progresso + delta, m.meta);
+                if (m.progresso != antes) mudou = true;
+                MarcarConclusao(m);
             }
-        }
-        SalvarProgresso();
+        if (mudou) { Salvar(); OnMissionsChanged?.Invoke(); }
     }
 
-    // Reivindica recompensa da missão pelo índice (0-2)
-    public bool ClaimMissionReward(int indice)
+    void ProgressMax(MissionType tipo, int valor)
     {
-        if (indice < 0 || indice >= missoesHoje.Count) return false;
+        bool mudou = false;
+        foreach (var lista in new[] { diarias, semanais })
+            foreach (var m in lista)
+            {
+                if (m.recompensaResgatada || m.tipo != tipo) continue;
+                int novo = Mathf.Min(Mathf.Max(m.progresso, valor), m.meta);
+                if (novo != m.progresso) { m.progresso = novo; mudou = true; }
+                MarcarConclusao(m);
+            }
+        if (mudou) { Salvar(); OnMissionsChanged?.Invoke(); }
+    }
 
-        DailyMission missao = missoesHoje[indice];
-        if (!missao.concluida || missao.recompensaResgatada) return false;
+    void MarcarConclusao(DailyMission m)
+    {
+        if (m.ProgessoCompleto && !m.concluida)
+        {
+            m.concluida = true;
+            Debug.Log($"[Missoes] Concluída: {m.descricao}");
+            OnMissionCompleted?.Invoke(m);
+        }
+    }
 
-        missao.recompensaResgatada = true;
-        DiamondSystem.Instance?.AddDiamonds(missao.recompensaDiamantes);
-        SalvarProgresso();
+    bool Claim(List<DailyMission> lista, int i)
+    {
+        if (i < 0 || i >= lista.Count) return false;
+        var m = lista[i];
+        if (!m.concluida || m.recompensaResgatada) return false;
 
-        Debug.Log($"[DailyMissionSystem] Recompensa resgatada: +{missao.recompensaDiamantes} diamantes");
+        m.recompensaResgatada = true;
+        DiamondSystem.Instance?.AddDiamonds(m.recompensaDiamantes);
+        Salvar();
+        OnMissionsChanged?.Invoke();
+        Debug.Log($"[Missoes] Recompensa resgatada: +{m.recompensaDiamantes} 💎 ({m.descricao})");
         return true;
     }
 
-    // ── Persistência ────────────────────────────────────────────────────────────
+    // ── Persistência / reset ────────────────────────────────────────────────────
 
-    void CarregarOuGerarMissoes()
+    void CarregarOuGerar()
     {
-        string hoje        = System.DateTime.UtcNow.ToString("yyyy-MM-dd");
-        string datasSalvas = PlayerPrefs.GetString(PREF_DATA_MISSOES, "");
-
-        if (datasSalvas == hoje)
-        {
-            CarregarProgresso();
-        }
+        string hoje = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        if (PlayerPrefs.GetString(PREF_DATA_DIARIAS, "") == hoje)
+            diarias = CarregarLista(PREF_DIARIAS_JSON);
         else
-        {
-            GerarMissoesDodia(hoje);
-        }
+            diarias = GerarMissoes(poolDiarias, 3, hoje, PREF_DATA_DIARIAS, PREF_DIARIAS_JSON, "diária");
+
+        string semana = ChaveSemana(DateTime.UtcNow);
+        if (PlayerPrefs.GetString(PREF_ID_SEMANAIS, "") == semana)
+            semanais = CarregarLista(PREF_SEMANAIS_JSON);
+        else
+            semanais = GerarMissoes(poolSemanais, 3, semana, PREF_ID_SEMANAIS, PREF_SEMANAIS_JSON, "semanal");
+
+        OnMissionsChanged?.Invoke();
     }
 
-    void GerarMissoesDodia(string hoje)
+    static string ChaveSemana(DateTime dt)
     {
-        // Usa data como semente para gerar as mesmas missões em dispositivos diferentes
-        int semente = hoje.GetHashCode();
-        Random.State estadoOriginal = Random.state;
-        Random.InitState(semente);
+        var cal  = System.Globalization.CultureInfo.InvariantCulture.Calendar;
+        int week = cal.GetWeekOfYear(dt, System.Globalization.CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
+        return $"{dt:yyyy}-W{week:00}";
+    }
 
-        List<int> indices = new();
-        while (indices.Count < 3)
+    List<DailyMission> GerarMissoes(
+        (MissionType tipo, string desc, int meta, int recompensa)[] pool,
+        int quantidade, string chave, string prefChave, string prefJson, string rotulo)
+    {
+        int semente = chave.GetHashCode();
+        UnityEngine.Random.State estado = UnityEngine.Random.state;
+        UnityEngine.Random.InitState(semente);
+
+        var indices = new List<int>();
+        int limite = Mathf.Min(quantidade, pool.Length);
+        while (indices.Count < limite)
         {
-            int idx = Random.Range(0, poolMissoes.Length);
+            int idx = UnityEngine.Random.Range(0, pool.Length);
             if (!indices.Contains(idx)) indices.Add(idx);
         }
+        UnityEngine.Random.state = estado;
 
-        Random.state = estadoOriginal;
-
-        missoesHoje.Clear();
+        var nova = new List<DailyMission>();
         foreach (int idx in indices)
         {
-            var (tipo, desc, meta, recompensa) = poolMissoes[idx];
-            missoesHoje.Add(new DailyMission
+            var (tipo, desc, meta, recompensa) = pool[idx];
+            nova.Add(new DailyMission
             {
-                id                  = $"{hoje}_{tipo}_{meta}",
+                id                  = $"{chave}_{tipo}_{meta}",
                 tipo                = tipo,
                 descricao           = string.Format(desc, meta),
                 meta                = meta,
@@ -177,26 +259,31 @@ public class DailyMissionSystem : MonoBehaviour
             });
         }
 
-        PlayerPrefs.SetString(PREF_DATA_MISSOES, hoje);
-        SalvarProgresso();
-        Debug.Log($"[DailyMissionSystem] 3 novas missões geradas para {hoje}.");
+        PlayerPrefs.SetString(prefChave, chave);
+        SalvarLista(prefJson, nova);
+        Debug.Log($"[Missoes] {nova.Count} missões {rotulo}(s) geradas para {chave}.");
+        return nova;
     }
 
-    void SalvarProgresso()
+    void Salvar()
     {
-        // Serializa a lista manualmente porque JsonUtility não serializa List<T> diretamente
-        MissaoListWrapper wrapper = new() { missoes = missoesHoje };
-        PlayerPrefs.SetString(PREF_MISSOES_JSON, JsonUtility.ToJson(wrapper));
+        SalvarLista(PREF_DIARIAS_JSON,  diarias);
+        SalvarLista(PREF_SEMANAIS_JSON, semanais);
+    }
+
+    static void SalvarLista(string chave, List<DailyMission> lista)
+    {
+        var wrapper = new MissaoListWrapper { missoes = lista };
+        PlayerPrefs.SetString(chave, JsonUtility.ToJson(wrapper));
         PlayerPrefs.Save();
     }
 
-    void CarregarProgresso()
+    static List<DailyMission> CarregarLista(string chave)
     {
-        string json = PlayerPrefs.GetString(PREF_MISSOES_JSON, "");
-        if (string.IsNullOrEmpty(json)) return;
-
-        MissaoListWrapper wrapper = JsonUtility.FromJson<MissaoListWrapper>(json);
-        if (wrapper?.missoes != null) missoesHoje = wrapper.missoes;
+        string json = PlayerPrefs.GetString(chave, "");
+        if (string.IsNullOrEmpty(json)) return new List<DailyMission>();
+        var wrapper = JsonUtility.FromJson<MissaoListWrapper>(json);
+        return wrapper?.missoes ?? new List<DailyMission>();
     }
 
     [System.Serializable]

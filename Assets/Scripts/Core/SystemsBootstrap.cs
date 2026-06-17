@@ -31,6 +31,8 @@ public static class SystemsBootstrap
         ("[S] AdSystem",            typeof(AdSystem)),
         ("[S] AuthSystem",          typeof(AuthSystem)),
         ("[S] LocalizationManager", typeof(LocalizationManager)),
+        ("[S] DailyMissionSystem",  typeof(DailyMissionSystem)),
+        ("[S] LegadoStatsSystem",   typeof(LegadoStatsSystem)),
     };
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

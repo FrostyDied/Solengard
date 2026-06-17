@@ -41,6 +41,7 @@ public class MainMenuManager : MonoBehaviour
     public GameObject painelMissoes;
     public GameObject painelRanking;
     public GameObject painelConfiguracoes;
+    public GameObject painelLegado;
 
     [Header("Painéis laterais")]
     [SerializeField] GameObject painelOfertas;
@@ -99,11 +100,12 @@ public class MainMenuManager : MonoBehaviour
     public void AbrirMissoes()       => AbrirPainel(painelMissoes);
     public void AbrirRanking()       => AbrirPainel(painelRanking);
     public void AbrirConfiguracoes() => AbrirPainel(painelConfiguracoes);
+    public void AbrirLegado()        => AbrirPainel(painelLegado);
     public void ColetarRecompensa()  => ColetarRecompensaDiaria();
 
     void AbrirPainel(GameObject painel)
     {
-        foreach (GameObject p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking, painelConfiguracoes, painelOfertas, painelBencaos, painelBaus })
+        foreach (GameObject p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking, painelConfiguracoes, painelLegado, painelOfertas, painelBencaos, painelBaus })
             p?.SetActive(false);
         painel?.SetActive(true);
     }
@@ -111,7 +113,7 @@ public class MainMenuManager : MonoBehaviour
     public void FecharTodos()
     {
         foreach (var p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking,
-                                   painelConfiguracoes, painelOfertas, painelBencaos, painelBaus })
+                                   painelConfiguracoes, painelLegado, painelOfertas, painelBencaos, painelBaus })
             if (p != null) p.SetActive(false);
     }
 
