@@ -189,7 +189,8 @@ namespace Solengard.UI
             bool max  = nivel >= data.maxLevel;
 
             if (_detNome != null) _detNome.text = data.nome;
-            if (_detDesc != null) _detDesc.text = $"{data.descricao}\n<color=#B0A0D0>Nível {nivel}/{data.maxLevel}  ·  {ResumoMaximo(data)}</color>";
+            // O maximo agora vive na propria descricao (texto dark fantasy) -> aqui so o nivel atual.
+            if (_detDesc != null) _detDesc.text = $"{data.descricao}\n<color=#B0A0D0>Nível {nivel}/{data.maxLevel}</color>";
 
             int custo = PermanentUpgradeSystem.GetCusto(_selecionado, nivel);
             int saldo = DiamondSystem.Instance?.GetBalance() ?? 0;
@@ -206,21 +207,6 @@ namespace Solengard.UI
                 if (img != null) img.color = pode ? BTN_OK : BTN_OFF;
                 if (_btnComprarLabel != null)
                     _btnComprarLabel.text = max ? "MÁXIMO" : "COMPRAR";
-            }
-        }
-
-        // Resumo do teto do upgrade (ex.: "máx. +40%"). Tipos especiais tratados a parte.
-        static string ResumoMaximo(PermanentUpgradeData d)
-        {
-            float total = d.incrementoPerLevel * d.maxLevel;
-            switch (d.id)
-            {
-                case PermanentUpgradeId.Armadura:     return $"máx. -{total:0} de dano";
-                case PermanentUpgradeId.Quantidade:   return $"máx. +{d.maxLevel} projéteis";
-                case PermanentUpgradeId.Ressurreicao: return "revive 1× por run";
-                case PermanentUpgradeId.Recuperacao:  return $"máx. +{total:0.0} HP/s";
-                case PermanentUpgradeId.PoderEspecial:return $"máx. -{total:0}s recarga";
-                default:                              return $"máx. +{total * 100f:0}%";
             }
         }
 
