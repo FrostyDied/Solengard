@@ -12,18 +12,27 @@ public class MissoesUIBinder : MonoBehaviour
     Transform _weeklyContainer;
     TextMeshProUGUI _resetDiarias;
     TextMeshProUGUI _resetSemanais;
+    TextMeshProUGUI _saldo; // header (igual Loja)
     bool _bound;
 
     void OnEnable()
     {
         if (!_bound) Bind();
         DailyMissionSystem.OnMissionsChanged += Refresh;
+        DiamondSystem.OnDiamondsChanged      += AtualizarSaldo;
         Refresh();
+        AtualizarSaldo(DiamondSystem.Instance?.GetBalance() ?? 0);
     }
 
     void OnDisable()
     {
         DailyMissionSystem.OnMissionsChanged -= Refresh;
+        DiamondSystem.OnDiamondsChanged      -= AtualizarSaldo;
+    }
+
+    void AtualizarSaldo(int saldo)
+    {
+        if (_saldo != null) _saldo.text = saldo.ToString("N0");
     }
 
     void Update()
@@ -40,6 +49,7 @@ public class MissoesUIBinder : MonoBehaviour
         _weeklyContainer = FindDeep("WeeklyContainer");
         _resetDiarias    = FindDeep("ResetDiarias")?.GetComponent<TextMeshProUGUI>();
         _resetSemanais   = FindDeep("ResetSemanais")?.GetComponent<TextMeshProUGUI>();
+        _saldo           = FindDeep("TextoSaldo")?.GetComponent<TextMeshProUGUI>();
         _bound = true;
         if (_dailyContainer == null || _weeklyContainer == null)
             Debug.LogWarning("[MissoesBinder] Containers não encontrados — rode o editor builder de Missões/Legado.");

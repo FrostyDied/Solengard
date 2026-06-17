@@ -46,7 +46,7 @@ public static class SolengardMissoesLegadoSetup
         AplicarFundoBlur(painel);
         painel.SetActive(false);
 
-        Titulo(painel.transform, "MISSÕES");
+        HeaderEstiloLoja(painel.transform, "MISSÕES");
 
         // Seção Diárias
         SecaoHeader(painel.transform, "HeaderDiarias", "DIÁRIAS", "ResetDiarias",
@@ -58,7 +58,7 @@ public static class SolengardMissoesLegadoSetup
         SecaoHeader(painel.transform, "HeaderSemanais", "SEMANAIS", "ResetSemanais",
             new Vector2(0.05f, 0.34f), new Vector2(0.95f, 0.40f));
         Container(painel.transform, "WeeklyContainer",
-            new Vector2(0.05f, 0.06f), new Vector2(0.95f, 0.33f));
+            new Vector2(0.05f, 0.12f), new Vector2(0.95f, 0.33f)); // bottom 0.12: clearance da barra de nav
 
         CriarBotaoFechar(painel.transform);
 
@@ -97,7 +97,7 @@ public static class SolengardMissoesLegadoSetup
         AplicarFundoBlur(painel);
         painel.SetActive(false);
 
-        Titulo(painel.transform, "LEGADO");
+        HeaderEstiloLoja(painel.transform, "LEGADO");
 
         // Recordes
         var rec = Card(painel.transform, "CardRecordes", "RECORDES",
@@ -213,13 +213,51 @@ public static class SolengardMissoesLegadoSetup
         return null;
     }
 
-    static void Titulo(Transform painel, string texto)
+    // Header espelhando o HeaderLoja: barra topo #1A0A2E, titulo esquerda branco f42 bold,
+    // diamante + saldo a direita (saldo dinamico via binder). Remove o Titulo centralizado antigo.
+    static void HeaderEstiloLoja(Transform painel, string titulo)
     {
-        var t = AddTextChild(FindOrCreate(painel, "Titulo"), "TituloLabel", texto, 44f, OURO, TextAlignmentOptions.Center);
-        var go = t.transform.parent.gameObject;
-        var rt = RT(go); rt.anchorMin = new Vector2(0.1f, 0.88f); rt.anchorMax = new Vector2(0.9f, 0.97f);
-        rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
-        StretchPad(RT(t.gameObject), 0f);
+        var velho = painel.Find("Titulo");
+        if (velho != null) Object.DestroyImmediate(velho.gameObject);
+
+        var h = FindOrCreate(painel, "Header");
+        var hrt = RT(h);
+        hrt.anchorMin = new Vector2(0f, 1f); hrt.anchorMax = new Vector2(1f, 1f); hrt.pivot = new Vector2(0.5f, 1f);
+        hrt.anchoredPosition = new Vector2(0f, -50f); hrt.sizeDelta = new Vector2(0f, 100f);
+        EnsureImage(h, new Color(0.102f, 0.039f, 0.180f, 1f)); // #1A0A2E (igual HeaderLoja)
+
+        var t = AddTextChild(h, "Titulo", titulo, 42f, Color.white, TextAlignmentOptions.Left);
+        t.fontStyle = FontStyles.Bold;
+        var trt = RT(t.gameObject);
+        trt.anchorMin = new Vector2(0f, 0f); trt.anchorMax = new Vector2(0.65f, 1f); trt.pivot = new Vector2(0f, 0.5f);
+        trt.anchoredPosition = new Vector2(20f, 0f); trt.sizeDelta = Vector2.zero;
+
+        var ico = FindOrCreate(h.transform, "IcoDiamanteHeader");
+        var irt = RT(ico);
+        irt.anchorMin = new Vector2(0.65f, 0f); irt.anchorMax = new Vector2(0.65f, 1f); irt.pivot = new Vector2(0f, 0.5f);
+        irt.anchoredPosition = new Vector2(8f, 0f); irt.sizeDelta = new Vector2(36f, 36f);
+        var icoImg = ico.GetComponent<Image>() ?? ico.AddComponent<Image>();
+        var gem = CarregarIconeDiamante();
+        if (gem != null) { icoImg.sprite = gem; icoImg.color = Color.white; icoImg.preserveAspect = true; }
+        icoImg.raycastTarget = false;
+
+        var saldo = AddTextChild(h, "TextoSaldo", "0", 32f, new Color(1f, 0.843f, 0f), TextAlignmentOptions.Left); // #FFD700
+        var srt = RT(saldo.gameObject);
+        srt.anchorMin = new Vector2(0.65f, 0f); srt.anchorMax = new Vector2(0.88f, 1f); srt.pivot = new Vector2(0f, 0.5f);
+        srt.anchoredPosition = new Vector2(50f, 0f); srt.sizeDelta = Vector2.zero;
+    }
+
+    static Sprite CarregarIconeDiamante()
+    {
+        const string p = "Assets/Art/UI/Icons/icon_diamante.png";
+        var imp = AssetImporter.GetAtPath(p) as TextureImporter;
+        if (imp != null && (imp.textureType != TextureImporterType.Sprite || imp.spriteImportMode != SpriteImportMode.Single))
+        {
+            imp.textureType = TextureImporterType.Sprite;
+            imp.spriteImportMode = SpriteImportMode.Single;
+            imp.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Sprite>(p);
     }
 
     // Botao X padronizado: delega ao MESMO criador canonico usado por Loja/Config

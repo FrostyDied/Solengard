@@ -49,8 +49,8 @@ public static class SolengardUpgradesGridSetup
 
         // 2) GridContainer (top) + GridLayoutGroup 4 colunas.
         var grid = FindOrCreate(aba, "GridContainer");
-        // Grid maior: ocupa ~88% da largura e mais area vertical (DetailPanel virou barra fina).
-        Anchor(grid, 0.04f, 0.20f, 0.96f, 0.99f);
+        // Grid maior (~88% largura) subido p/ abrir espaco pra barra de nav persistente na base.
+        Anchor(grid, 0.04f, 0.33f, 0.96f, 0.99f);
         var glg = grid.GetComponent<GridLayoutGroup>() ?? grid.AddComponent<GridLayoutGroup>();
         // 4 col centralizadas, 4 linhas (16 upgrades). Internos do card escalam com o cellSize.
         glg.cellSize        = new Vector2(220f, 248f);
@@ -67,8 +67,8 @@ public static class SolengardUpgradesGridSetup
         // 3) DetailPanel: BARRA FINA na base (~15% da altura). Conteudo horizontal:
         //    esquerda = Nome + Descricao; direita = Custo + botao COMPRAR.
         var det = FindOrCreate(aba, "DetailPanel");
-        // Barra inteira subida (descola da borda inferior; botao COMPRAR nao corta).
-        Anchor(det, 0.02f, 0.05f, 0.98f, 0.20f);
+        // Barra subida acima da barra de nav persistente (bottom 0.16) — COMPRAR nao corta nem fica atras.
+        Anchor(det, 0.02f, 0.16f, 0.98f, 0.31f);
         EnsureImage(det, BG_DETAIL, true);
 
         // Nome: esquerda-topo da barra.

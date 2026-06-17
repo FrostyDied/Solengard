@@ -596,7 +596,7 @@ public static class SolengardLayoutSetup
 
             // Feedback
             var (fbGO,fbn)=FindOrCreateUI(lojaTr,"TextoFeedback");
-            if(fbn){ SetRect(RT(fbGO),new(0,0),new(1,0),new(.5f,0),new(0,30),new(0,55));
+            if(fbn){ SetRect(RT(fbGO),new(0,0),new(1,0),new(.5f,0),new(0,170),new(0,55)); // y170: acima da barra de nav
             var ftmp=EnsureTMP(fbGO,"",28f,Hex("#FFD700")); ftmp.alignment=TextAlignmentOptions.Center;
             fbGO.SetActive(false); total++; }
             TryWire(lojaSO,"textoFeedback",fbGO.GetComponent<TextMeshProUGUI>(),log);

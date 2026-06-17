@@ -43,6 +43,16 @@ public class MainMenuManager : MonoBehaviour
     public GameObject painelConfiguracoes;
     public GameObject painelLegado;
 
+    [Header("Barra de navegação persistente (BottomTabs)")]
+    [SerializeField] Image tabLojaImg;
+    [SerializeField] Image tabMissoesImg;
+    [SerializeField] Image tabUpgradesImg;
+    [SerializeField] Image tabLegadoImg;
+
+    public enum NavSection { Nenhuma, Loja, Missoes, Upgrades, Legado }
+    static readonly Color NAV_ATIVO  = new Color(0.35f, 0.05f, 0.60f); // #5A1090 destaque (tabActive)
+    static readonly Color NAV_NORMAL = new Color(0.08f, 0.05f, 0.15f); // base (tabNormal)
+
     [Header("Painéis laterais")]
     [SerializeField] GameObject painelOfertas;
     [SerializeField] GameObject painelBencaos;
@@ -95,12 +105,12 @@ public class MainMenuManager : MonoBehaviour
 
     // Wrappers públicos para o MenuButtonAction chamar (Passo 3) — delegam à lógica
     // existente; ConfigurarBotoes() permanece inalterado.
-    public void AbrirLoja()          => AbrirPainel(painelLoja);
-    public void AbrirUpgrades()      { AbrirPainel(painelLoja); LojaController.Instance?.AbrirAbaUpgradesDireto(); }
-    public void AbrirMissoes()       => AbrirPainel(painelMissoes);
+    public void AbrirLoja()          { AbrirPainel(painelLoja); HighlightNav(NavSection.Loja); }
+    public void AbrirUpgrades()      { AbrirPainel(painelLoja); LojaController.Instance?.AbrirAbaUpgradesDireto(); HighlightNav(NavSection.Upgrades); }
+    public void AbrirMissoes()       { AbrirPainel(painelMissoes); HighlightNav(NavSection.Missoes); }
     public void AbrirRanking()       => AbrirPainel(painelRanking);
     public void AbrirConfiguracoes() => AbrirPainel(painelConfiguracoes);
-    public void AbrirLegado()        => AbrirPainel(painelLegado);
+    public void AbrirLegado()        { AbrirPainel(painelLegado); HighlightNav(NavSection.Legado); }
     public void ColetarRecompensa()  => ColetarRecompensaDiaria();
 
     void AbrirPainel(GameObject painel)
@@ -115,6 +125,16 @@ public class MainMenuManager : MonoBehaviour
         foreach (var p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking,
                                    painelConfiguracoes, painelLegado, painelOfertas, painelBencaos, painelBaus })
             if (p != null) p.SetActive(false);
+        HighlightNav(NavSection.Nenhuma);
+    }
+
+    // Destaca a aba da seção ativa na barra inferior persistente (refs ligadas pelo editor).
+    void HighlightNav(NavSection s)
+    {
+        if (tabLojaImg     != null) tabLojaImg.color     = s == NavSection.Loja     ? NAV_ATIVO : NAV_NORMAL;
+        if (tabMissoesImg  != null) tabMissoesImg.color  = s == NavSection.Missoes  ? NAV_ATIVO : NAV_NORMAL;
+        if (tabUpgradesImg != null) tabUpgradesImg.color = s == NavSection.Upgrades ? NAV_ATIVO : NAV_NORMAL;
+        if (tabLegadoImg   != null) tabLegadoImg.color   = s == NavSection.Legado   ? NAV_ATIVO : NAV_NORMAL;
     }
 
     // ── UI ───────────────────────────────────────────────────────────────────────
@@ -123,12 +143,9 @@ public class MainMenuManager : MonoBehaviour
     {
         botaoJogar?.onClick.AddListener(LoadGameScene);
         botaoTabJogar?.onClick.AddListener(LoadGameScene);
-        botaoLoja?.onClick.AddListener(() => AbrirPainel(painelLoja));
-        botaoPasse?.onClick.AddListener(() => {
-            AbrirPainel(painelLoja);
-            LojaController.Instance?.AbrirAbaUpgradesDireto();
-        });
-        botaoMissoes?.onClick.AddListener(() => AbrirPainel(painelMissoes));
+        botaoLoja?.onClick.AddListener(AbrirLoja);
+        botaoPasse?.onClick.AddListener(AbrirUpgrades);
+        botaoMissoes?.onClick.AddListener(AbrirMissoes);
         botaoRanking?.onClick.AddListener(() => AbrirPainel(painelRanking));
         botaoConfiguracoes?.onClick.AddListener(() => AbrirPainel(painelConfiguracoes));
         botaoOfertas?.onClick.AddListener(AbrirOfertas);

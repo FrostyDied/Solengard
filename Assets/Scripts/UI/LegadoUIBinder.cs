@@ -6,7 +6,17 @@ using TMPro;
 // pelo editor builder) e preenche os valores no OnEnable.
 public class LegadoUIBinder : MonoBehaviour
 {
-    void OnEnable() => Refresh();
+    void OnEnable()
+    {
+        DiamondSystem.OnDiamondsChanged += AtualizarSaldo;
+        Refresh();
+        AtualizarSaldo(DiamondSystem.Instance?.GetBalance() ?? 0);
+    }
+
+    void OnDisable() => DiamondSystem.OnDiamondsChanged -= AtualizarSaldo;
+
+    // Saldo de diamantes no header (igual Loja).
+    void AtualizarSaldo(int saldo) => Set("TextoSaldo", saldo.ToString("N0"));
 
     void Refresh()
     {
