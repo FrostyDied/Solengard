@@ -215,7 +215,8 @@ public static class SolengardMissoesLegadoSetup
 
     // Header espelhando o HeaderLoja: barra topo #1A0A2E, titulo esquerda branco f42 bold,
     // diamante + saldo a direita (saldo dinamico via binder). Remove o Titulo centralizado antigo.
-    static void HeaderEstiloLoja(Transform painel, string titulo)
+    // internal: reutilizado pelo builder do Grimorio (mesmo header).
+    internal static void HeaderEstiloLoja(Transform painel, string titulo)
     {
         var velho = painel.Find("Titulo");
         if (velho != null) Object.DestroyImmediate(velho.gameObject);

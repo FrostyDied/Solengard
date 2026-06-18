@@ -43,6 +43,11 @@ public class MainMenuManager : MonoBehaviour
     public GameObject painelConfiguracoes;
     public GameObject painelLegado;
 
+    [Header("Experimento Grimório (alternativo ao grid de Upgrades)")]
+    public GameObject painelGrimorio;
+    [Tooltip("ON = aba UPGRADES abre o Grimório; OFF = abre o grid atual.")]
+    public bool usarGrimorioUpgrades = false;
+
     [Header("Barra de navegação persistente (BottomTabs)")]
     [SerializeField] Image tabLojaImg;
     [SerializeField] Image tabMissoesImg;
@@ -106,7 +111,18 @@ public class MainMenuManager : MonoBehaviour
     // Wrappers públicos para o MenuButtonAction chamar (Passo 3) — delegam à lógica
     // existente; ConfigurarBotoes() permanece inalterado.
     public void AbrirLoja()          { AbrirPainel(painelLoja); HighlightNav(NavSection.Loja); }
-    public void AbrirUpgrades()      { AbrirPainel(painelLoja); LojaController.Instance?.AbrirAbaUpgradesDireto(); HighlightNav(NavSection.Upgrades); }
+    public void AbrirUpgrades()
+    {
+        // Experimento A/B: bool decide grimorio vs grid (grid = comportamento original).
+        if (usarGrimorioUpgrades && painelGrimorio != null)
+            AbrirPainel(painelGrimorio);
+        else
+        {
+            AbrirPainel(painelLoja);
+            LojaController.Instance?.AbrirAbaUpgradesDireto();
+        }
+        HighlightNav(NavSection.Upgrades);
+    }
     public void AbrirMissoes()       { AbrirPainel(painelMissoes); HighlightNav(NavSection.Missoes); }
     public void AbrirRanking()       => AbrirPainel(painelRanking);
     public void AbrirConfiguracoes() => AbrirPainel(painelConfiguracoes);
@@ -115,7 +131,7 @@ public class MainMenuManager : MonoBehaviour
 
     void AbrirPainel(GameObject painel)
     {
-        foreach (GameObject p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking, painelConfiguracoes, painelLegado, painelOfertas, painelBencaos, painelBaus })
+        foreach (GameObject p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking, painelConfiguracoes, painelLegado, painelGrimorio, painelOfertas, painelBencaos, painelBaus })
             p?.SetActive(false);
         painel?.SetActive(true);
     }
@@ -123,7 +139,7 @@ public class MainMenuManager : MonoBehaviour
     public void FecharTodos()
     {
         foreach (var p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking,
-                                   painelConfiguracoes, painelLegado, painelOfertas, painelBencaos, painelBaus })
+                                   painelConfiguracoes, painelLegado, painelGrimorio, painelOfertas, painelBencaos, painelBaus })
             if (p != null) p.SetActive(false);
         HighlightNav(NavSection.Nenhuma);
     }
