@@ -48,6 +48,9 @@ public class MainMenuManager : MonoBehaviour
     [Tooltip("ON = aba UPGRADES abre o Grimório; OFF = abre o grid atual.")]
     public bool usarGrimorioUpgrades = false;
 
+    [Header("Detalhe de personagem (overlay sobre a Loja)")]
+    public GameObject painelDetalhe;
+
     [Header("Barra de navegação persistente (BottomTabs)")]
     [SerializeField] Image tabLojaImg;
     [SerializeField] Image tabMissoesImg;
@@ -129,9 +132,23 @@ public class MainMenuManager : MonoBehaviour
     public void AbrirLegado()        { AbrirPainel(painelLegado); HighlightNav(NavSection.Legado); }
     public void ColetarRecompensa()  => ColetarRecompensaDiaria();
 
+    // Overlay sobre a Loja: NAO usa AbrirPainel (exclusivo). Ativa por cima e a Loja
+    // permanece ativa atras; o X do detalhe (DetalhePersonagemUI.Fechar) so desativa o
+    // detalhe -> volta pra Loja.
+    public void AbrirDetalhePersonagem(string classId)
+    {
+        if (painelDetalhe == null) return;
+        painelDetalhe.transform.SetAsLastSibling();            // acima da Loja (overlay)
+        painelDetalhe.SetActive(true);
+        // BottomTabs persistente DEVE ficar por cima do detalhe (tappavel p/ navegar).
+        var bottom = transform.Find("BottomTabs");
+        if (bottom != null) bottom.SetAsLastSibling();
+        painelDetalhe.GetComponent<DetalhePersonagemUI>()?.Mostrar(classId);
+    }
+
     void AbrirPainel(GameObject painel)
     {
-        foreach (GameObject p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking, painelConfiguracoes, painelLegado, painelGrimorio, painelOfertas, painelBencaos, painelBaus })
+        foreach (GameObject p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking, painelConfiguracoes, painelLegado, painelGrimorio, painelOfertas, painelBencaos, painelBaus, painelDetalhe })
             p?.SetActive(false);
         painel?.SetActive(true);
     }
@@ -139,7 +156,7 @@ public class MainMenuManager : MonoBehaviour
     public void FecharTodos()
     {
         foreach (var p in new[] { painelLoja, painelPasse, painelMissoes, painelRanking,
-                                   painelConfiguracoes, painelLegado, painelGrimorio, painelOfertas, painelBencaos, painelBaus })
+                                   painelConfiguracoes, painelLegado, painelGrimorio, painelOfertas, painelBencaos, painelBaus, painelDetalhe })
             if (p != null) p.SetActive(false);
         HighlightNav(NavSection.Nenhuma);
     }

@@ -1,0 +1,1599 @@
+fileFormatVersion: 2
+guid: 3fadd2f68382a544eae427c906d82507
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5147039334994746313
+    second: btn_compra_0
+  - first:
+      213: -7750355451267424813
+    second: btn_compra_1
+  - first:
+      213: -8334969994829267693
+    second: btn_compra_2
+  - first:
+      213: 2396014563995873497
+    second: btn_compra_3
+  - first:
+      213: 2352080179387112919
+    second: btn_compra_4
+  - first:
+      213: -8880982280869283554
+    second: btn_compra_5
+  - first:
+      213: 6072091680736929417
+    second: btn_compra_6
+  - first:
+      213: 6207640807758713807
+    second: btn_compra_7
+  - first:
+      213: 4194010857771379227
+    second: btn_compra_8
+  - first:
+      213: -3237202406701389319
+    second: btn_compra_9
+  - first:
+      213: 8151334340877692267
+    second: btn_compra_10
+  - first:
+      213: -7823805126860036385
+    second: btn_compra_11
+  - first:
+      213: 8382554989153233986
+    second: btn_compra_12
+  - first:
+      213: -3993103678886809326
+    second: btn_compra_13
+  - first:
+      213: -6594908565758940813
+    second: btn_compra_14
+  - first:
+      213: -105765987764173940
+    second: btn_compra_15
+  - first:
+      213: 8697456499931939199
+    second: btn_compra_16
+  - first:
+      213: 8711448212614724260
+    second: btn_compra_17
+  - first:
+      213: -1307873122762984022
+    second: btn_compra_18
+  - first:
+      213: -7775644828162623153
+    second: btn_compra_19
+  - first:
+      213: 9068256108245215091
+    second: btn_compra_20
+  - first:
+      213: 7851925436505017457
+    second: btn_compra_21
+  - first:
+      213: 6525724474573356610
+    second: btn_compra_22
+  - first:
+      213: -4944800767613246869
+    second: btn_compra_23
+  - first:
+      213: 5243861872929607826
+    second: btn_compra_24
+  - first:
+      213: 1777808851127947410
+    second: btn_compra_25
+  - first:
+      213: 4186745986347988843
+    second: btn_compra_26
+  - first:
+      213: -7445275389612605647
+    second: btn_compra_27
+  - first:
+      213: 4982372534360628470
+    second: btn_compra_28
+  - first:
+      213: -3644141931409184021
+    second: btn_compra_29
+  - first:
+      213: 399319780528212642
+    second: btn_compra_30
+  - first:
+      213: 8401022403323082135
+    second: btn_compra_31
+  - first:
+      213: 1977169762878690819
+    second: btn_compra_32
+  - first:
+      213: 4236638981407447177
+    second: btn_compra_33
+  - first:
+      213: -7998637894860005042
+    second: btn_compra_34
+  - first:
+      213: 5758495745147387347
+    second: btn_compra_35
+  - first:
+      213: -2366524134764937197
+    second: btn_compra_36
+  - first:
+      213: -3259362416294201783
+    second: btn_compra_37
+  - first:
+      213: 7057436187198553564
+    second: btn_compra_38
+  - first:
+      213: -7618353059291494876
+    second: btn_compra_39
+  - first:
+      213: 711697303945858749
+    second: btn_compra_40
+  - first:
+      213: 4389532068965493420
+    second: btn_compra_41
+  - first:
+      213: -5755530414996547149
+    second: btn_compra_42
+  - first:
+      213: 5299270626713006837
+    second: btn_compra_43
+  - first:
+      213: -4019509734827695666
+    second: btn_compra_44
+  - first:
+      213: 7390028686484858142
+    second: btn_compra_45
+  - first:
+      213: 9192611242978342077
+    second: btn_compra_46
+  - first:
+      213: 9045549622744334854
+    second: btn_compra_47
+  - first:
+      213: -6164954540987089744
+    second: btn_compra_48
+  - first:
+      213: 8305518311417975485
+    second: btn_compra_49
+  - first:
+      213: -3720034993640318500
+    second: btn_compra_50
+  - first:
+      213: 2593166346153305190
+    second: btn_compra_51
+  - first:
+      213: -813759990446534297
+    second: btn_compra_52
+  - first:
+      213: 6872270792709988674
+    second: btn_compra_53
+  - first:
+      213: 5331078757326822251
+    second: btn_compra_54
+  - first:
+      213: 8322547748599416038
+    second: btn_compra_55
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: btn_compra_0
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 0
+        width: 78
+        height: 1024
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cb13574105fd6740800000000000000
+      internalID: 5147039334994746313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_1
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 406
+        width: 22
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3dd513cb7c4317490800000000000000
+      internalID: -7750355451267424813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_2
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 814
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 31d79a443fc345c80800000000000000
+      internalID: -8334969994829267693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_3
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 807
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d0f2a32d8a504120800000000000000
+      internalID: 2396014563995873497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_4
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 557
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7dd1b97167444a020800000000000000
+      internalID: 2352080179387112919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_5
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 532
+        width: 10
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e197f344ba960c480800000000000000
+      internalID: -8880982280869283554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_6
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 526
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 986ede95637644450800000000000000
+      internalID: 6072091680736929417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_7
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 492
+        width: 10
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc35da7dc68f52650800000000000000
+      internalID: 6207640807758713807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_8
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 476
+        width: 10
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1a289187ae143a30800000000000000
+      internalID: 4194010857771379227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_9
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 469
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f9268200952313d0800000000000000
+      internalID: -3237202406701389319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_10
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 461
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6d2579356b5f1170800000000000000
+      internalID: 8151334340877692267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_11
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 447
+        width: 10
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd6a0ad70b24c6390800000000000000
+      internalID: -7823805126860036385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_12
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 437
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24c28a69951d45470800000000000000
+      internalID: 8382554989153233986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_13
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 271
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21175a44c55a598c0800000000000000
+      internalID: -3993103678886809326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_14
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 229
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 379e1cbc99d2a74a0800000000000000
+      internalID: -6594908565758940813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_15
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 86
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c838ffdf46e388ef0800000000000000
+      internalID: -105765987764173940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_16
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 944
+        width: 8
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f710bd70b9293b870800000000000000
+      internalID: 8697456499931939199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_17
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 725
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4aabc108ef745e870800000000000000
+      internalID: 8711448212614724260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_18
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 719
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa57e62035089dde0800000000000000
+      internalID: -1307873122762984022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_19
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 654
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4973c5d93c571490800000000000000
+      internalID: -7775644828162623153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_20
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 350
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 377e83082eae8dd70800000000000000
+      internalID: 9068256108245215091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_21
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 323
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17c4cbd4594a7fc60800000000000000
+      internalID: 7851925436505017457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_22
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 279
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24e7409b5d7009a50800000000000000
+      internalID: 6525724474573356610
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_23
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 204
+        width: 8
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b62655986e9806bb0800000000000000
+      internalID: -4944800767613246869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_24
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 631
+        width: 6
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2901f2b1790f5c840800000000000000
+      internalID: 5243861872929607826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_25
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 622
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 290d60a1bbb0ca810800000000000000
+      internalID: 1777808851127947410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_26
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 302
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b677011da4f4a1a30800000000000000
+      internalID: 4186745986347988843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_27
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 286
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13fbe2bda711da890800000000000000
+      internalID: -7445275389612605647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_28
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 246
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6fc5a391c61f42540800000000000000
+      internalID: 4982372534360628470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_29
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 95
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: beaef3b88386d6dc0800000000000000
+      internalID: -3644141931409184021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_30
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 36
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2aacb26893baa8500800000000000000
+      internalID: 399319780528212642
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_31
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 0
+        width: 7
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 795bb248d5d669470800000000000000
+      internalID: 8401022403323082135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_32
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 1006
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30617018c61507b10800000000000000
+      internalID: 1977169762878690819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_33
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 998
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9881d58f4b09bca30800000000000000
+      internalID: 4236638981407447177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_34
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 991
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4124e596312ff090800000000000000
+      internalID: -7998637894860005042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_35
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 983
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ddbb12de594aef40800000000000000
+      internalID: 5758495745147387347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_36
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 870
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 31082fa76da682fd0800000000000000
+      internalID: -2366524134764937197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_37
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 854
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9467686b62b64c2d0800000000000000
+      internalID: -3259362416294201783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_38
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 791
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cddf4f202dc01f160800000000000000
+      internalID: 7057436187198553564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_39
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 732
+        width: 6
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4268b6f914c264690800000000000000
+      internalID: -7618353059291494876
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_40
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 671
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbecb4d5de470e900800000000000000
+      internalID: 711697303945858749
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_41
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 236
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: caaafd4f820caec30800000000000000
+      internalID: 4389532068965493420
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_42
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 53
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b99c28e49f3020b0800000000000000
+      internalID: -5755530414996547149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_43
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 29
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f2f3e9ee8aca8940800000000000000
+      internalID: 5299270626713006837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_44
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 23
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec1ee544135d738c0800000000000000
+      internalID: -4019509734827695666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_45
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 12
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1560e1bfe7ae8660800000000000000
+      internalID: 7390028686484858142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_46
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 7
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db47cff8837b29f70800000000000000
+      internalID: 9192611242978342077
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_47
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 0
+        width: 1430
+        height: 1024
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60248ddd47f388d70800000000000000
+      internalID: 9045549622744334854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_48
+      rect:
+        serializedVersion: 2
+        x: 994
+        y: 200
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bc7800228ea17aa0800000000000000
+      internalID: -6164954540987089744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_49
+      rect:
+        serializedVersion: 2
+        x: 994
+        y: 23
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db2129356e0234370800000000000000
+      internalID: 8305518311417975485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_50
+      rect:
+        serializedVersion: 2
+        x: 995
+        y: 963
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd9db0402e7cf5cc0800000000000000
+      internalID: -3720034993640318500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_51
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 1000
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66427f97d07ccf320800000000000000
+      internalID: 2593166346153305190
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_52
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 991
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7615205a991f4b4f0800000000000000
+      internalID: -813759990446534297
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_53
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 760
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24165c700e53f5f50800000000000000
+      internalID: 6872270792709988674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_54
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 192
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6b981072ebcbf940800000000000000
+      internalID: 5331078757326822251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn_compra_55
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 0
+        width: 6
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e4ce752511af7370800000000000000
+      internalID: 8322547748599416038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      btn_compra_0: 5147039334994746313
+      btn_compra_1: -7750355451267424813
+      btn_compra_10: 8151334340877692267
+      btn_compra_11: -7823805126860036385
+      btn_compra_12: 8382554989153233986
+      btn_compra_13: -3993103678886809326
+      btn_compra_14: -6594908565758940813
+      btn_compra_15: -105765987764173940
+      btn_compra_16: 8697456499931939199
+      btn_compra_17: 8711448212614724260
+      btn_compra_18: -1307873122762984022
+      btn_compra_19: -7775644828162623153
+      btn_compra_2: -8334969994829267693
+      btn_compra_20: 9068256108245215091
+      btn_compra_21: 7851925436505017457
+      btn_compra_22: 6525724474573356610
+      btn_compra_23: -4944800767613246869
+      btn_compra_24: 5243861872929607826
+      btn_compra_25: 1777808851127947410
+      btn_compra_26: 4186745986347988843
+      btn_compra_27: -7445275389612605647
+      btn_compra_28: 4982372534360628470
+      btn_compra_29: -3644141931409184021
+      btn_compra_3: 2396014563995873497
+      btn_compra_30: 399319780528212642
+      btn_compra_31: 8401022403323082135
+      btn_compra_32: 1977169762878690819
+      btn_compra_33: 4236638981407447177
+      btn_compra_34: -7998637894860005042
+      btn_compra_35: 5758495745147387347
+      btn_compra_36: -2366524134764937197
+      btn_compra_37: -3259362416294201783
+      btn_compra_38: 7057436187198553564
+      btn_compra_39: -7618353059291494876
+      btn_compra_4: 2352080179387112919
+      btn_compra_40: 711697303945858749
+      btn_compra_41: 4389532068965493420
+      btn_compra_42: -5755530414996547149
+      btn_compra_43: 5299270626713006837
+      btn_compra_44: -4019509734827695666
+      btn_compra_45: 7390028686484858142
+      btn_compra_46: 9192611242978342077
+      btn_compra_47: 9045549622744334854
+      btn_compra_48: -6164954540987089744
+      btn_compra_49: 8305518311417975485
+      btn_compra_5: -8880982280869283554
+      btn_compra_50: -3720034993640318500
+      btn_compra_51: 2593166346153305190
+      btn_compra_52: -813759990446534297
+      btn_compra_53: 6872270792709988674
+      btn_compra_54: 5331078757326822251
+      btn_compra_55: 8322547748599416038
+      btn_compra_6: 6072091680736929417
+      btn_compra_7: 6207640807758713807
+      btn_compra_8: 4194010857771379227
+      btn_compra_9: -3237202406701389319
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

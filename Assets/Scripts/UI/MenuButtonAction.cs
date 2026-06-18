@@ -28,6 +28,9 @@ namespace Solengard.UI
         ComprarUpgrade,  // parametro = PermanentUpgradeId  (ex: "Poder")
         ComprarPacote,   // parametro = productId           (ex: "pacote_diamantes_3")
         AssistirVideo,
+
+        // Adicionado no FIM (preserva os indices serializados acima).
+        AbrirDetalhe,    // parametro = classId — abre PainelDetalhePersonagem (overlay sobre a Loja)
     }
 
     // Passo 3 da refatoracao do MainMenu (Pilar B).
@@ -88,6 +91,8 @@ namespace Solengard.UI
                 case MenuAction.AbrirBaus:          Menu?.AbrirBaus();                 break;
                 case MenuAction.Fechar:             Menu?.FecharTodos();               break;
                 case MenuAction.ColetarRecompensa:  Menu?.ColetarRecompensa();         break;
+
+                case MenuAction.AbrirDetalhe:       Menu?.AbrirDetalhePersonagem(parametro); break;
 
                 case MenuAction.ComprarClasse:      ComprarClasse();                   break;
                 case MenuAction.ComprarUpgrade:     ComprarUpgrade();                  break;
