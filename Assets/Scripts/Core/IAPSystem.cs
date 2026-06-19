@@ -19,9 +19,13 @@ public class IAPSystem : MonoBehaviour
     public static event System.Action<string> OnProductPurchaseFailed;
 
     // IDs dos produtos — TODO: registrar IDs reais no Google Play Console e App Store Connect
-    public const string PROD_DIA_100   = "pacote_100_diamantes";
-    public const string PROD_DIA_500   = "pacote_500_diamantes";
-    public const string PROD_DIA_1200  = "pacote_1200_diamantes";
+    // IDs alinhados com LojaController.Pacotes (padrao EN por valor). Estes sao os IDs a
+    // cadastrar no Google Play Console / App Store Connect.
+    public const string PROD_DIA_200   = "diamonds_200";
+    public const string PROD_DIA_450   = "diamonds_450";
+    public const string PROD_DIA_1000  = "diamonds_1000";
+    public const string PROD_DIA_2800  = "diamonds_2800";
+    public const string PROD_DIA_6000  = "diamonds_6000";
     public const string PROD_PASSE_PREMIUM = "passe_temporada_premium";
     public const string PROD_DLC_1     = "dlc_temporada_1";
 
@@ -43,9 +47,11 @@ public class IAPSystem : MonoBehaviour
     {
 #if UNITY_PURCHASING
         var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
-        builder.AddProduct(PROD_DIA_100,       ProductType.Consumable);
-        builder.AddProduct(PROD_DIA_500,       ProductType.Consumable);
-        builder.AddProduct(PROD_DIA_1200,      ProductType.Consumable);
+        builder.AddProduct(PROD_DIA_200,       ProductType.Consumable);
+        builder.AddProduct(PROD_DIA_450,       ProductType.Consumable);
+        builder.AddProduct(PROD_DIA_1000,      ProductType.Consumable);
+        builder.AddProduct(PROD_DIA_2800,      ProductType.Consumable);
+        builder.AddProduct(PROD_DIA_6000,      ProductType.Consumable);
         builder.AddProduct(PROD_PASSE_PREMIUM, ProductType.NonConsumable);
         builder.AddProduct(PROD_DLC_1,         ProductType.NonConsumable);
         UnityPurchasing.Initialize(this, builder);
@@ -134,14 +140,20 @@ public class IAPSystem : MonoBehaviour
     {
         switch (productId)
         {
-            case PROD_DIA_100:
-                DiamondSystem.Instance?.AddDiamonds(100);
+            case PROD_DIA_200:
+                DiamondSystem.Instance?.AddDiamonds(200);
                 break;
-            case PROD_DIA_500:
-                DiamondSystem.Instance?.AddDiamonds(500);
+            case PROD_DIA_450:
+                DiamondSystem.Instance?.AddDiamonds(450);
                 break;
-            case PROD_DIA_1200:
-                DiamondSystem.Instance?.AddDiamonds(1200);
+            case PROD_DIA_1000:
+                DiamondSystem.Instance?.AddDiamonds(1000);
+                break;
+            case PROD_DIA_2800:
+                DiamondSystem.Instance?.AddDiamonds(2800);
+                break;
+            case PROD_DIA_6000:
+                DiamondSystem.Instance?.AddDiamonds(6000);
                 break;
             case PROD_PASSE_PREMIUM:
                 SeasonPassSystem.Instance?.AtivarPremium();

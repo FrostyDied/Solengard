@@ -3337,8 +3337,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acao: 14
-  parametro: pacote_diamantes_5
+  acao: 15
+  parametro: diamonds_6000
 --- !u!1 &193996104
 GameObject:
   m_ObjectHideFlags: 0
@@ -6896,8 +6896,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acao: 14
-  parametro: pacote_diamantes_2
+  acao: 15
+  parametro: diamonds_450
 --- !u!1001 &421721114
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11383,7 +11383,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acao: 15
+  acao: 16
   parametro: 
 --- !u!1 &697934134
 GameObject:
@@ -17422,8 +17422,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
-  m_VerticalAlignment: 512
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -17484,9 +17484,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 270, y: 0}
-  m_SizeDelta: {x: 160, y: 56}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 244, y: 0}
+  m_SizeDelta: {x: 240, y: 56}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!1 &1071445590
 GameObject:
   m_ObjectHideFlags: 0
@@ -18148,8 +18148,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acao: 14
-  parametro: pacote_diamantes_1
+  acao: 15
+  parametro: diamonds_200
 --- !u!1 &1103352002
 GameObject:
   m_ObjectHideFlags: 0
@@ -23205,8 +23205,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acao: 14
-  parametro: pacote_diamantes_4
+  acao: 15
+  parametro: diamonds_2800
 --- !u!1 &1402905386
 GameObject:
   m_ObjectHideFlags: 0
@@ -29918,8 +29918,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 359ebb50e5bd61846ac8ae8cbf71ae63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acao: 14
-  parametro: pacote_diamantes_3
+  acao: 15
+  parametro: diamonds_1000
 --- !u!1 &1845097126
 GameObject:
   m_ObjectHideFlags: 0

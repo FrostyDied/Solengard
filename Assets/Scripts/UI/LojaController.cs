@@ -32,11 +32,11 @@ public class LojaController : MonoBehaviour
 
     // Dados dos pacotes IAP. "bonus" = percentual exibido (+X%), "diamantes" já é o total final.
     static readonly (string productId, string nome, int diamantes, string preco, int bonus, string badge)[] Pacotes = {
-        ("pacote_diamantes_1", "Iniciante",   200,  "R$4,99",   0,  ""),
-        ("pacote_diamantes_2", "Aventureiro", 450,  "R$9,99",   12, ""),
-        ("pacote_diamantes_3", "Herói",       1000, "R$19,99",  25, "MAIS POPULAR"),
-        ("pacote_diamantes_4", "Lenda",       2800, "R$49,99",  40, "MELHOR VALOR"),
-        ("pacote_diamantes_5", "Mítico",      6000, "R$99,99",  50, ""),
+        ("diamonds_200",  "Iniciante",   200,  "R$4,99",   0,  ""),
+        ("diamonds_450",  "Aventureiro", 450,  "R$9,99",   12, ""),
+        ("diamonds_1000", "Herói",       1000, "R$19,99",  25, "MAIS POPULAR"),
+        ("diamonds_2800", "Lenda",       2800, "R$49,99",  40, "MELHOR VALOR"),
+        ("diamonds_6000", "Mítico",      6000, "R$99,99",  50, ""),
     };
 
     void Awake()
@@ -48,7 +48,7 @@ public class LojaController : MonoBehaviour
     void Start()
     {
         btnAbaPersonagens?.onClick.AddListener(() => AbrirAba(abaPersonagens));
-        btnAbaUpgrades?.onClick.AddListener(() => AbrirAba(abaUpgrades));
+        btnAbaUpgrades?.onClick.AddListener(AbrirUpgradesUnificado);
         btnAbaDiamantes?.onClick.AddListener(() => AbrirAba(abaDiamantes));
     }
 
@@ -61,7 +61,13 @@ public class LojaController : MonoBehaviour
         AtualizarEstadoBotaoVideo();
     }
 
-    void OnDisable() => DiamondSystem.OnDiamondsChanged -= AtualizarSaldo;
+    void OnDisable()
+    {
+        DiamondSystem.OnDiamondsChanged -= AtualizarSaldo;
+        // Nunca deixa o feedback orfao ativo: se a Loja fechar antes da coroutine esconder
+        // (troca de aba / navegacao), a coroutine morre sem o SetActive(false). Garante aqui.
+        if (textoFeedback != null) textoFeedback.gameObject.SetActive(false);
+    }
 
     // Tick de 1s — so processa com o PainelLoja ativo (Update nao roda com a loja fechada).
     void Update()
@@ -138,6 +144,18 @@ public class LojaController : MonoBehaviour
     {
         gameObject.SetActive(true);
         AbrirAba(abaUpgrades);
+    }
+
+    // FIX 3: a aba "Upgrades" interna passa pelo MESMO caminho da BottomTabs
+    // (MainMenuManager.AbrirUpgrades), respeitando usarGrimorioUpgrades -> abre o Grimorio
+    // (ou o grid, conforme o toggle). Substitui o lambda divergente AbrirAba(abaUpgrades).
+    // Delegacao por codigo (sem MenuButtonAction serializado) -> nao depende de int de enum
+    // (a cena tem acao shiftada por reordenacao do enum — ver diagnostico do BtnVideo).
+    void AbrirUpgradesUnificado()
+    {
+        var mmm = FindAnyObjectByType<MainMenuManager>(FindObjectsInactive.Include);
+        if (mmm != null) mmm.AbrirUpgrades();
+        else AbrirAba(abaUpgrades); // fallback defensivo
     }
 
     // Compra de personagem
@@ -235,7 +253,7 @@ public class LojaController : MonoBehaviour
     {
         textoFeedback.text = msg;
         textoFeedback.gameObject.SetActive(true);
-        yield return new UnityEngine.WaitForSeconds(2f);
+        yield return new UnityEngine.WaitForSecondsRealtime(2f); // imune a timeScale==0
         textoFeedback.gameObject.SetActive(false);
     }
 
