@@ -133,11 +133,36 @@ public class LojaController : MonoBehaviour
         if (textoSaldo != null) textoSaldo.text = $"{saldo:N0}";
     }
 
+    // Alpha da placa esmaecida (aba inativa). Ativa = 1.0. Ajustavel.
+    const float ALPHA_INATIVO = 0.5f;
+
     public void AbrirAba(GameObject aba)
     {
         abaPersonagens?.SetActive(aba == abaPersonagens);
         abaUpgrades?.SetActive(aba == abaUpgrades);
         abaDiamantes?.SetActive(aba == abaDiamantes);
+        AtualizarHighlightAbas(aba);
+    }
+
+    // Acende a placa da aba de conteudo ativa; esmaece as outras (via alpha da Image).
+    // Generico: cobre Personagens/Diamantes (trocam conteudo na Loja) e, se algum dia o toggle
+    // voltar pro grid interno, tambem a Upgrades. No modo Grimorio, Upgrades sai pra tela cheia
+    // (nao passa por AbrirAba) -> nunca acende persistente; reabrir a Loja reseta p/ Personagens.
+    void AtualizarHighlightAbas(GameObject abaAtiva)
+    {
+        SetAlphaAba(btnAbaPersonagens, abaAtiva == abaPersonagens);
+        SetAlphaAba(btnAbaUpgrades,    abaAtiva == abaUpgrades);
+        SetAlphaAba(btnAbaDiamantes,   abaAtiva == abaDiamantes);
+    }
+
+    static void SetAlphaAba(Button b, bool ativo)
+    {
+        if (b == null) return;
+        var img = b.GetComponent<Image>();
+        if (img == null) return;
+        var c = img.color;
+        c.a = ativo ? 1f : ALPHA_INATIVO;
+        img.color = c;
     }
 
     public void AbrirAbaUpgradesDireto()
