@@ -112,7 +112,6 @@ MonoBehaviour:
   isHeavy: 0
   isBoss: 0
   contactDamageInterval: 0.5
-  xpValue: 3
   playerTransform: {fileID: 0}
   poolTag: 
 --- !u!50 &4953752248039005342

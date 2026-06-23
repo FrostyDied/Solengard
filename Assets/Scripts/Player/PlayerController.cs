@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 #endif
 
+[DefaultExecutionOrder(-10)]
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
 {
@@ -99,13 +100,17 @@ public class PlayerController : MonoBehaviour
             if (_sr != null) _sr.flipX = true;
         }
 
-        // FacingDirection suporta 4 direções — eixo dominante define a frente do ataque
+        // FacingDirection suporta 4 direções — eixo dominante define a frente do ataque.
+        // Vertical exige comprometimento claro (y ≥ 0.65 normalizado) para evitar
+        // viradas acidentais em diagonais de joystick; horizontal mantém lógica anterior.
+        const float FACING_VERTICAL_COMMIT = 0.65f;
         if (MoveDir.magnitude > 0.1f)
         {
             if (Mathf.Abs(MoveDir.x) >= Mathf.Abs(MoveDir.y))
                 FacingDirection = MoveDir.x > 0f ? Vector2.right : Vector2.left;
-            else
+            else if (Mathf.Abs(MoveDir.y) >= FACING_VERTICAL_COMMIT)
                 FacingDirection = MoveDir.y > 0f ? Vector2.up : Vector2.down;
+            // diagonal ambígua (|y| < 0.65): mantém o facing anterior sem override
         }
 
         if (_anim != null)

@@ -740,7 +740,7 @@ public static class ProceduralVFX
                 // Forma de C/gancho: bojo proporcional ao comprimento (k=0.4) e
                 // assimétrico (fase 0.7) — pico adiantado e ponta hookada (não volta ao eixo).
                 float fwd   = s * length * reach;
-                float curve = Mathf.Sin(s * Mathf.PI * 0.7f) * length * 0.4f * reach;
+                float curve = Mathf.Sin(s * Mathf.PI * 0.7f) * length * 0.35f * reach;
                 Vector3 pt  = anchor
                     + (Vector3)(direction * fwd)
                     + perp * curve;

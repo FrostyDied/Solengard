@@ -15,7 +15,8 @@ public class AtmosphereController : MonoBehaviour
         var p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) _player = p.transform;
         CreateDarkOverlay();
-        CreateFogLayers();
+        if (ProceduralSceneGenerator.FogEnabled)
+            CreateFogLayers();
     }
 
     void CreateDarkOverlay()

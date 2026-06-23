@@ -6,7 +6,7 @@ public class EnemyDarkElf : EnemyAssassin
     {
         base.Awake();
         maxHealth        = 35f;
-        moveSpeed        = 2.5f;
+        moveSpeed        = 1.6f;
         contactDamage    = 15f;
         stoppingDistance = 1.2f;
     }

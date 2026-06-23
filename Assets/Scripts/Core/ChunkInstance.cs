@@ -5,17 +5,24 @@ public class ChunkInstance : MonoBehaviour
 {
     public static readonly Color[] BIOME_TINTS =
     {
-        new Color(0.55f, 0.62f, 0.50f), // Veremoth — verde escuro sombrio
-        new Color(0.45f, 0.50f, 0.65f), // Khorduum — azul pedra escuro
-        new Color(0.55f, 0.52f, 0.58f), // Valdross — cinza roxo
-        new Color(0.48f, 0.58f, 0.45f), // Gorveth — verde pântano
-        new Color(0.62f, 0.52f, 0.45f), // Arkenfall — marrom ferrugem
+        new Color(0.55f, 0.62f, 0.50f), // 0 Veremoth — verde escuro sombrio
+        new Color(0.45f, 0.50f, 0.65f), // 1 Khorduum — azul pedra escuro
+        new Color(0.55f, 0.52f, 0.58f), // 2 Valdross — cinza roxo
+        new Color(0.48f, 0.58f, 0.45f), // 3 Gorveth — verde pântano
+        new Color(0.62f, 0.52f, 0.45f), // 4 Arkenfall — marrom ferrugem
+        new Color(0.30f, 0.30f, 0.35f), // 5 Dungeon — cinza-azulado escuro
+        new Color(0.85f, 0.75f, 0.50f), // 6 Desert — ocre quente
+        new Color(0.85f, 0.92f, 1.00f), // 7 Winter — azul-branco frio
+        new Color(0.20f, 0.50f, 0.90f), // 8 GlowingCave — azul elétrico
+        new Color(0.35f, 0.22f, 0.45f), // 9 Necropolis — roxo sepulcral
+        new Color(0.25f, 0.15f, 0.15f), // 10 FortressDark — pedra negra / vermelho sangue
     };
 
     List<GameObject> _props = new();
 
     public void Populate(Vector2Int gridPos, int biome,
-        List<GameObject> prefabs, int count, float size)
+        List<GameObject> prefabs, int count, float size,
+        List<GameObject> neutralPrefabs = null)
     {
         Clear();
 
@@ -24,7 +31,7 @@ public class ChunkInstance : MonoBehaviour
         if (ProceduralSceneGenerator.Instance != null)
         {
             ProceduralSceneGenerator.Instance.GenerateChunk(
-                gameObject, gridPos.x, gridPos.y, biome, size, prefabs, count);
+                gameObject, gridPos.x, gridPos.y, biome, size, prefabs, count, neutralPrefabs);
             return;
         }
 
@@ -70,12 +77,13 @@ public class ChunkInstance : MonoBehaviour
         }
     }
 
-    public void Repopulate(int biome, List<GameObject> prefabs, int count, float size)
+    public void Repopulate(int biome, List<GameObject> prefabs, int count, float size,
+        List<GameObject> neutralPrefabs = null)
     {
         var gridPos = new Vector2Int(
             Mathf.FloorToInt(transform.position.x / size),
             Mathf.FloorToInt(transform.position.y / size));
-        Populate(gridPos, biome, prefabs, count, size);
+        Populate(gridPos, biome, prefabs, count, size, neutralPrefabs);
     }
 
     public void Clear()

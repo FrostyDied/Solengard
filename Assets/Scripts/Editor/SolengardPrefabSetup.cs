@@ -36,7 +36,7 @@ public static class SolengardPrefabSetup
         EnsureFolder($"{Prefabs}/Characters");
         EnsureFolder($"{Prefabs}/Enemies");
         EnsureFolder($"{Prefabs}/Effects");
-        for (int s = 1; s <= 7; s++)
+        for (int s = 1; s <= 12; s++)
             EnsureFolder($"{Prefabs}/Environment/Season{s}");
 
         // Ensure AssetDatabase index is up-to-date before sprite queries
@@ -116,7 +116,11 @@ public static class SolengardPrefabSetup
         CharEnemy3("EnemyBoss",     $"{Art}/Characters/Enemies/Lich/PNG/Lich{{n}}",                       typeof(EnemyBoss));
         CharEnemy3("EnemyGoblin",   $"{Art}/Characters/Enemies/Goblin/PNG/Goblin{{n}}",                   typeof(EnemyZumbi));
         CharEnemy3("EnemyDarkElf",  $"{Art}/Characters/Enemies/DarkElf/Elf_{{n}}",                        typeof(EnemyAssassin));
-        CharEnemy3("EnemyOrcHeavy", $"{Art}/Characters/Enemies/Orc/PNG/Orc{{n}}",                         typeof(EnemyOrc));
+        CharEnemy3("EnemyOrcHeavy",   $"{Art}/Characters/Enemies/Orc/PNG/Orc{{n}}",                         typeof(EnemyOrc));
+        CharEnemy3("EnemyLizardman",  $"{Art}/Characters/Enemies/Lizardman/PNG/Lizardman{{n}}",            typeof(EnemyLizardman));
+        CharEnemy3("EnemyMushroom",   $"{Art}/Characters/Enemies/Mushroom/PNG/Mushroom{{n}}",              typeof(EnemyMushroom));
+        CharEnemy3("EnemyRat",        $"{Art}/Characters/Enemies/Rat/PNG/Rat{{n}}",                        typeof(EnemyRat));
+        CharEnemy3("EnemyVampire",    $"{Art}/Characters/Enemies/Vampire/PNG/Vampires{{n}}",               typeof(EnemyVampire));
 
         Enemy("BossCaveman",      $"{Art}/Characters/Enemies/Boss/Caveman Boss/PNG/PNG Sequences/Front - Idle",  typeof(EnemyBoss));
         Enemy("BossGiantGoblin",  $"{Art}/Characters/Enemies/Boss/Giant Goblin/PNG/PNG Sequences/Front - Idle",  typeof(EnemyBoss));
@@ -186,7 +190,8 @@ public static class SolengardPrefabSetup
         EffectKw("ExplosionEffect", $"{Art}/Effects/Explosions/PNG/Explosion",  new[]{"explosion"});
         EffectKw("LightningEffect", $"{Art}/Effects/Explosions/PNG/Lightning",  new[]{"lightning"});
         EffectKw("MagicEffect",
-            FindSpriteByKeywords($"{Art}/Effects/Magic/1 Magic",                      new[]{"magic","effect"},             skipDigits: true)
+            FindSpriteByKeywords($"{Art}/Effects/Magic_1/1 Magic",                    new[]{"magic","effect"},             skipDigits: true)
+         ?? FindSpriteByKeywords($"{Art}/Effects/Magic_2/1 Magic",                    new[]{"magic","effect"},             skipDigits: true)
          ?? FindSpriteByKeywords($"{Art}/Effects/Explosions/PNG/Explosion_blue_circle", new[]{"explosion","blue","circle"}));
         EffectKw("HitEffect",       $"{Art}/Effects/TopDown/PNG/Explosion1",    new[]{"explosion","hit","impact"});
         EffectKw("FireEffect",      $"{Art}/Effects/TopDown/PNG/Fire_small",    new[]{"fire"});
@@ -196,7 +201,8 @@ public static class SolengardPrefabSetup
 
         var go = new GameObject("EnemyProjectile");
         go.AddComponent<SpriteRenderer>().sprite =
-            FindSpriteByKeywords($"{Art}/Effects/Magic/1 Magic",                      new[]{"magic","orb","ball","projectile"}, skipDigits: true)
+            FindSpriteByKeywords($"{Art}/Effects/Magic_2/1 Magic",                    new[]{"magic","orb","ball","projectile"}, skipDigits: true)
+         ?? FindSpriteByKeywords($"{Art}/Effects/Magic_1/1 Magic",                    new[]{"magic","orb","ball","projectile"}, skipDigits: true)
          ?? FindSpriteByKeywords($"{Art}/Effects/Explosions/PNG/Explosion_blue_circle", new[]{"explosion","blue","circle"});
 
         var col = go.AddComponent<CircleCollider2D>();
@@ -229,6 +235,9 @@ public static class SolengardPrefabSetup
 
     private static void BuildEnvironment()
     {
+        for (int s = 8; s <= 12; s++)
+            EnsureFolder($"{Prefabs}/Environment/Season{s}");
+
         // Season 1 - Dungeon
         Env("Season1", "DungeonFloor",     $"{Art}/Environment/Season1_Dungeon/Tileset/PNG",                       "Ground",   false, false);
         Env("Season1", "DungeonFloorFree", $"{Art}/Environment/Season1_Dungeon/Tileset_Free/PNG",                  "Ground",   false, false);
@@ -262,6 +271,25 @@ public static class SolengardPrefabSetup
         // Season 7 - Cursed
         Env("Season7", "CursedFloor",      $"{Art}/Environment/Season7_Cursed/Tileset/PNG",                        "Ground",   false, false);
         Env("Season7", "CursedObject",     $"{Art}/Environment/Season7_Cursed/Objects/PNG/Objects_separately",     "Default",  false, false);
+
+        // Season 8 - GlowingCave (tileset em PNG/ sem Tileset/)
+        Env("Season8", "GlowingCaveFloor",  $"{Art}/Environment/Season8_GlowingCave/PNG",                          "Ground",   false, false);
+        Env("Season8", "GlowingCaveObject", $"{Art}/Environment/Season8_GlowingCave/Objects/PNG/Assets",           "Default",  false, false);
+
+        // Season 9 - Dungeon2 (tileset em PNG/ sem Tileset/, sem Objects)
+        Env("Season9", "Dungeon2Floor",     $"{Art}/Environment/Season9_Dungeon2/PNG",                             "Ground",   false, false);
+
+        // Season 10 - Winter (tileset em PNG/ sem Tileset/)
+        Env("Season10", "WinterFloor",      $"{Art}/Environment/Season10_Winter/PNG",                              "Ground",   false, false);
+        Env("Season10", "WinterObject",     $"{Art}/Environment/Season10_Winter/Objects/PNG/Assets",               "Default",  false, false);
+
+        // Season 11 - Undead2
+        Env("Season11", "Undead2Floor",     $"{Art}/Environment/Season11_Undead2/Tileset/PNG",                     "Ground",   false, false);
+        Env("Season11", "Undead2Object",    $"{Art}/Environment/Season11_Undead2/Objects/PNG/Assets",              "Default",  false, false);
+
+        // Season 12 - Desert
+        Env("Season12", "DesertFloor",      $"{Art}/Environment/Season12_Desert/Tileset/PNG",                      "Ground",   false, false);
+        Env("Season12", "DesertObject",     $"{Art}/Environment/Season12_Desert/Objects/PNG/Assets",               "Default",  false, false);
     }
 
     private static void Env(string season, string prefabName, string folder, string layer, bool box, bool circle)
@@ -285,14 +313,22 @@ public static class SolengardPrefabSetup
     private static Sprite FilteredSprite(string folder) =>
         FindSpriteByKeywords(folder, FloorPreferred, FloorExcluded);
 
+    private static bool IsShadowSprite(string path)
+    {
+        string fname = Path.GetFileNameWithoutExtension(path).ToLowerInvariant();
+        return fname.Contains("shadow") || fname.Contains("_shad");
+    }
+
     private static Sprite FindSprite(string folder)
     {
         string[] guids = GetGuids(folder);
         if (guids == null) return null;
 
+        // Pass 1: prefer "idle" sprite that isn't a shadow
         foreach (string guid in guids)
         {
             string p = AssetDatabase.GUIDToAssetPath(guid);
+            if (IsShadowSprite(p)) continue;
             if (p.IndexOf("idle", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 Sprite s = LoadSprite(p);
@@ -300,10 +336,20 @@ public static class SolengardPrefabSetup
             }
         }
 
+        // Pass 2: first non-shadow sprite
+        foreach (string guid in guids)
+        {
+            string p = AssetDatabase.GUIDToAssetPath(guid);
+            if (IsShadowSprite(p)) continue;
+            Sprite s = LoadSprite(p);
+            if (s != null) { Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (fallback): {p}"); return s; }
+        }
+
+        // Pass 3: accept shadow if nothing else found
         string first = AssetDatabase.GUIDToAssetPath(guids[0]);
-        Sprite fallback = LoadSprite(first);
-        if (fallback != null) Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (fallback): {first}");
-        return fallback;
+        Sprite last = LoadSprite(first);
+        if (last != null) Debug.Log($"[SolengardPrefabSetup] Sprite atribuído (shadow): {first}");
+        return last;
     }
 
     private static Sprite FindSpriteByKeywords(string folder, string[] preferred, string[] excluded = null, bool skipDigits = false)
@@ -355,6 +401,8 @@ public static class SolengardPrefabSetup
 
     private static Sprite FindCharacterSprite(string charRoot)
     {
+        if (!AssetDatabase.IsValidFolder(charRoot)) return null;
+
         string partsFolder  = $"{charRoot}/Parts";
         string shadowFolder = $"{charRoot}/Without_shadow";
 

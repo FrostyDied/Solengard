@@ -27,9 +27,10 @@ public class ZoneManager : MonoBehaviour
         [HideInInspector] public List<GameObject> bossPrefabs  = new();
     }
 
-    [Header("Configuração das 5 zonas")]
+    [Header("Configuração das zonas")]
     [SerializeField] ZoneConfig[] zones = new ZoneConfig[]
     {
+        // ── Zonas 1-5 (originais) ─────────────────────────────────────────────
         new ZoneConfig {
             nome="Floresta de Veremoth",   biome=BiomeSystem.Biome.Veremoth,
             hpMultiplier=1f,  speedMultiplier=1f,  damageMultiplier=1f,
@@ -44,12 +45,54 @@ public class ZoneManager : MonoBehaviour
             spawnMax=65,  spawnInterval=0.35f },
         new ZoneConfig {
             nome="Pântano de Gorveth",     biome=BiomeSystem.Biome.Gorveth,
-            hpMultiplier=4f,  speedMultiplier=1.6f, damageMultiplier=2.8f,
+            hpMultiplier=4f,  speedMultiplier=1.6f, damageMultiplier=2.5f,
             spawnMax=75,  spawnInterval=0.30f },
         new ZoneConfig {
             nome="Campo de Arkenfall",     biome=BiomeSystem.Biome.Arkenfall,
-            hpMultiplier=6f,  speedMultiplier=1.8f, damageMultiplier=3.5f,
+            hpMultiplier=6f,  speedMultiplier=1.8f, damageMultiplier=3.0f,
             spawnMax=85,  spawnInterval=0.25f },
+
+        // ── Zonas 6-15 (novas) ────────────────────────────────────────────────
+        new ZoneConfig {
+            nome="Catacumbas de Drenhar",       biome=BiomeSystem.Biome.Dungeon,
+            hpMultiplier=8f,   speedMultiplier=2.0f, damageMultiplier=3.5f,
+            spawnMax=90,  spawnInterval=0.23f },
+        new ZoneConfig {
+            nome="Necrópole de Valgrath",        biome=BiomeSystem.Biome.Necropolis,
+            hpMultiplier=10f,  speedMultiplier=2.1f, damageMultiplier=4.0f,
+            spawnMax=90,  spawnInterval=0.22f },
+        new ZoneConfig {
+            nome="Cavernas de Crysthorm",        biome=BiomeSystem.Biome.GlowingCave,
+            hpMultiplier=12f,  speedMultiplier=2.2f, damageMultiplier=4.5f,
+            spawnMax=95,  spawnInterval=0.21f },
+        new ZoneConfig {
+            nome="Ruínas de Kaelthar",           biome=BiomeSystem.Biome.Desert,
+            hpMultiplier=15f,  speedMultiplier=2.3f, damageMultiplier=5.0f,
+            spawnMax=95,  spawnInterval=0.20f },
+        new ZoneConfig {
+            nome="Fortaleza de Duskmore",        biome=BiomeSystem.Biome.FortressDark,
+            hpMultiplier=18f,  speedMultiplier=2.4f, damageMultiplier=5.5f,
+            spawnMax=60,  spawnInterval=0.25f },
+        new ZoneConfig {
+            nome="Planícies Geladas de Norrath", biome=BiomeSystem.Biome.Winter,
+            hpMultiplier=20f,  speedMultiplier=2.5f, damageMultiplier=6.0f,
+            spawnMax=65,  spawnInterval=0.23f },
+        new ZoneConfig {
+            nome="Abismo de Skarveth",           biome=BiomeSystem.Biome.GlowingCave,
+            hpMultiplier=24f,  speedMultiplier=2.6f, damageMultiplier=6.5f,
+            spawnMax=70,  spawnInterval=0.21f },
+        new ZoneConfig {
+            nome="Pântano de Morghul",           biome=BiomeSystem.Biome.Gorveth,
+            hpMultiplier=28f,  speedMultiplier=2.7f, damageMultiplier=7.5f,
+            spawnMax=75,  spawnInterval=0.16f },
+        new ZoneConfig {
+            nome="Desfiladeiro de Thornweld",    biome=BiomeSystem.Biome.Desert,
+            hpMultiplier=32f,  speedMultiplier=2.8f, damageMultiplier=8.5f,
+            spawnMax=80,  spawnInterval=0.15f },
+        new ZoneConfig {
+            nome="Cidadela de Rakthorr",         biome=BiomeSystem.Biome.FortressDark,
+            hpMultiplier=40f,  speedMultiplier=3.0f, damageMultiplier=10.0f,
+            spawnMax=85,  spawnInterval=0.14f },
     };
 
     public int   CurrentZone       { get; private set; } = 0;
@@ -276,7 +319,7 @@ public class ZoneManager : MonoBehaviour
 
             _activeEnemies.RemoveAll(e => e == null);
             int activeCount = _activeEnemies.Count;
-            int safetyLimit = zone.spawnMax * 3;
+            int safetyLimit = zone.spawnMax;
 
             if (_spawnBudget > 0 && activeCount < safetyLimit && _player != null && zone.enemyPrefabs.Count > 0)
             {
@@ -563,6 +606,16 @@ public class ZoneManager : MonoBehaviour
             "CEMITÉRIO DE VALDROSS — CONQUISTADO",
             "PÂNTANO DE GORVETH — CONQUISTADO",
             "CAMPO DE ARKENFALL — CONQUISTADO",
+            "CATACUMBAS DE DRENHAR — CONQUISTADAS",
+            "NECRÓPOLE DE VALGRATH — CONQUISTADA",
+            "CAVERNAS DE CRYSTHORM — CONQUISTADAS",
+            "RUÍNAS DE KAELTHAR — CONQUISTADAS",
+            "FORTALEZA DE DUSKMORE — CONQUISTADA",
+            "PLANÍCIES DE NORRATH — CONQUISTADAS",
+            "ABISMO DE SKARVETH — CONQUISTADO",
+            "PÂNTANO DE MORGHUL — CONQUISTADO",
+            "DESFILADEIRO DE THORNWELD — CONQUISTADO",
+            "CIDADELA DE RAKTHORR — CONQUISTADA",
         };
         txt.text      = zoneIndex < zoneNames.Length ? zoneNames[zoneIndex] : "ZONA CONQUISTADA";
         txt.fontSize  = 28f;

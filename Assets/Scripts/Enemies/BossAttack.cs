@@ -60,7 +60,8 @@ public class BossAttack : MonoBehaviour
         if (sr != null)
             sr.DOColor(new Color(1f, 0.3f, 0.3f), duration * 0.5f)
               .SetLoops(2, LoopType.Yoyo)
-              .SetUpdate(true);
+              .SetUpdate(true)
+              .SetLink(gameObject);
         yield return new WaitForSeconds(duration);
     }
 

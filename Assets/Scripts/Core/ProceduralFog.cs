@@ -21,6 +21,8 @@ public class ProceduralFog : MonoBehaviour
 
     void Start()
     {
+        if (!ProceduralSceneGenerator.FogEnabled) { gameObject.SetActive(false); return; }
+
         for (int i = 0; i < 3; i++)
         {
             var go = new GameObject($"FogLayer{i}");

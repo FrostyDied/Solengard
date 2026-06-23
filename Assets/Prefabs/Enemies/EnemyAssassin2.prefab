@@ -112,13 +112,13 @@ MonoBehaviour:
   isHeavy: 0
   isBoss: 0
   contactDamageInterval: 0.5
-  xpValue: 3
   playerTransform: {fileID: 0}
   poolTag: 
   dashRange: 4
   dashSpeed: 12
   dashDuration: 0.15
   dashCooldown: 2.5
+  holdBand: 0.4
 --- !u!50 &3251997944047676201
 Rigidbody2D:
   serializedVersion: 5

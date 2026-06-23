@@ -8,6 +8,9 @@ public class EnemyAssassin : EnemyBase
     [SerializeField] float dashDuration = 0.15f;
     [SerializeField] float dashCooldown = 2.5f;
 
+    [Header("Histerese")]
+    [SerializeField] float holdBand = 0.4f;
+
     float   _dashTimer    = 0f;
     float   _dashDuration = 0f;
     bool    _dashing      = false;
@@ -15,10 +18,13 @@ public class EnemyAssassin : EnemyBase
 
     protected override void Awake()
     {
-        maxHealth        = 20f;
-        moveSpeed        = 3.5f;
-        contactDamage    = 12f;
-        stoppingDistance = 1.2f;
+        maxHealth          = 20f;
+        moveSpeed          = 2.2f;
+        contactDamage      = 12f;
+        stoppingDistance   = 1.2f;
+        dashSpeed          = 8f;
+        separationRadius   = 1.0f;
+        separationStrength = 0.8f;
         base.Awake();
     }
 
@@ -72,14 +78,39 @@ public class EnemyAssassin : EnemyBase
             return;
         }
 
-        // FASE 3: muito próximo → recuar
-        if (dist <= stoppingDistance)
+        // ZONA MORTA: histerese — previne flip-flop entre recuo e perseguição
+        if (dist > stoppingDistance && dist <= stoppingDistance + holdBand)
         {
-            rb.linearVelocity = -dir * moveSpeed;
+            rb.linearVelocity = Vector2.zero;
             return;
         }
 
-        // FASE 4: perseguição normal
-        rb.linearVelocity = dir * moveSpeed;
+        // FASE 3: muito próximo → recuar com separação (blend 70/30 garante que recuo nunca é cancelado)
+        if (dist <= stoppingDistance)
+        {
+            Vector2 sep3       = ComputeSeparation();
+            Vector2 retreatDir = -dir;
+            if (sep3.sqrMagnitude > 0.001f)
+            {
+                Vector2 candidate = (-dir + sep3.normalized * separationStrength).normalized;
+                retreatDir = Vector2.Dot(candidate, -dir) >= 0.1f
+                    ? candidate
+                    : (-dir * 0.7f + sep3.normalized * 0.3f).normalized;
+            }
+            rb.linearVelocity = retreatDir * moveSpeed;
+            return;
+        }
+
+        // FASE 4: perseguição normal com separação (mesmo blend conservador)
+        Vector2 sep4    = ComputeSeparation();
+        Vector2 desired = dir;
+        if (sep4.sqrMagnitude > 0.001f)
+        {
+            Vector2 candidate4 = (dir + sep4.normalized * separationStrength).normalized;
+            desired = Vector2.Dot(candidate4, dir) >= 0.1f
+                ? candidate4
+                : (dir * 0.7f + sep4.normalized * 0.3f).normalized;
+        }
+        rb.linearVelocity = desired * moveSpeed;
     }
 }

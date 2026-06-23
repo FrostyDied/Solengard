@@ -273,11 +273,21 @@ public static class SolengardDebug
 
     // ── Seletor de zona inicial ──────────────────────────────────────────────────
 
-    [MenuItem("Solengard/Debug/Ir para Zona 1")] static void GoToZone1() => SetTestZone(1);
-    [MenuItem("Solengard/Debug/Ir para Zona 2")] static void GoToZone2() => SetTestZone(2);
-    [MenuItem("Solengard/Debug/Ir para Zona 3")] static void GoToZone3() => SetTestZone(3);
-    [MenuItem("Solengard/Debug/Ir para Zona 4")] static void GoToZone4() => SetTestZone(4);
-    [MenuItem("Solengard/Debug/Ir para Zona 5")] static void GoToZone5() => SetTestZone(5);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 1 — Floresta de Veremoth")]      static void GoToZone1()  => SetTestZone(1);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 2 — Cavernas de Khorduum")]      static void GoToZone2()  => SetTestZone(2);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 3 — Cemitério de Valdross")]     static void GoToZone3()  => SetTestZone(3);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 4 — Pântano de Gorveth")]        static void GoToZone4()  => SetTestZone(4);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 5 — Campo de Batalha de Arkenfall")] static void GoToZone5() => SetTestZone(5);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 6 — Catacumbas de Drenhar")]     static void GoToZone6()  => SetTestZone(6);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 7 — Necrópole de Valgrath")]     static void GoToZone7()  => SetTestZone(7);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 8 — Cavernas de Crysthorm")]     static void GoToZone8()  => SetTestZone(8);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 9 — Ruínas de Kaelthar")]        static void GoToZone9()  => SetTestZone(9);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 10 — Fortaleza de Duskmore")]    static void GoToZone10() => SetTestZone(10);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 11 — Planícies Geladas de Norrath")] static void GoToZone11() => SetTestZone(11);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 12 — Abismo de Skarveth")]       static void GoToZone12() => SetTestZone(12);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 13 — Pântano de Morghul")]       static void GoToZone13() => SetTestZone(13);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 14 — Desfiladeiro de Thornweld")] static void GoToZone14() => SetTestZone(14);
+    [MenuItem("Solengard/Debug/Seleção de Zona/Zona 15 — Cidadela de Rakthorr")]     static void GoToZone15() => SetTestZone(15);
 
     static void SetTestZone(int zone)
     {

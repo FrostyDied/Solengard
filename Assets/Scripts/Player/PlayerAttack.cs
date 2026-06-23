@@ -85,19 +85,15 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackGuerreiro()
     {
-        if (GetNearestEnemy(attackRange) == null) return;
+        EnemyBase target = GetNearestEnemy(attackRange);
+        if (target == null) return;
+
         var mgr = PlayerClassManager.Instance;
-        var facing = PlayerController.Instance != null
-            ? PlayerController.Instance.FacingDirection : Vector2.right;
-        Vector2 attackDir = facing;
+        Vector2 attackDir = ((Vector2)(target.transform.position - transform.position)).normalized;
 
         StartCoroutine(ProceduralVFX.AnticipationFlash(_sr));
-        // VFX tem teto visual; o alcance FUNCIONAL do ataque segue attackRange intacto.
-        // TODO: quando existir upgrade permanente de ALCANCE, multiplicar aqui
-        //       (ex.: rangeMult = PermanentUpgradeSystem.Instance?.GetBonus(PermanentUpgradeId.Alcance) ?? 1f);
-        //       avaliar se o hitRadius do dano também cresce junto.
         float rangeMult = 1f; // placeholder — ponto único de escala do chicote
-        float vfxLength = Mathf.Clamp(attackRange * 0.8f * rangeMult, 3f, 4.5f);
+        float vfxLength = Mathf.Clamp(attackRange * 0.55f * rangeMult, 1.8f, 2.8f);
         StartCoroutine(ProceduralVFX.WhipChain(
             transform, attackDir,
             length: vfxLength, duration: 0.4f,
@@ -108,8 +104,6 @@ public class PlayerAttack : MonoBehaviour
         if (mgr?.HasBoost("sede_sangue") == true)
             dmg *= 1f + (mgr.SedeSangueStacks * 0.05f);
 
-        // Dano circular pequeno, saindo de onde o chicote varre (à frente do player).
-        // (corrente_perfurante segue redundante — não referenciado aqui, pronto pra redefinir.)
         float   hitRadius = 1.8f;
         Vector2 hitCenter = (Vector2)transform.position + attackDir * 1.5f;
         ApplyDamageCircle(hitCenter, hitRadius, dmg);

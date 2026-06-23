@@ -54,8 +54,9 @@ public class EnemyBase : MonoBehaviour
     int   _facingSign       = 1;
     float _lastFlipTime     = -99f;
     float _findPlayerTimer  = 0f;
-    const float FLIP_COOLDOWN  = 0.5f;
-    const float FLIP_THRESHOLD = 0.8f;
+    const float FLIP_COOLDOWN    = 0.5f;
+    const float FLIP_THRESHOLD   = 0.8f;
+    const float ENEMY_SPEED_CAP  = 6.3f; // 70% de PlayerController.MAX_MOVE_SPEED (9.0)
 
     protected virtual void Awake()
     {
@@ -108,10 +109,12 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual void Start()
     {
-        moveSpeed    *= 1.2f;
+        // Curva logarítmica suaviza crescimento de velocidade por zona; cap absoluto garante jogabilidade
+        float logDampedMult = 1f + Mathf.Log(1f + Mathf.Max(0f, GlobalSpeedMult - 1f) * 0.8f);
+        moveSpeed    *= 1.2f * logDampedMult;
+        moveSpeed     = Mathf.Min(moveSpeed, ENEMY_SPEED_CAP);
         maxHealth    *= GlobalHPMult;
         currentHealth = maxHealth;
-        moveSpeed    *= GlobalSpeedMult;
         damage       *= GlobalDamageMult;
 
         var diff = DifficultyAdaptiveSystem.Instance;
@@ -120,6 +123,7 @@ public class EnemyBase : MonoBehaviour
             maxHealth     *= diff.EnemyHealthModifier;
             currentHealth  = maxHealth;
             moveSpeed     *= diff.EnemySpeedModifier;
+            moveSpeed      = Mathf.Min(moveSpeed, ENEMY_SPEED_CAP);
             damage        *= diff.EnemyDamageModifier;
         }
     }

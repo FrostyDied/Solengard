@@ -25,7 +25,8 @@ public class WorldChunkManager : MonoBehaviour
         new[]{ "Arkenfall_Rock","Arkenfall_Ruin","Arkenfall_Bones","Arkenfall_Tree" },
     };
 
-    [HideInInspector] public BiomePropList[] biomeProps = new BiomePropList[5];
+    [HideInInspector] public BiomePropList[] biomeProps = new BiomePropList[11];
+    [HideInInspector] public BiomePropList sharedNeutralProps = new();
 
     int        _currentBiome = 0;
     Transform  _player;
@@ -37,8 +38,9 @@ public class WorldChunkManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < biomeProps.Length; i++)
             if (biomeProps[i] == null) biomeProps[i] = new BiomePropList();
+        if (sharedNeutralProps == null) sharedNeutralProps = new BiomePropList();
     }
 
     void Start()
@@ -72,8 +74,9 @@ public class WorldChunkManager : MonoBehaviour
         var gen = ProceduralSceneGenerator.Instance;
         if (gen != null && _player != null)
         {
-            var c0    = ToChunk(_player.position);
-            var props0 = biomeProps[_currentBiome]?.prefabs;
+            var c0      = ToChunk(_player.position);
+            var props0   = biomeProps[_currentBiome]?.prefabs;
+            var neutral0 = sharedNeutralProps?.prefabs;
             for (int dx = -1; dx <= 1; dx++)
             for (int dy = -1; dy <= 1; dy++)
             {
@@ -81,7 +84,7 @@ public class WorldChunkManager : MonoBehaviour
                 var chunk = _pool.Count > 0 ? _pool.Dequeue() : MakeChunk();
                 chunk.transform.position = ToWorld(pos);
                 gen.GenerateChunkSync(chunk.gameObject, pos.x, pos.y,
-                    _currentBiome, CHUNK_SIZE, props0, PROPS_PER_CHUNK);
+                    _currentBiome, CHUNK_SIZE, props0, PROPS_PER_CHUNK, neutral0);
                 _active[pos] = chunk;
             }
         }
@@ -138,7 +141,7 @@ public class WorldChunkManager : MonoBehaviour
 
     public void SetBiome(int b)
     {
-        _currentBiome = Mathf.Clamp(b, 0, 4);
+        _currentBiome = Mathf.Clamp(b, 0, biomeProps.Length - 1);
 
         // Propaga o bioma para névoa e partículas (Find só uma vez — refs cacheadas)
         if (!_atmoSearched)
@@ -150,11 +153,12 @@ public class WorldChunkManager : MonoBehaviour
         _fog?.SetBiome(_currentBiome);
         _particles?.SetBiome(_currentBiome);
 
-        var props = biomeProps[_currentBiome]?.prefabs;
+        var props   = biomeProps[_currentBiome]?.prefabs;
+        var neutral = sharedNeutralProps?.prefabs;
         int count = props?.Count ?? 0;
-        Debug.Log($"[Chunks] SetBiome({b}): {count} prefabs disponíveis");
+        Debug.Log($"[Chunks] SetBiome({b}): {count} prefabs específicos + {neutral?.Count ?? 0} neutros");
         foreach (var kv in _active)
-            kv.Value.Repopulate(_currentBiome, props, PROPS_PER_CHUNK, CHUNK_SIZE);
+            kv.Value.Repopulate(_currentBiome, props, PROPS_PER_CHUNK, CHUNK_SIZE, neutral);
     }
 
     void UpdateChunks()
@@ -175,7 +179,8 @@ public class WorldChunkManager : MonoBehaviour
             _active.Remove(k);
         }
 
-        var props = biomeProps[_currentBiome]?.prefabs;
+        var props   = biomeProps[_currentBiome]?.prefabs;
+        var neutral = sharedNeutralProps?.prefabs;
 
         // Ordenar por distância: o chunk mais próximo inicia a build de textura
         // primeiro — com o lock serial do ProceduralSceneGenerator, a ordem de
@@ -190,7 +195,7 @@ public class WorldChunkManager : MonoBehaviour
         {
             var chunk = _pool.Count > 0 ? _pool.Dequeue() : MakeChunk();
             chunk.transform.position = ToWorld(pos);
-            chunk.Populate(pos, _currentBiome, props, PROPS_PER_CHUNK, CHUNK_SIZE);
+            chunk.Populate(pos, _currentBiome, props, PROPS_PER_CHUNK, CHUNK_SIZE, neutral);
             _active[pos] = chunk;
         }
     }

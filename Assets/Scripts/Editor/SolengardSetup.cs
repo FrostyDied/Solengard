@@ -45,6 +45,9 @@ public static class SolengardSetup
             "Assets/Prefabs/Enemies/EnemyZumbi.prefab",
             "Assets/Prefabs/Enemies/EnemyZumbi2.prefab",
             "Assets/Prefabs/Enemies/EnemyGoblin.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman2.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
         },
         // Zona 1 — Khorduum (Caverna)
         new[] {
@@ -53,6 +56,12 @@ public static class SolengardSetup
             "Assets/Prefabs/Enemies/EnemyOrcHeavy.prefab",
             "Assets/Prefabs/Enemies/EnemyOrcHeavy2.prefab",
             "Assets/Prefabs/Enemies/EnemyGoblin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyMushroom.prefab",
+            "Assets/Prefabs/Enemies/EnemyMushroom2.prefab",
+            "Assets/Prefabs/Enemies/EnemyMushroom3.prefab",
+            "Assets/Prefabs/Enemies/EnemyRat.prefab",
+            "Assets/Prefabs/Enemies/EnemyRat2.prefab",
+            "Assets/Prefabs/Enemies/EnemyRat3.prefab",
         },
         // Zona 2 — Valdross (Cemitério)
         new[] {
@@ -61,6 +70,12 @@ public static class SolengardSetup
             "Assets/Prefabs/Enemies/EnemyMage.prefab",
             "Assets/Prefabs/Enemies/EnemyMage2.prefab",
             "Assets/Prefabs/Enemies/EnemyGoblin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyRat.prefab",
+            "Assets/Prefabs/Enemies/EnemyRat2.prefab",
+            "Assets/Prefabs/Enemies/EnemyRat3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
         },
         // Zona 3 — Gorveth (Pântano)
         new[] {
@@ -69,6 +84,12 @@ public static class SolengardSetup
             "Assets/Prefabs/Enemies/EnemyOrc2.prefab",
             "Assets/Prefabs/Enemies/EnemyOrcHeavy3.prefab",
             "Assets/Prefabs/Enemies/EnemyMage3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman2.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyMushroom.prefab",
+            "Assets/Prefabs/Enemies/EnemyMushroom2.prefab",
+            "Assets/Prefabs/Enemies/EnemyMushroom3.prefab",
         },
         // Zona 4 — Arkenfall (Campo de Batalha)
         new[] {
@@ -76,7 +97,112 @@ public static class SolengardSetup
             "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
             "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
             "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
-            "Assets/Prefabs/Enemies/EnemyDarkElf2.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
+        },
+
+        // Zonas 5-14 — placeholder herdado da Zona 4; configurar listas específicas depois
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/EnemyOrc3.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin2.prefab",
+            "Assets/Prefabs/Enemies/EnemyAssassin3.prefab",
+            "Assets/Prefabs/Enemies/EnemyLizardman3.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire2.prefab",
+            "Assets/Prefabs/Enemies/EnemyVampire3.prefab",
         },
     };
 
@@ -91,6 +217,58 @@ public static class SolengardSetup
         // Zona 3 — Gorveth (DarkElf amplificado ×8 HP, ×2.5 scale)
         new[] { "Assets/Prefabs/Enemies/EnemyDarkElf.prefab" },
         // Zona 4 — Arkenfall (3 bosses simultâneos)
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
+
+        // Zonas 5-14 — mesmo triple-boss da Zona 4 como placeholder
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
+        new[] {
+            "Assets/Prefabs/Enemies/BossCaveman.prefab",
+            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
+            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
+        },
         new[] {
             "Assets/Prefabs/Enemies/BossCaveman.prefab",
             "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
@@ -445,6 +623,44 @@ public static class SolengardSetup
     [MenuItem("Solengard/Rebuild GameScene", validate = true)]
     static bool ValidateRebuildGameScene() =>
         EditorSceneManager.GetActiveScene().name == EXPECTED_SCENE;
+
+    // ── Setup/Add Missing Zones ──────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Setup/Add Missing Zones")]
+    static void MenuAddMissingZones()
+    {
+        if (!ValidateScene(out var scene)) return;
+        var log   = new StringBuilder();
+        int added = AddMissingZones(log);
+        if (added > 0) EditorSceneManager.MarkSceneDirty(scene);
+        string msg = added > 0
+            ? $"✓ {added} zona(s) adicionada(s):\n{log}"
+            : $"Nenhuma zona nova necessária.\n{log}";
+        EditorUtility.DisplayDialog("Solengard — Add Missing Zones", msg, "OK");
+    }
+
+    [MenuItem("Solengard/Setup/Add Missing Zones", validate = true)]
+    static bool ValidateAddMissingZones() =>
+        !string.IsNullOrEmpty(EditorSceneManager.GetActiveScene().name);
+
+    // ── Setup/Setup Biome Props ──────────────────────────────────────────────────
+
+    [MenuItem("Solengard/Setup/Setup Biome Props")]
+    static void MenuSetupBiomeProps()
+    {
+        if (!ValidateScene(out var scene)) return;
+        var log    = new StringBuilder();
+        int total  = SetupBiomeProps(log);
+        if (total > 0) EditorSceneManager.MarkSceneDirty(scene);
+        string msg = total > 0
+            ? $"✓ {total} prefab(s) atribuído(s) em biomeProps:\n{log}"
+            : $"Nenhum prefab atribuído — verifique Assets/Prefabs/Environment/.\n{log}";
+        EditorUtility.DisplayDialog("Solengard — Setup Biome Props", msg, "OK");
+    }
+
+    [MenuItem("Solengard/Setup/Setup Biome Props", validate = true)]
+    static bool ValidateSetupBiomeProps() =>
+        !string.IsNullOrEmpty(EditorSceneManager.GetActiveScene().name);
 
     // ── Debug ────────────────────────────────────────────────────────────────────
 
@@ -1571,6 +1787,168 @@ public static class SolengardSetup
 
         log.AppendLine($"  ProceduralArenaSystem.posicoesObstaculoCandidatas → {pos.Length} posições adicionadas");
         return 1;
+    }
+
+    // Appende zonas 6-15 no ZoneManager serializado da cena (idempotente).
+    static int AddMissingZones(StringBuilder log)
+    {
+        var zm = Object.FindFirstObjectByType<ZoneManager>(FindObjectsInactive.Include);
+        if (zm == null) { log.AppendLine("  ZoneManager não encontrado."); return 0; }
+
+        var so        = new SerializedObject(zm);
+        var zonesProp = so.FindProperty("zones");
+        if (zonesProp == null) { log.AppendLine("  Propriedade 'zones' não encontrada."); return 0; }
+
+        int existing = zonesProp.arraySize;
+        if (existing >= 15) { log.AppendLine($"  Zonas completas ({existing} entradas — nada a fazer)."); return 0; }
+        if (existing < 5)   { log.AppendLine($"  Zonas originais incompletas ({existing}/5) — rode 'Setup All' primeiro."); return 0; }
+
+        // (nome, biomeEnumIndex, hp, spd, dmg, spawnMax, spawnInterval)
+        // Biome enum: 0=Veremoth,1=Khorduum,2=Valdross,3=Gorveth,4=Arkenfall,
+        //             5=Dungeon,6=Desert,7=Winter,8=GlowingCave
+        var defs = new (string nome, int biome, float hp, float spd, float dmg, int max, float interval)[]
+        {
+            ("Catacumbas de Drenhar",        5,  8f, 2.0f,  4.5f,  90, 0.23f),
+            ("Necrópole de Valgrath",         2, 10f, 2.1f,  5.0f,  90, 0.22f),
+            ("Cavernas de Crysthorm",         8, 12f, 2.2f,  5.5f,  95, 0.21f),
+            ("Ruínas de Kaelthar",            6, 15f, 2.3f,  6.0f,  95, 0.20f),
+            ("Fortaleza de Duskmore",         5, 18f, 2.4f,  6.5f, 100, 0.19f),
+            ("Planícies Geladas de Norrath",  7, 20f, 2.5f,  7.0f, 100, 0.18f),
+            ("Abismo de Skarveth",            8, 24f, 2.6f,  7.5f, 105, 0.17f),
+            ("Pântano de Morghul",            3, 28f, 2.7f,  8.0f, 105, 0.16f),
+            ("Desfiladeiro de Thornweld",     6, 32f, 2.8f,  8.5f, 110, 0.15f),
+            ("Cidadela de Rakthorr",          5, 40f, 3.0f, 10.0f, 110, 0.14f),
+        };
+
+        int added = 0;
+        for (int defIdx = existing - 5; defIdx < defs.Length; defIdx++)
+        {
+            if (defIdx < 0) continue; // pula defs que já existem como zonas 1-5
+            var d = defs[defIdx];
+            int arrIdx = zonesProp.arraySize;
+            zonesProp.InsertArrayElementAtIndex(arrIdx);
+            var zp = zonesProp.GetArrayElementAtIndex(arrIdx);
+            zp.FindPropertyRelative("nome").stringValue             = d.nome;
+            zp.FindPropertyRelative("biome").enumValueIndex         = d.biome;
+            zp.FindPropertyRelative("hpMultiplier").floatValue      = d.hp;
+            zp.FindPropertyRelative("speedMultiplier").floatValue   = d.spd;
+            zp.FindPropertyRelative("damageMultiplier").floatValue  = d.dmg;
+            zp.FindPropertyRelative("spawnMax").intValue            = d.max;
+            zp.FindPropertyRelative("spawnInterval").floatValue     = d.interval;
+            zp.FindPropertyRelative("durationSeconds").floatValue   = 600f;
+            zp.FindPropertyRelative("bossSpawnAt").floatValue       = 480f;
+            zp.FindPropertyRelative("bossTimeLimit").floatValue     = 120f;
+            log.AppendLine($"  Zona {arrIdx + 1} — {d.nome}");
+            added++;
+        }
+
+        so.ApplyModifiedProperties();
+        return added;
+    }
+
+    // Popula WorldChunkManager.biomeProps[0..8] com Object-prefabs de cada Season (idempotente: limpa e reconstrói).
+    static int SetupBiomeProps(StringBuilder log)
+    {
+        var wcm = Object.FindFirstObjectByType<WorldChunkManager>(FindObjectsInactive.Include);
+        if (wcm == null) { log.AppendLine("  WorldChunkManager não encontrado."); return 0; }
+
+        // biomeIndex → Season folders a incluir
+        // índices: 0=Veremoth,1=Khorduum,2=Valdross,3=Gorveth,4=Arkenfall,
+        //          5=Dungeon,6=Desert,7=Winter,8=GlowingCave,9=Necropolis,10=FortressDark
+        var biomeSeasons = new string[][]
+        {
+            new[]{ "Season2", "Season3" },              // 0 Veremoth
+            new[]{ "Season5" },                         // 1 Khorduum
+            new[]{ "Season6", "Season7", "Season11" },  // 2 Valdross
+            new[]{ "Season4", "Season6", "Season11" },  // 3 Gorveth (Swamp + Undead + Undead2)
+            new[]{ "Season1" },                         // 4 Arkenfall
+            new[]{ "Season1", "Season9" },              // 5 Dungeon
+            new[]{ "Season12" },                        // 6 Desert
+            new[]{ "Season10" },                        // 7 Winter
+            new[]{ "Season8" },                         // 8 GlowingCave
+            new[]{ "Season11", "Season7" },             // 9 Necropolis (Undead2 + Cursed)
+            new[]{ "Season1" },                         // 10 FortressDark (Dungeon props, piso diferente)
+        };
+
+        var so     = new SerializedObject(wcm);
+        var bpProp = so.FindProperty("biomeProps");
+        if (bpProp == null) { log.AppendLine("  Propriedade 'biomeProps' não encontrada."); return 0; }
+
+        // Garante 11 entradas
+        while (bpProp.arraySize < 11)
+            bpProp.InsertArrayElementAtIndex(bpProp.arraySize);
+
+        int totalPrefabs = 0;
+        for (int b = 0; b < 11; b++)
+        {
+            var biomeEntry  = bpProp.GetArrayElementAtIndex(b);
+            var prefabsProp = biomeEntry.FindPropertyRelative("prefabs");
+            if (prefabsProp == null) continue;
+            prefabsProp.ClearArray();
+
+            int countForBiome = 0;
+            foreach (var season in biomeSeasons[b])
+            {
+                string folder = $"Assets/Prefabs/Environment/{season}";
+                if (!AssetDatabase.IsValidFolder(folder)) continue;
+
+                string[] guids = AssetDatabase.FindAssets("t:Prefab", new[]{ folder });
+                foreach (string guid in guids)
+                {
+                    string path     = AssetDatabase.GUIDToAssetPath(guid);
+                    string prefName = System.IO.Path.GetFileNameWithoutExtension(path);
+                    // Excluir prefabs de chão — apenas props decorativos
+                    if (prefName.IndexOf("Floor", System.StringComparison.OrdinalIgnoreCase) >= 0) continue;
+                    // Excluir árvores de biomas sem vegetação
+                    if ((b == 4 || b == 5 || b == 10) && prefName.IndexOf("Tree", System.StringComparison.OrdinalIgnoreCase) >= 0) continue;
+                    // Excluir DungeonObject (fire_trap sprite — repetitivo em Arkenfall/Dungeon)
+                    if ((b == 4 || b == 5) && prefName.Equals("DungeonObject", System.StringComparison.OrdinalIgnoreCase)) continue;
+
+                    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                    if (prefab == null) continue;
+
+                    int idx = prefabsProp.arraySize;
+                    prefabsProp.InsertArrayElementAtIndex(idx);
+                    prefabsProp.GetArrayElementAtIndex(idx).objectReferenceValue = prefab;
+                    countForBiome++;
+                    totalPrefabs++;
+                }
+            }
+            log.AppendLine($"  biomeProps[{b}]: {countForBiome} prefab(s)");
+        }
+
+        // Pool neutro: Season5 (pedras/cristais de Khorduum) + Season6 (ossos de Valdross)
+        // sem árvores, sem chão — funciona como preenchimento universal para biomas com poucos props
+        var neutralPropProp = so.FindProperty("sharedNeutralProps")?.FindPropertyRelative("prefabs");
+        if (neutralPropProp != null)
+        {
+            neutralPropProp.ClearArray();
+            string[] neutralSeasons = { "Season5", "Season6" };
+            int neutralCount = 0;
+            foreach (var season in neutralSeasons)
+            {
+                string folder = $"Assets/Prefabs/Environment/{season}";
+                if (!AssetDatabase.IsValidFolder(folder)) continue;
+                string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { folder });
+                foreach (string guid in guids)
+                {
+                    string path     = AssetDatabase.GUIDToAssetPath(guid);
+                    string prefName = System.IO.Path.GetFileNameWithoutExtension(path);
+                    if (prefName.IndexOf("Floor", System.StringComparison.OrdinalIgnoreCase) >= 0) continue;
+                    if (prefName.IndexOf("Tree",  System.StringComparison.OrdinalIgnoreCase) >= 0) continue;
+                    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                    if (prefab == null) continue;
+                    int idx = neutralPropProp.arraySize;
+                    neutralPropProp.InsertArrayElementAtIndex(idx);
+                    neutralPropProp.GetArrayElementAtIndex(idx).objectReferenceValue = prefab;
+                    neutralCount++;
+                }
+            }
+            log.AppendLine($"  sharedNeutralProps: {neutralCount} prefab(s) (Season5+Season6)");
+        }
+
+        so.ApplyModifiedProperties();
+        return totalPrefabs;
     }
 
     static int TryAddEnemyPrefabsToZoneManager(StringBuilder log)

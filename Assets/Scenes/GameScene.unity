@@ -983,6 +983,9 @@ MonoBehaviour:
     - {fileID: 8408482045482446091, guid: a8609db5bde26ae4587768e3123469e7, type: 3}
     - {fileID: 6334211253842085451, guid: ff5f0444e61e8464cbd607de9f9cc9d5, type: 3}
     - {fileID: 7912807704695832172, guid: 3c85a22dd6fba7e498952365be642c58, type: 3}
+    - {fileID: 2966612035653634001, guid: 84a9592f475bac9498d1f2d2a9143352, type: 3}
+    - {fileID: 6073638095494067957, guid: e288848610e30b74b8de30fc329bff99, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
     bossPrefabs:
     - {fileID: 9089687885378820267, guid: 3458a797a4ccaea41a2e2d80688de065, type: 3}
   - nome: Cavernas de Khorduum
@@ -1001,6 +1004,12 @@ MonoBehaviour:
     - {fileID: 406709539294757317, guid: 69cf55dff49f95840b48979500475b11, type: 3}
     - {fileID: 5756358833708670414, guid: b471a1e046b23944e8c5662b0a1a4f86, type: 3}
     - {fileID: 9061953086274501083, guid: f209d0afb13545943b74d91531201b23, type: 3}
+    - {fileID: 4493177084965260018, guid: 9f32e07aab31ffe4f973dc725d122270, type: 3}
+    - {fileID: 6749682651152510143, guid: 8ab0fbbf32a24fe4e85bc3a5ed363185, type: 3}
+    - {fileID: 8223484334428390010, guid: dee3032a2947996498a3daf45ea59495, type: 3}
+    - {fileID: 4855647327307029401, guid: e1a7e8d02da0ac84e950fed36140acc4, type: 3}
+    - {fileID: 8051007042060825214, guid: 8d7dcc4f637000144a5bc93451c31d22, type: 3}
+    - {fileID: 1481988631767737244, guid: 7d87cbed97bd1ab468d174f743c12146, type: 3}
     bossPrefabs:
     - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
   - nome: "Cemit\xE9rio de Valdross"
@@ -1019,6 +1028,12 @@ MonoBehaviour:
     - {fileID: 5659996138076385141, guid: efa06df3c0ca94e46922c1562dbcd5e1, type: 3}
     - {fileID: 9215062908929531386, guid: 451ce2ef450355649b68ede20547ce6e, type: 3}
     - {fileID: 3582763176952243569, guid: 737ca5f3d674c4f4f879c3f9110ed792, type: 3}
+    - {fileID: 4855647327307029401, guid: e1a7e8d02da0ac84e950fed36140acc4, type: 3}
+    - {fileID: 8051007042060825214, guid: 8d7dcc4f637000144a5bc93451c31d22, type: 3}
+    - {fileID: 1481988631767737244, guid: 7d87cbed97bd1ab468d174f743c12146, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
     - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
   - nome: "P\xE2ntano de Gorveth"
@@ -1037,6 +1052,12 @@ MonoBehaviour:
     - {fileID: 4650313069062299504, guid: e5e0a8e866e47e8428c8a56c4ff19782, type: 3}
     - {fileID: 3361931568106173914, guid: aaa6438c163c4be48b1c397fb349c0e2, type: 3}
     - {fileID: 9059335513874865513, guid: e7a2feaac6ceff042b213d58f8b52d43, type: 3}
+    - {fileID: 2966612035653634001, guid: 84a9592f475bac9498d1f2d2a9143352, type: 3}
+    - {fileID: 6073638095494067957, guid: e288848610e30b74b8de30fc329bff99, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 4493177084965260018, guid: 9f32e07aab31ffe4f973dc725d122270, type: 3}
+    - {fileID: 6749682651152510143, guid: 8ab0fbbf32a24fe4e85bc3a5ed363185, type: 3}
+    - {fileID: 8223484334428390010, guid: dee3032a2947996498a3daf45ea59495, type: 3}
     bossPrefabs:
     - {fileID: 8905800565225863028, guid: 0f29ec9eba5e46242bf39aabb5bd3802, type: 3}
   - nome: Campo de Arkenfall
@@ -1054,7 +1075,240 @@ MonoBehaviour:
     - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
     - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
     - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
-    - {fileID: 3843082602649869815, guid: 8743d867d30647b44b3f9ad2568aa65d, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
+    bossPrefabs:
+    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
+    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
+    - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
+  - nome: Catacumbas de Drenhar
+    biome: 5
+    durationSeconds: 600
+    bossSpawnAt: 480
+    bossTimeLimit: 120
+    hpMultiplier: 8
+    speedMultiplier: 2
+    damageMultiplier: 4.5
+    spawnMax: 90
+    spawnInterval: 0.23
+    enemyPrefabs:
+    - {fileID: 5315339673292536810, guid: 21ac602ecda8a3540880651521af77ff, type: 3}
+    - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
+    - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
+    - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
+    bossPrefabs:
+    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
+    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
+    - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
+  - nome: "Necr\xF3pole de Valgrath"
+    biome: 2
+    durationSeconds: 600
+    bossSpawnAt: 480
+    bossTimeLimit: 120
+    hpMultiplier: 10
+    speedMultiplier: 2.1
+    damageMultiplier: 5
+    spawnMax: 90
+    spawnInterval: 0.22
+    enemyPrefabs:
+    - {fileID: 5315339673292536810, guid: 21ac602ecda8a3540880651521af77ff, type: 3}
+    - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
+    - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
+    - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
+    bossPrefabs:
+    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
+    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
+    - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
+  - nome: Cavernas de Crysthorm
+    biome: 8
+    durationSeconds: 600
+    bossSpawnAt: 480
+    bossTimeLimit: 120
+    hpMultiplier: 12
+    speedMultiplier: 2.2
+    damageMultiplier: 5.5
+    spawnMax: 95
+    spawnInterval: 0.21
+    enemyPrefabs:
+    - {fileID: 5315339673292536810, guid: 21ac602ecda8a3540880651521af77ff, type: 3}
+    - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
+    - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
+    - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
+    bossPrefabs:
+    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
+    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
+    - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
+  - nome: "Ru\xEDnas de Kaelthar"
+    biome: 6
+    durationSeconds: 600
+    bossSpawnAt: 480
+    bossTimeLimit: 120
+    hpMultiplier: 15
+    speedMultiplier: 2.3
+    damageMultiplier: 6
+    spawnMax: 95
+    spawnInterval: 0.2
+    enemyPrefabs:
+    - {fileID: 5315339673292536810, guid: 21ac602ecda8a3540880651521af77ff, type: 3}
+    - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
+    - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
+    - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
+    bossPrefabs:
+    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
+    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
+    - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
+  - nome: Fortaleza de Duskmore
+    biome: 5
+    durationSeconds: 600
+    bossSpawnAt: 480
+    bossTimeLimit: 120
+    hpMultiplier: 18
+    speedMultiplier: 2.4
+    damageMultiplier: 6.5
+    spawnMax: 100
+    spawnInterval: 0.19
+    enemyPrefabs:
+    - {fileID: 5315339673292536810, guid: 21ac602ecda8a3540880651521af77ff, type: 3}
+    - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
+    - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
+    - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
+    bossPrefabs:
+    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
+    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
+    - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
+  - nome: "Plan\xEDcies Geladas de Norrath"
+    biome: 7
+    durationSeconds: 600
+    bossSpawnAt: 480
+    bossTimeLimit: 120
+    hpMultiplier: 20
+    speedMultiplier: 2.5
+    damageMultiplier: 7
+    spawnMax: 100
+    spawnInterval: 0.18
+    enemyPrefabs:
+    - {fileID: 5315339673292536810, guid: 21ac602ecda8a3540880651521af77ff, type: 3}
+    - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
+    - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
+    - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
+    bossPrefabs:
+    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
+    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
+    - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
+  - nome: Abismo de Skarveth
+    biome: 8
+    durationSeconds: 600
+    bossSpawnAt: 480
+    bossTimeLimit: 120
+    hpMultiplier: 24
+    speedMultiplier: 2.6
+    damageMultiplier: 7.5
+    spawnMax: 105
+    spawnInterval: 0.17
+    enemyPrefabs:
+    - {fileID: 5315339673292536810, guid: 21ac602ecda8a3540880651521af77ff, type: 3}
+    - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
+    - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
+    - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
+    bossPrefabs:
+    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
+    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
+    - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
+  - nome: "P\xE2ntano de Morghul"
+    biome: 3
+    durationSeconds: 600
+    bossSpawnAt: 480
+    bossTimeLimit: 120
+    hpMultiplier: 28
+    speedMultiplier: 2.7
+    damageMultiplier: 8
+    spawnMax: 105
+    spawnInterval: 0.16
+    enemyPrefabs:
+    - {fileID: 5315339673292536810, guid: 21ac602ecda8a3540880651521af77ff, type: 3}
+    - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
+    - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
+    - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
+    bossPrefabs:
+    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
+    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
+    - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
+  - nome: Desfiladeiro de Thornweld
+    biome: 6
+    durationSeconds: 600
+    bossSpawnAt: 480
+    bossTimeLimit: 120
+    hpMultiplier: 32
+    speedMultiplier: 2.8
+    damageMultiplier: 8.5
+    spawnMax: 110
+    spawnInterval: 0.15
+    enemyPrefabs:
+    - {fileID: 5315339673292536810, guid: 21ac602ecda8a3540880651521af77ff, type: 3}
+    - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
+    - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
+    - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
+    bossPrefabs:
+    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
+    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
+    - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
+  - nome: Cidadela de Rakthorr
+    biome: 5
+    durationSeconds: 600
+    bossSpawnAt: 480
+    bossTimeLimit: 120
+    hpMultiplier: 40
+    speedMultiplier: 3
+    damageMultiplier: 10
+    spawnMax: 110
+    spawnInterval: 0.14
+    enemyPrefabs:
+    - {fileID: 5315339673292536810, guid: 21ac602ecda8a3540880651521af77ff, type: 3}
+    - {fileID: 2565499904874591499, guid: da79d59fd4794a048abcc3a89bcd8957, type: 3}
+    - {fileID: 3863728603637630652, guid: f21c0f9cb55a3ed42b949e404be4da97, type: 3}
+    - {fileID: 5143885694587416943, guid: bf38aea3eedc2bf4eb8a21c4b8c2c68f, type: 3}
+    - {fileID: 2817277759659171510, guid: b91a4f18c1c0c984cbcf2c9a4ac46475, type: 3}
+    - {fileID: 2772864087000173136, guid: 3a5db631913c05343b76abad6a8d20b4, type: 3}
+    - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
+    - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
     - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
     - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
@@ -12331,11 +12585,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   biomeProps:
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
+  - prefabs:
+    - {fileID: 8139172456422363025, guid: b378a3da89432a840855f09063f01322, type: 3}
+    - {fileID: 8223848910886531601, guid: 4fcf0f5686c7ff74f8e98364658155f7, type: 3}
+    - {fileID: 2582029708022834187, guid: 35562e9d45c6adb419360e62628c467a, type: 3}
+    - {fileID: 5323864626059129900, guid: 728299571eb5b544f84375782de1ebda, type: 3}
+    - {fileID: 6677251361910946505, guid: 58fc8860f98e97a4d80445ba81a31f72, type: 3}
+  - prefabs:
+    - {fileID: 4247114746198152094, guid: 97324626babc84748b0541158b84b2a7, type: 3}
+    - {fileID: 7160246327931069483, guid: 0592c1a17dc4ef6449143451b0c0ebf5, type: 3}
+  - prefabs:
+    - {fileID: 8165641223207431591, guid: d8ebef3f4a6b36248a83d62cc42c1dae, type: 3}
+    - {fileID: 3124264249943697759, guid: 0e99bc63ea85ab748b57bbf0016561b1, type: 3}
+    - {fileID: 6180758141251566034, guid: c3f2663df6e165a44bc7d9c763305378, type: 3}
+  - prefabs:
+    - {fileID: 2483530393106999536, guid: b8d19b3f8bee4704096724d40e2eeb02, type: 3}
+    - {fileID: 8165641223207431591, guid: d8ebef3f4a6b36248a83d62cc42c1dae, type: 3}
+    - {fileID: 6180758141251566034, guid: c3f2663df6e165a44bc7d9c763305378, type: 3}
+  - prefabs:
+    - {fileID: 3153464172507769279, guid: 8fb1857f7553d1c4c96d19e78a522c29, type: 3}
+    - {fileID: 7549292725888509823, guid: ae57f7abd2c2de745bef48f61098e2c9, type: 3}
+  - prefabs:
+    - {fileID: 3153464172507769279, guid: 8fb1857f7553d1c4c96d19e78a522c29, type: 3}
+    - {fileID: 7549292725888509823, guid: ae57f7abd2c2de745bef48f61098e2c9, type: 3}
+  - prefabs:
+    - {fileID: 7964161706049832482, guid: c014e65c1449bf2419964690b5654f63, type: 3}
+  - prefabs:
+    - {fileID: 2166992452022813397, guid: a34ea75076f43c14398e0948826144f8, type: 3}
+  - prefabs:
+    - {fileID: 5611223987592664639, guid: ca4eb66a34d2a254997e2a049e3cbb43, type: 3}
+  - prefabs:
+    - {fileID: 6180758141251566034, guid: c3f2663df6e165a44bc7d9c763305378, type: 3}
+    - {fileID: 3124264249943697759, guid: 0e99bc63ea85ab748b57bbf0016561b1, type: 3}
+  - prefabs:
+    - {fileID: 3153464172507769279, guid: 8fb1857f7553d1c4c96d19e78a522c29, type: 3}
+    - {fileID: 7549292725888509823, guid: ae57f7abd2c2de745bef48f61098e2c9, type: 3}
 --- !u!4 &1990160304
 Transform:
   m_ObjectHideFlags: 0

@@ -89,6 +89,26 @@ public static class SolengardAnimationSetup
         new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyOrcHeavy.prefab",  spriteFolder = "Assets/Art/Characters/Enemies/Orc/PNG/Orc1/Without_shadow" },
         new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyOrcHeavy2.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Orc/PNG/Orc2/Without_shadow" },
         new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyOrcHeavy3.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Orc/PNG/Orc3/Without_shadow" },
+
+        // ── Lizardman ────────────────────────────────────────────────────────────────
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyLizardman.prefab",  spriteFolder = "Assets/Art/Characters/Enemies/Lizardman/PNG/Lizardman1/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyLizardman2.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Lizardman/PNG/Lizardman2/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyLizardman3.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Lizardman/PNG/Lizardman3/Without_shadow" },
+
+        // ── Mushroom ─────────────────────────────────────────────────────────────────
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyMushroom.prefab",  spriteFolder = "Assets/Art/Characters/Enemies/Mushroom/PNG/Mushroom1/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyMushroom2.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Mushroom/PNG/Mushroom2/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyMushroom3.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Mushroom/PNG/Mushroom3/Without_shadow" },
+
+        // ── Rat ──────────────────────────────────────────────────────────────────────
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyRat.prefab",  spriteFolder = "Assets/Art/Characters/Enemies/Rat/PNG/Rat1/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyRat2.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Rat/PNG/Rat2/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyRat3.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Rat/PNG/Rat3/Without_shadow" },
+
+        // ── Vampire (pasta no disco: Vampires{n}) ────────────────────────────────────
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyVampire.prefab",  spriteFolder = "Assets/Art/Characters/Enemies/Vampire/PNG/Vampires1/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyVampire2.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Vampire/PNG/Vampires2/Without_shadow" },
+        new Entry { prefabPath = "Assets/Prefabs/Enemies/EnemyVampire3.prefab", spriteFolder = "Assets/Art/Characters/Enemies/Vampire/PNG/Vampires3/Without_shadow" },
     };
 
     const string BOSS_ROOT = "Assets/Art/Characters/Enemies/Boss";

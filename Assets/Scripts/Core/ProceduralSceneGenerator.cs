@@ -67,7 +67,10 @@ public class ProceduralSceneGenerator : MonoBehaviour
     public int globalSeed = 0; // 0 = aleatório no Awake
 
     [Header("Config por bioma")]
-    public BiomeVisualConfig[] biomes = new BiomeVisualConfig[5];
+    public BiomeVisualConfig[] biomes = new BiomeVisualConfig[11];
+
+    // false = névoa desligada globalmente (AtmosphereController + ProceduralFog inativos)
+    public static bool FogEnabled = false;
 
     [Header("Chão (FIX 1/2)")]
     [Tooltip("128 = mobile seguro; 256 = mais detalhe se não houver stutter")]
@@ -105,7 +108,7 @@ public class ProceduralSceneGenerator : MonoBehaviour
     // Item 3b: auto-setup — névoa/partículas/vinheta existem mesmo sem Rebuild
     void EnsureAtmosphereSystems()
     {
-        if (FindFirstObjectByType<ProceduralFog>() == null)
+        if (FogEnabled && FindFirstObjectByType<ProceduralFog>() == null)
             new GameObject("ProceduralFog").AddComponent<ProceduralFog>();
         if (FindFirstObjectByType<ProceduralParticles>() == null)
             new GameObject("ProceduralParticles").AddComponent<ProceduralParticles>();
@@ -180,7 +183,8 @@ public class ProceduralSceneGenerator : MonoBehaviour
     // pelo motor (seed + densidade), a menos que useProceduralProps = true.
     public void GenerateChunk(GameObject chunkRoot, int chunkX, int chunkY,
         int biomeId, float chunkSize,
-        List<GameObject> craftpixPrefabs = null, int craftpixCount = 12)
+        List<GameObject> craftpixPrefabs = null, int craftpixCount = 12,
+        List<GameObject> neutralPrefabs = null)
     {
         int seed = GetChunkSeed(chunkX, chunkY);
         var biome = biomes[Mathf.Clamp(biomeId, 0, biomes.Length - 1)];
@@ -214,7 +218,7 @@ public class ProceduralSceneGenerator : MonoBehaviour
         {
             // Item 1a: amortizado — máx. 3 props por frame, via pool
             StartCoroutine(PlaceCraftpixPropsAsync(chunkRoot, ver, seed, biomeId,
-                craftpixPrefabs, craftpixCount, chunkSize, densityMult, allowTrees, biome));
+                craftpixPrefabs, craftpixCount, chunkSize, densityMult, allowTrees, biome, neutralPrefabs));
         }
     }
 
@@ -222,7 +226,8 @@ public class ProceduralSceneGenerator : MonoBehaviour
     // Chão construído aqui mesmo; props ainda amortizados (3/frame) via coroutine.
     public void GenerateChunkSync(GameObject chunkRoot, int chunkX, int chunkY,
         int biomeId, float chunkSize,
-        List<GameObject> craftpixPrefabs = null, int craftpixCount = 12)
+        List<GameObject> craftpixPrefabs = null, int craftpixCount = 12,
+        List<GameObject> neutralPrefabs = null)
     {
         int seed  = GetChunkSeed(chunkX, chunkY);
         var biome = biomes[Mathf.Clamp(biomeId, 0, biomes.Length - 1)];
@@ -239,7 +244,7 @@ public class ProceduralSceneGenerator : MonoBehaviour
 
         if (!useProceduralProps)
             StartCoroutine(PlaceCraftpixPropsAsync(chunkRoot, ver, seed, biomeId,
-                craftpixPrefabs, craftpixCount, chunkSize, densityMult, allowTrees, biome));
+                craftpixPrefabs, craftpixCount, chunkSize, densityMult, allowTrees, biome, neutralPrefabs));
         else
         {
             _emissiveSpots.Clear();
@@ -331,63 +336,139 @@ public class ProceduralSceneGenerator : MonoBehaviour
         AssignGroundSprite(sr, go, tex, size, key);
     }
 
-    // FIX 4 + Item 1 — props Craftpix com POSICIONAMENTO procedural, via pool,
-    // amortizado em 3 props/frame. Seed decide posição/quantidade (determinístico);
-    // tint de bioma e Y-sorting idênticos ao ChunkInstance original.
+    // Props Craftpix com posicionamento procedural, pool de props neutros, distribuição
+    // orgânica via Perlin noise, distância mínima global e variação visual por instância.
     IEnumerator PlaceCraftpixPropsAsync(GameObject root, int version, int seed,
         int biomeId, List<GameObject> prefabs, int count, float size,
-        float densityMult, bool allowTrees, BiomeVisualConfig biome)
+        float densityMult, bool allowTrees, BiomeVisualConfig biome,
+        List<GameObject> neutralPrefabs = null)
     {
-        var spots = new List<Vector3>(8); // local: chunks geram em paralelo
+        var spots = new List<Vector3>(8);
 
-        if (prefabs != null && prefabs.Count > 0)
+        bool hasSpecific = prefabs       != null && prefabs.Count       > 0;
+        bool hasNeutral  = neutralPrefabs != null && neutralPrefabs.Count > 0;
+
+        if (hasSpecific || hasNeutral)
         {
             var rng = new System.Random(seed);
-            int total = Mathf.RoundToInt(count * 1.3f * densityMult); // base +30% (Item 2)
-            float half = size * 0.5f;
-            float margin = size * 0.1f;
-            int placedThisFrame = 0;
+            int totalPrefabCount = (hasSpecific ? prefabs.Count : 0) + (hasNeutral ? neutralPrefabs.Count : 0);
+            int effectiveCount   = totalPrefabCount <= 2 ? Mathf.Max(totalPrefabCount * 4, 6) : count;
+            int total            = Mathf.RoundToInt(effectiveCount * 1.3f * densityMult);
+            float half           = size * 0.5f;
+            float margin         = size * 0.1f;
+            int placedThisFrame  = 0;
+
+            const float MIN_SAME_PROP_DIST = 3.5f;
+            const float MIN_GLOBAL_DIST    = 1.2f;
+            var placedByType = new Dictionary<int, List<Vector2>>();
+            var allPlaced    = new List<Vector2>(total);
+
+            float worldCX = root != null ? root.transform.position.x : 0f;
+            float worldCY = root != null ? root.transform.position.y : 0f;
 
             for (int i = 0; i < total; i++)
             {
-                // rng sempre consumido na mesma ordem → determinismo por seed
-                int pi = rng.Next(prefabs.Count);
-                float x = (float)(rng.NextDouble() * (size - margin * 2) - (half - margin));
-                float y = (float)(rng.NextDouble() * (size - margin * 2) - (half - margin));
+                // Pool selection: 40% neutro se disponível
+                bool useNeutral  = hasNeutral && (!hasSpecific || rng.Next(10) < 4);
+                var  pool        = useNeutral ? neutralPrefabs : prefabs;
+                int  poolBase    = useNeutral ? (hasSpecific ? prefabs.Count : 0) : 0;
+                int  pi          = rng.Next(pool.Count) + poolBase;
+                var  selectedPfb = pool[pi - poolBase];
 
-                if (prefabs[pi] == null) continue;
-                // centro do chunk protegido (área de combate)
-                if (Mathf.Abs(x) < size * 0.15f && Mathf.Abs(y) < size * 0.15f) continue;
-                // área aberta: sem árvores
-                if (!allowTrees && prefabs[pi].name.Contains("Tree")) continue;
+                if (selectedPfb == null) continue;
+                if (!allowTrees && selectedPfb.name.Contains("Tree")) continue;
 
-                // chunk reciclado durante o placement? abortar
+                // Tentativas de posicionamento: valida combate, Perlin, global e same-type
+                float x = 0f, y = 0f;
+                var pos2d = Vector2.zero;
+                bool validPos = false;
+                for (int attempt = 0; attempt < 4 && !validPos; attempt++)
+                {
+                    x     = (float)(rng.NextDouble() * (size - margin * 2) - (half - margin));
+                    y     = (float)(rng.NextDouble() * (size - margin * 2) - (half - margin));
+                    pos2d = new Vector2(x, y);
+
+                    // Área central (combate)
+                    if (Mathf.Abs(x) < size * 0.15f && Mathf.Abs(y) < size * 0.15f) continue;
+
+                    // Distribuição orgânica via Perlin — cria clareiras naturais
+                    float nx = (worldCX + x) * 0.12f + seed * 0.001f;
+                    float ny = (worldCY + y) * 0.12f + seed * 0.001f;
+                    if (Mathf.PerlinNoise(nx, ny) < 0.22f) continue;
+
+                    // Distância mínima global (qualquer par de props)
+                    bool gClose = false;
+                    foreach (var p in allPlaced)
+                        if ((p - pos2d).sqrMagnitude < MIN_GLOBAL_DIST * MIN_GLOBAL_DIST) { gClose = true; break; }
+                    if (gClose) continue;
+
+                    // Distância mínima por tipo
+                    bool sClose = false;
+                    if (placedByType.TryGetValue(pi, out var prev))
+                        foreach (var p in prev)
+                            if ((p - pos2d).sqrMagnitude < MIN_SAME_PROP_DIST * MIN_SAME_PROP_DIST) { sClose = true; break; }
+                    if (sClose) continue;
+
+                    validPos = true;
+                }
+                if (!validPos) continue;
+
+                if (!placedByType.TryGetValue(pi, out var list))
+                    placedByType[pi] = list = new List<Vector2>(8);
+                list.Add(pos2d);
+                allPlaced.Add(pos2d);
+
                 if (root == null) yield break;
                 if (!_chunkVersion.TryGetValue(root, out int cur) || cur != version) yield break;
 
                 Vector3 pos = root.transform.position + new Vector3(x, y, 0);
-                var go = GetProp(prefabs[pi], pos, root.transform);
+                var go = GetProp(selectedPfb, pos, root.transform);
 
                 var ep = go.GetComponent<EnvironmentProp>();
                 if (ep != null) ep.Initialize(seed + i * 1000);
 
+                // Escala ±15%; flip horizontal aleatório; árvores limitadas a 0.60
+                float propScale = 0.85f + (float)rng.NextDouble() * 0.30f;
+                if (selectedPfb.name.ToLower().Contains("tree"))
+                    propScale = Mathf.Min(propScale, 0.60f);
+                float flipSign = rng.Next(2) == 0 ? 1f : -1f;
+                go.transform.localScale = new Vector3(propScale * flipSign, propScale, 1f);
+
+                // Rotação livre 0-360° para props não-direcionais
+                if (CanRotateProp(selectedPfb.name))
+                    go.transform.rotation = Quaternion.Euler(0f, 0f, (float)(rng.NextDouble() * 360f));
+
                 var sr = go.GetComponentInChildren<SpriteRenderer>();
                 if (sr != null)
                 {
-                    sr.color = biomeId < ChunkInstance.BIOME_TINTS.Length
+                    // Tint com variação por instância: hue ±5°, brightness ±10%
+                    Color biomeColor = biomeId < ChunkInstance.BIOME_TINTS.Length
                         ? ChunkInstance.BIOME_TINTS[biomeId] : Color.white;
+                    Color.RGBToHSV(biomeColor, out float bH, out float bS, out float bV);
+                    float hShift = ((float)rng.NextDouble() - 0.5f) * (10f / 360f);
+                    float vMult  = 1f + ((float)rng.NextDouble() - 0.5f) * 0.20f;
+                    sr.color      = Color.HSVToRGB(Mathf.Repeat(bH + hShift, 1f), bS, Mathf.Clamp01(bV * vMult));
                     sr.sortingOrder = Mathf.RoundToInt(-pos.y * 0.1f) + 50;
                 }
 
                 spots.Add(new Vector3(x, y, 0));
-
                 if (++placedThisFrame >= 3) { placedThisFrame = 0; yield return null; }
             }
         }
 
         if (root == null) yield break;
         if (!_chunkVersion.TryGetValue(root, out int v2) || v2 != version) yield break;
-        GenerateFakeLights(root, seed, biomeId, biome, size, spots); // Item 3d
+        GenerateFakeLights(root, seed, biomeId, biome, size, spots);
+    }
+
+    // Props sem orientação visual fixa (pedras, cogumelos, objetos decorativos)
+    // podem ser rotacionados 0/90/180/270° sem quebrar a leitura artística.
+    static bool CanRotateProp(string prefabName)
+    {
+        string n = prefabName.ToLowerInvariant();
+        return !n.Contains("guard") && !n.Contains("soldier") && !n.Contains("archer") &&
+               !n.Contains("statue") && !n.Contains("torch") && !n.Contains("sign") &&
+               !n.Contains("tree");
     }
 
     public void ClearChunk(GameObject chunkRoot)
@@ -1273,10 +1354,10 @@ public class ProceduralSceneGenerator : MonoBehaviour
         }
     }
 
-    // ---- PALETAS DOS 5 BIOMAS ----
+    // ---- PALETAS DOS 9 BIOMAS ----
     void InitDefaultBiomes()
     {
-        biomes = new BiomeVisualConfig[5];
+        biomes = new BiomeVisualConfig[11];
 
         biomes[0] = new BiomeVisualConfig { biomeName = "Veremoth",
             groundBase = new Color(0.22f,0.35f,0.18f), groundAccent = new Color(0.28f,0.42f,0.22f),
@@ -1327,5 +1408,67 @@ public class ProceduralSceneGenerator : MonoBehaviour
             bushColor = new Color(0.12f,0.08f,0.04f), bushLight = new Color(1.00f,0.42f,0.10f),
             fogColor = new Color(0.23f,0.08f,0.04f), particleColor = new Color(1.00f,0.42f,0.10f),
             fogDensity = 0.30f, treeCount = 2, rockCount = 8, bushCount = 4 };
+
+        // ── Biomas novos — zonas 6-15 ────────────────────────────────────────────
+
+        biomes[5] = new BiomeVisualConfig { biomeName = "Dungeon",
+            groundBase = new Color(0.10f,0.10f,0.16f), groundAccent = new Color(0.16f,0.16f,0.22f),
+            groundHighlight = new Color(0.24f,0.24f,0.32f), groundShadow = new Color(0.04f,0.04f,0.08f),
+            treeBase = new Color(0.08f,0.08f,0.12f), treeMid = new Color(0.12f,0.12f,0.18f),
+            treeTopLight = new Color(0.28f,0.28f,0.38f), treeTopDark = new Color(0.10f,0.10f,0.16f),
+            rockColor = new Color(0.15f,0.15f,0.20f), rockDark = new Color(0.06f,0.06f,0.10f),
+            bushColor = new Color(0.10f,0.10f,0.15f), bushLight = new Color(0.22f,0.22f,0.32f),
+            fogColor = new Color(0.15f,0.12f,0.28f), particleColor = new Color(0.25f,0.25f,0.31f),
+            fogDensity = 0.55f, treeCount = 2, rockCount = 8, bushCount = 3 };
+
+        biomes[6] = new BiomeVisualConfig { biomeName = "Desert",
+            groundBase = new Color(0.78f,0.63f,0.38f), groundAccent = new Color(0.69f,0.50f,0.25f),
+            groundHighlight = new Color(0.88f,0.74f,0.50f), groundShadow = new Color(0.38f,0.25f,0.10f),
+            treeBase = new Color(0.28f,0.18f,0.06f), treeMid = new Color(0.36f,0.24f,0.10f),
+            treeTopLight = new Color(0.52f,0.38f,0.16f), treeTopDark = new Color(0.30f,0.20f,0.08f),
+            rockColor = new Color(0.62f,0.48f,0.28f), rockDark = new Color(0.40f,0.28f,0.12f),
+            bushColor = new Color(0.42f,0.30f,0.12f), bushLight = new Color(0.58f,0.44f,0.20f),
+            fogColor = new Color(0.65f,0.50f,0.22f), particleColor = new Color(0.83f,0.66f,0.25f),
+            fogDensity = 0.18f, treeCount = 1, rockCount = 8, bushCount = 3 };
+
+        biomes[7] = new BiomeVisualConfig { biomeName = "Winter",
+            groundBase = new Color(0.82f,0.91f,1.00f), groundAccent = new Color(0.69f,0.78f,0.91f),
+            groundHighlight = new Color(0.94f,0.97f,1.00f), groundShadow = new Color(0.45f,0.58f,0.75f),
+            treeBase = new Color(0.10f,0.10f,0.14f), treeMid = new Color(0.16f,0.16f,0.22f),
+            treeTopLight = new Color(0.90f,0.95f,1.00f), treeTopDark = new Color(0.65f,0.75f,0.88f),
+            rockColor = new Color(0.68f,0.76f,0.88f), rockDark = new Color(0.40f,0.50f,0.65f),
+            bushColor = new Color(0.68f,0.78f,0.90f), bushLight = new Color(0.88f,0.94f,1.00f),
+            fogColor = new Color(0.55f,0.68f,0.88f), particleColor = new Color(0.63f,0.75f,0.88f),
+            fogDensity = 0.45f, treeCount = 3, rockCount = 5, bushCount = 6 };
+
+        biomes[8] = new BiomeVisualConfig { biomeName = "GlowingCave",
+            groundBase = new Color(0.04f,0.16f,0.35f), groundAccent = new Color(0.04f,0.23f,0.48f),
+            groundHighlight = new Color(0.08f,0.36f,0.68f), groundShadow = new Color(0.01f,0.06f,0.14f),
+            treeBase = new Color(0.03f,0.12f,0.26f), treeMid = new Color(0.04f,0.18f,0.38f),
+            treeTopLight = new Color(0.20f,0.62f,1.00f), treeTopDark = new Color(0.08f,0.32f,0.70f),
+            rockColor = new Color(0.05f,0.18f,0.40f), rockDark = new Color(0.02f,0.08f,0.18f),
+            bushColor = new Color(0.04f,0.18f,0.40f), bushLight = new Color(0.14f,0.58f,1.00f),
+            fogColor = new Color(0.04f,0.14f,0.42f), particleColor = new Color(0.13f,0.50f,1.00f),
+            fogDensity = 0.38f, treeCount = 3, rockCount = 7, bushCount = 5 };
+
+        biomes[9] = new BiomeVisualConfig { biomeName = "Necropolis",
+            groundBase = new Color(0.16f,0.10f,0.23f), groundAccent = new Color(0.23f,0.16f,0.29f),
+            groundHighlight = new Color(0.32f,0.22f,0.40f), groundShadow = new Color(0.08f,0.05f,0.12f),
+            treeBase = new Color(0.10f,0.06f,0.14f), treeMid = new Color(0.15f,0.10f,0.20f),
+            treeTopLight = new Color(0.35f,0.22f,0.48f), treeTopDark = new Color(0.18f,0.10f,0.25f),
+            rockColor = new Color(0.20f,0.13f,0.28f), rockDark = new Color(0.10f,0.07f,0.15f),
+            bushColor = new Color(0.15f,0.10f,0.22f), bushLight = new Color(0.45f,0.28f,0.65f),
+            fogColor = new Color(0.28f,0.14f,0.40f), particleColor = new Color(0.38f,0.25f,0.63f),
+            fogDensity = 0.62f, treeCount = 4, rockCount = 5, bushCount = 7 };
+
+        biomes[10] = new BiomeVisualConfig { biomeName = "FortressDark",
+            groundBase = new Color(0.06f,0.06f,0.10f), groundAccent = new Color(0.10f,0.10f,0.16f),
+            groundHighlight = new Color(0.18f,0.18f,0.28f), groundShadow = new Color(0.02f,0.02f,0.05f),
+            treeBase = new Color(0.08f,0.06f,0.06f), treeMid = new Color(0.12f,0.08f,0.08f),
+            treeTopLight = new Color(0.30f,0.10f,0.10f), treeTopDark = new Color(0.14f,0.06f,0.06f),
+            rockColor = new Color(0.14f,0.08f,0.08f), rockDark = new Color(0.06f,0.04f,0.04f),
+            bushColor = new Color(0.08f,0.06f,0.06f), bushLight = new Color(0.45f,0.10f,0.10f),
+            fogColor = new Color(0.25f,0.06f,0.06f), particleColor = new Color(0.50f,0.13f,0.13f),
+            fogDensity = 0.68f, treeCount = 1, rockCount = 9, bushCount = 2 };
     }
 }
