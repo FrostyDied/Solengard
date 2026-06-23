@@ -415,35 +415,54 @@ public static class SolengardSetup
         // 3. Collect all root GOs first, then destroy cleanly
         var rootSnapshot = scene.GetRootGameObjects(); // snapshot before any destruction
 
-        GameObject mainCamGO = null;
+        // camRootGO = root scene GO containing the camera; may be CameraRig or Main Camera itself
+        GameObject camRootGO = null;
         foreach (var go in rootSnapshot)
         {
-            if (go.GetComponentInChildren<Camera>(true) != null)
-            {
-                mainCamGO = go;
-                continue;
-            }
+            if (go.GetComponentInChildren<Camera>(true) != null) { camRootGO = go; continue; }
             Object.DestroyImmediate(go);
         }
 
-        // Destroy all children of Main Camera (e.g. misplaced systems parented to it)
-        if (mainCamGO != null)
-        {
-            var children = new System.Collections.Generic.List<GameObject>();
-            foreach (Transform child in mainCamGO.transform)
-                children.Add(child.gameObject);
-            foreach (var child in children)
-                Object.DestroyImmediate(child);
+        // Determine if a rig is already present (Camera is on a child, not on camRootGO itself)
+        Camera     sceneCam    = camRootGO != null ? camRootGO.GetComponentInChildren<Camera>(true) : null;
+        GameObject actualCamGO = sceneCam?.gameObject;
+        bool       hasRig      = actualCamGO != null && actualCamGO != camRootGO;
+        // rigGO: the GO that will host CameraFollow (CameraRig or to be created below)
+        GameObject rigGO       = hasRig ? camRootGO : null;
 
-            mainCamGO.name = "Main Camera";
-            try { mainCamGO.tag = "MainCamera"; } catch { }
-            if (mainCamGO.GetComponent<AudioListener>() == null)
-                mainCamGO.AddComponent<AudioListener>();
-            var cam = mainCamGO.GetComponent<Camera>();
-            if (cam != null)
+        if (camRootGO != null)
+        {
+            if (hasRig)
             {
-                cam.clearFlags      = CameraClearFlags.SolidColor;
-                cam.backgroundColor = Color.black; // preto para não ter flash antes do fade
+                // Rig structure — remove stray children other than Main Camera
+                var rigExtras = new List<GameObject>();
+                foreach (Transform child in camRootGO.transform)
+                    if (child.gameObject != actualCamGO) rigExtras.Add(child.gameObject);
+                foreach (var extra in rigExtras) Object.DestroyImmediate(extra);
+                camRootGO.name = "CameraRig";
+            }
+            else
+            {
+                // Flat structure — camRootGO IS the Camera GO; clear its children
+                actualCamGO = camRootGO;
+                var children = new List<GameObject>();
+                foreach (Transform child in camRootGO.transform) children.Add(child.gameObject);
+                foreach (var child in children) Object.DestroyImmediate(child);
+            }
+
+            // Set up the Camera GO (name, tag, components) — always targets actualCamGO
+            if (actualCamGO != null)
+            {
+                actualCamGO.name = "Main Camera";
+                try { actualCamGO.tag = "MainCamera"; } catch { }
+                if (actualCamGO.GetComponent<AudioListener>() == null)
+                    actualCamGO.AddComponent<AudioListener>();
+                var cam = actualCamGO.GetComponent<Camera>();
+                if (cam != null)
+                {
+                    cam.clearFlags      = CameraClearFlags.SolidColor;
+                    cam.backgroundColor = Color.black;
+                }
             }
         }
 
@@ -557,18 +576,27 @@ public static class SolengardSetup
         try { playerGO.tag = "Player"; }
         catch { Debug.LogWarning("[SolengardSetup] Tag 'Player' não existe — adicione em Project Settings → Tags."); }
 
-        // Destroy ALL CameraFollow instances in the scene before adding a single clean one.
-        // Duplicate instances cause jitter as they fight over the singleton field.
+        // CameraFollow belongs on CameraRig (parent of Main Camera), not on Main Camera itself.
         foreach (var existingCf in Object.FindObjectsByType<CameraFollow>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             Object.DestroyImmediate(existingCf);
 
-        // Add exactly one CameraFollow to Main Camera
-        var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
-        if (mainCam != null)
-            mainCam.AddComponent<CameraFollow>();
+        // If no rig exists yet (flat/old structure), create CameraRig and parent Main Camera under it
+        if (rigGO == null)
+        {
+            var mainCamTagged = GameObject.FindGameObjectWithTag("MainCamera");
+            if (mainCamTagged != null)
+            {
+                rigGO = new GameObject("CameraRig");
+                Undo.RegisterCreatedObjectUndo(rigGO, "Rebuild GameScene");
+                SceneManager.MoveGameObjectToScene(rigGO, mainCamTagged.scene);
+                rigGO.transform.position = new Vector3(mainCamTagged.transform.position.x,
+                                                       mainCamTagged.transform.position.y, 0f);
+                Undo.SetTransformParent(mainCamTagged.transform, rigGO.transform, "Rebuild GameScene");
+                mainCamTagged.transform.localPosition = new Vector3(0f, 0f, -10f);
+            }
+        }
 
-        // Wire camera target to player and fix orthoSize
-        var cf = mainCam != null ? mainCam.GetComponent<CameraFollow>() : null;
+        var cf = rigGO != null ? rigGO.AddComponent<CameraFollow>() : null;
         if (cf != null)
         {
             if (playerGO != null) cf.SetTarget(playerGO.transform);
@@ -1034,26 +1062,35 @@ public static class SolengardSetup
         if (Object.FindFirstObjectByType<GameOverScreen>(FindObjectsInactive.Include) == null)
             warns.AppendLine("  GameOverScreen não encontrado na cena. Execute 'Layout GameScene' para criá-lo automaticamente.");
 
-        // CameraFollow — garantir que só existe uma instância e que está na Main Camera
+        // CameraFollow — deve existir exatamente uma instância, no CameraRig (pai da Main Camera)
         {
-            var cameras = Object.FindObjectsByType<CameraFollow>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            if (cameras.Length > 1)
+            var mainCamVerify = GameObject.FindGameObjectWithTag("MainCamera");
+            var rigVerify     = (mainCamVerify != null && mainCamVerify.transform.parent != null &&
+                                 mainCamVerify.transform.parent.GetComponent<Camera>() == null)
+                                ? mainCamVerify.transform.parent.gameObject : null;
+
+            var allCFs = Object.FindObjectsByType<CameraFollow>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            if (allCFs.Length > 1)
             {
-                foreach (var cf in cameras)
+                foreach (var cf in allCFs)
                 {
-                    if (cf.gameObject.CompareTag("MainCamera")) continue;
+                    // Correct: CameraFollow on a GO without Camera component (= on rig, not Main Camera)
+                    if (cf.GetComponent<Camera>() == null) continue;
                     Object.DestroyImmediate(cf);
                     log.AppendLine("  CameraFollow duplicado removido.");
                     total++;
                 }
             }
-            else if (cameras.Length == 0)
+            else if (allCFs.Length == 0)
             {
-                var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
-                if (mainCam != null)
+                // Prefer rig parent; fall back to Main Camera if rig doesn't exist yet
+                GameObject cfHost = rigVerify ?? mainCamVerify;
+                if (cfHost != null)
                 {
-                    mainCam.AddComponent<CameraFollow>();
-                    log.AppendLine("  CameraFollow adicionado à Main Camera.");
+                    cfHost.AddComponent<CameraFollow>();
+                    log.AppendLine(rigVerify != null
+                        ? "  CameraFollow adicionado ao CameraRig."
+                        : "  CameraFollow adicionado à Main Camera (sem rig — execute Rebuild GameScene para criar o rig).");
                     total++;
                 }
                 else

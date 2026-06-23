@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using MoreMountains.Feedbacks;
 
 // Classe base para todos os inimigos do Solengard.
 // Inimigos específicos devem herdar desta classe e sobrescrever OnDie().
@@ -85,6 +86,26 @@ public class EnemyBase : MonoBehaviour
             if (player != null)
                 playerTransform = player.transform;
         }
+
+        SetupHitFeedbacks();
+    }
+
+    void SetupHitFeedbacks()
+    {
+        var mmf = gameObject.GetComponent<MMF_Player>() ?? gameObject.AddComponent<MMF_Player>();
+        mmf.InitializationMode = MMFeedbacks.InitializationModes.Script;
+
+        // Squash & Stretch — YtoXZ, sutil
+        var squash = mmf.AddFeedback(typeof(MMF_SquashAndStretch)) as MMF_SquashAndStretch;
+        squash.SquashAndStretchTarget = transform;
+        squash.Axis                   = MMF_SquashAndStretch.PossibleAxis.YtoXZ;
+        squash.AnimateScaleDuration   = 0.12f;
+        squash.RemapCurveZero         = 1f;
+        squash.RemapCurveOne          = 1.15f;
+        squash.AllowAdditivePlays     = true;
+
+        mmf.ComputeCachedTotalDuration();
+        mmf.Initialization(gameObject);
     }
 
     protected virtual void OnEnable()
@@ -105,7 +126,15 @@ public class EnemyBase : MonoBehaviour
         }
     }
 
-    protected virtual void OnDisable() { }
+    protected virtual void OnDisable()
+    {
+        var mmf = GetComponent<MMF_Player>();
+        if (mmf != null)
+        {
+            mmf.StopFeedbacks();
+            mmf.RestoreInitialValues();
+        }
+    }
 
     protected virtual void Start()
     {
@@ -250,8 +279,11 @@ public class EnemyBase : MonoBehaviour
         }
         else
         {
-            VFXManager.Instance?.SpawnHit(transform.position, hitType);
-            StartCoroutine(FlashRed());
+            // [FEEL_TEST — REATIVAR APÓS FASE 1] Magic Effects (Hovl) hit VFX
+            // desativado temporariamente para testar o Hit do Feel isolado.
+            // Para reativar: descomentar a linha abaixo.
+            // VFXManager.Instance?.SpawnHit(transform.position, hitType);
+            SolengardFeel.Instance?.Hit(transform);
             if (_anim != null) StartCoroutine(ResetAnimAfterHurt(_anim));
         }
     }
@@ -293,7 +325,10 @@ public class EnemyBase : MonoBehaviour
         var deathType = isBoss  ? VFXManager.EnemyType.Boss  :
                         isHeavy ? VFXManager.EnemyType.Heavy : VFXManager.EnemyType.Normal;
         Debug.Log($"[Die] {name} spawning SpawnDeath");
-        VFXManager.Instance?.SpawnDeath(transform.position, deathType);
+        // [FEEL_TEST — REATIVAR APÓS FASE 1] Magic Effects (Hovl) death VFX
+        // desativado temporariamente para testar o Hit do Feel isolado.
+        // Para reativar: descomentar a linha abaixo.
+        // VFXManager.Instance?.SpawnDeath(transform.position, deathType);
         GameManager.Instance?.IncrementKill();
         if (PlayerClassManager.Instance?.HasBoost("alma_drenada") == true)
             PlayerController.Instance?.GetComponent<PlayerHealth>()?.Heal(3f);
