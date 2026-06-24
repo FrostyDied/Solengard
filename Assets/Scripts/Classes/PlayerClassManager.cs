@@ -22,6 +22,28 @@ public class PlayerClassManager : MonoBehaviour
 
     public void ClearBoosts() { ActiveBoosts.Clear(); SedeSangueStacks = 0; }
 
+    [Header("Fase 2C — Special Power SFX")]
+    [SerializeField] AudioClip _guerreiroClip;
+    [SerializeField] AudioClip _magoClip;
+    [SerializeField] AudioClip _assassinoClip;
+    [SerializeField] AudioClip _necroManteClip;
+    [SerializeField] AudioClip _paladinoClip;
+    [SerializeField] AudioClip _hunterClip;
+
+    public (Color color, AudioClip clip) GetClassConfig()
+    {
+        return CurrentClass?.classId switch
+        {
+            "warrior"     => (new Color(1f, 0.2f, 0.1f, 1f),  _guerreiroClip),
+            "mage"        => (Color.white * 2f,                _magoClip),
+            "assassin"    => (new Color(0.5f, 0.1f, 0.8f, 1f), _assassinoClip),
+            "necromancer" => (new Color(0.3f, 0.9f, 0.3f, 1f), _necroManteClip),
+            "paladin"     => (new Color(1f, 0.95f, 0.4f, 1f),  _paladinoClip),
+            "hunter"      => (new Color(0.6f, 1f, 0.4f, 1f),   _hunterClip),
+            _             => (Color.white, null)
+        };
+    }
+
     public void ActivateSpecialPower()
     {
         if (CurrentClass == null) return;

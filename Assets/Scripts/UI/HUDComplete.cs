@@ -156,6 +156,7 @@ public class HUDComplete : MonoBehaviour
     {
         if (_poderEmCooldown) return;
         PlayerClassManager.Instance?.ActivateSpecialPower();
+        SolengardFeel.Instance?.SpecialPower();
         var cooldown = PlayerClassManager.Instance?.CurrentClass?.specialCooldown ?? 45f;
         // Upgrade permanente: -5s por nível (máx -15s)
         float reducao = (PermanentUpgradeSystem.Instance?.GetLevel(PermanentUpgradeId.PoderEspecial) ?? 0) * 5f;
