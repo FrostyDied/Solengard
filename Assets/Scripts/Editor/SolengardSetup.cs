@@ -577,10 +577,10 @@ public static class SolengardSetup
         catch { Debug.LogWarning("[SolengardSetup] Tag 'Player' não existe — adicione em Project Settings → Tags."); }
 
         // CameraFollow belongs on CameraRig (parent of Main Camera), not on Main Camera itself.
+        // Rebuild always produces the rig structure: creates CameraRig when not already present.
         foreach (var existingCf in Object.FindObjectsByType<CameraFollow>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             Object.DestroyImmediate(existingCf);
 
-        // If no rig exists yet (flat/old structure), create CameraRig and parent Main Camera under it
         if (rigGO == null)
         {
             var mainCamTagged = GameObject.FindGameObjectWithTag("MainCamera");
@@ -589,10 +589,9 @@ public static class SolengardSetup
                 rigGO = new GameObject("CameraRig");
                 Undo.RegisterCreatedObjectUndo(rigGO, "Rebuild GameScene");
                 SceneManager.MoveGameObjectToScene(rigGO, mainCamTagged.scene);
-                rigGO.transform.position = new Vector3(mainCamTagged.transform.position.x,
-                                                       mainCamTagged.transform.position.y, 0f);
+                // Rig at same world position as camera → worldPositionStays gives Main Camera localPos (0,0,0)
+                rigGO.transform.position = mainCamTagged.transform.position;
                 Undo.SetTransformParent(mainCamTagged.transform, rigGO.transform, "Rebuild GameScene");
-                mainCamTagged.transform.localPosition = new Vector3(0f, 0f, -10f);
             }
         }
 
@@ -1074,8 +1073,11 @@ public static class SolengardSetup
             {
                 foreach (var cf in allCFs)
                 {
-                    // Correct: CameraFollow on a GO without Camera component (= on rig, not Main Camera)
-                    if (cf.GetComponent<Camera>() == null) continue;
+                    // "Correct" depends on structure: rig → no Camera component; flat → is Main Camera GO
+                    bool isCorrect = rigVerify != null
+                        ? cf.GetComponent<Camera>() == null   // rig structure: CF on rig parent
+                        : cf.gameObject == mainCamVerify;     // flat structure: CF on Main Camera
+                    if (isCorrect) continue;
                     Object.DestroyImmediate(cf);
                     log.AppendLine("  CameraFollow duplicado removido.");
                     total++;
@@ -1083,14 +1085,14 @@ public static class SolengardSetup
             }
             else if (allCFs.Length == 0)
             {
-                // Prefer rig parent; fall back to Main Camera if rig doesn't exist yet
+                // Prefer rig parent; fall back to Main Camera if rig doesn't exist
                 GameObject cfHost = rigVerify ?? mainCamVerify;
                 if (cfHost != null)
                 {
                     cfHost.AddComponent<CameraFollow>();
                     log.AppendLine(rigVerify != null
                         ? "  CameraFollow adicionado ao CameraRig."
-                        : "  CameraFollow adicionado à Main Camera (sem rig — execute Rebuild GameScene para criar o rig).");
+                        : "  CameraFollow adicionado à Main Camera.");
                     total++;
                 }
                 else
