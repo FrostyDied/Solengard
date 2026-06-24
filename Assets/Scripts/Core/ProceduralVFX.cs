@@ -237,13 +237,14 @@ public static class ProceduralVFX
 
     public static IEnumerator AnticipationFlash(SpriteRenderer sr)
     {
-        if (sr == null || _flashing) yield break; // não capturar branco como cor original
+        if (sr == null || _flashing) yield break;
+        // Pula se SR tem tinta ativa (special, boost, flash de dano) — não captura nem perpetua cor transitória
+        if (sr.color != Color.white) yield break;
         _flashing = true;
-        Color original = sr.color;
         sr.color = Color.white;
         float t = 0f;
         while (t < 0.07f) { t += Time.unscaledDeltaTime; yield return null; }
-        if (sr != null) sr.color = original;
+        if (sr != null) sr.color = Color.white;
         _flashing = false;
     }
 

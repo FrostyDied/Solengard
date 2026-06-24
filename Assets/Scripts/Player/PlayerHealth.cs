@@ -89,6 +89,7 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = Mathf.Max(currentHealth - amount, 0f);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
         StartCoroutine(FlashRed());
+        SolengardFeel.Instance?.PlayerHit();
         SpawnHitEffect();
 
         var anim = GetComponent<CharacterAnimator>();
