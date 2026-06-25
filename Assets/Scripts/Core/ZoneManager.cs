@@ -106,6 +106,7 @@ public class ZoneManager : MonoBehaviour
     public static event System.Action<int>    OnZoneStarted;
     public static event System.Action<int>    OnZoneCompleted;
     public static event System.Action         OnBossSpawned;
+    public static event System.Action<string> OnBossWarning;
     public static event System.Action         OnBossDefeated;
     public static event System.Action<string> OnGameOver;
     public static event System.Action         OnAllZonesCompleted;
@@ -385,6 +386,7 @@ public class ZoneManager : MonoBehaviour
         BossActive        = true;
         BossTimeRemaining = zone.bossTimeLimit;
         WaveTimerSystem.Instance?.StopTimer();
+        OnBossWarning?.Invoke(zone.bossTitle);
 
         yield return new WaitForSeconds(2f);
 

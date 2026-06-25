@@ -13,8 +13,6 @@ public class WaveWarningUI : MonoBehaviour
     static readonly Color ColorElite  = new Color(1f, 0.5f, 0f);
     static readonly Color ColorBoss   = Color.red;
 
-    bool _bossWarningShown = false;
-
     void Awake()
     {
         banner?.SetActive(false);
@@ -23,15 +21,11 @@ public class WaveWarningUI : MonoBehaviour
     void OnEnable()
     {
         ZoneManager.OnZoneCompleted += HandleWaveCompleted;
-        WaveTimerSystem.OnTimerTick += CheckBossWarning;
-        ZoneManager.OnZoneStarted   += ResetBossWarning;
     }
 
     void OnDisable()
     {
         ZoneManager.OnZoneCompleted -= HandleWaveCompleted;
-        WaveTimerSystem.OnTimerTick -= CheckBossWarning;
-        ZoneManager.OnZoneStarted   -= ResetBossWarning;
     }
 
     void HandleWaveCompleted(int completedWave)
@@ -100,73 +94,4 @@ public class WaveWarningUI : MonoBehaviour
         return WaveType.Normal;
     }
 
-    void ResetBossWarning(int _) => _bossWarningShown = false;
-
-    void CheckBossWarning(float timeRemaining)
-    {
-        if (_bossWarningShown) return;
-        if (timeRemaining <= 123f && timeRemaining > 120f)
-        {
-            _bossWarningShown = true;
-            StartCoroutine(ShowBossBanner());
-        }
-    }
-
-    IEnumerator ShowBossBanner()
-    {
-        if (banner == null) yield break;
-
-        if (bannerText != null)
-        {
-            bannerText.text      = "⚠ BOSS A CAMINHO ⚠";
-            bannerText.color     = new Color(1f, 0.2f, 0.1f);
-            bannerText.fontStyle = TMPro.FontStyles.Bold;
-        }
-        if (canvasGroup != null) canvasGroup.alpha = 1f;
-
-        var rt = banner.GetComponent<RectTransform>();
-        banner.SetActive(true);
-
-        float   screenW   = Screen.width;
-        Vector2 centerPos = rt != null ? new Vector2(0f, rt.anchoredPosition.y) : Vector2.zero;
-        Vector2 startPos  = new Vector2(-screenW, centerPos.y);
-        Vector2 endPos    = new Vector2( screenW, centerPos.y);
-        if (rt != null) rt.anchoredPosition = startPos;
-
-        float t = 0f, slideTime = 0.4f;
-
-        // Slide in
-        while (t < slideTime)
-        {
-            t += Time.deltaTime;
-            if (rt != null) rt.anchoredPosition = Vector2.Lerp(startPos, centerPos, t / slideTime);
-            yield return null;
-        }
-        if (rt != null) rt.anchoredPosition = centerPos;
-
-        // Pulso vermelho por 2s
-        t = 0f;
-        while (t < 2f)
-        {
-            t += Time.deltaTime;
-            if (bannerText != null)
-            {
-                float pulse = 0.85f + 0.15f * Mathf.Sin(t * 8f);
-                bannerText.color = new Color(1f, 0.2f * pulse, 0.1f * pulse, 1f);
-            }
-            yield return null;
-        }
-
-        // Slide out para a direita
-        t = 0f;
-        while (t < slideTime)
-        {
-            t += Time.deltaTime;
-            if (rt != null) rt.anchoredPosition = Vector2.Lerp(centerPos, endPos, t / slideTime);
-            yield return null;
-        }
-
-        banner.SetActive(false);
-        if (rt != null) rt.anchoredPosition = centerPos; // reset para o banner normal
-    }
 }

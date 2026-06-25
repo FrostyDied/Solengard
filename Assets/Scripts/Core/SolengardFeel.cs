@@ -1,8 +1,10 @@
 using UnityEngine;
+using TMPro;
 using MoreMountains.Feedbacks;
 
 /// Fachada de juice. Singleton de cena — não sobrevive entre cenas.
 /// Fase 1: Hit (squash no inimigo). Fase 2B: PlayerHit (som). Fase 2C: SpecialPower (som + flash no botão).
+/// Fase 3: BossWarning (banner com nome do boss).
 public class SolengardFeel : MonoBehaviour
 {
     public static SolengardFeel Instance { get; private set; }
@@ -12,6 +14,10 @@ public class SolengardFeel : MonoBehaviour
 
     [Header("Fase 2C")]
     [SerializeField] MMF_Player _specialPowerFeedback;
+
+    [Header("Fase 3 — Boss")]
+    [SerializeField] MMF_Player _bossBannerFeedback;
+    [SerializeField] TMP_Text   _bossBannerText;
 
     MMF_Sound _specialSound;
     MMF_Image _specialFlash;
@@ -23,6 +29,9 @@ public class SolengardFeel : MonoBehaviour
         _specialSound = _specialPowerFeedback?.FeedbacksList?.Find(f => f is MMF_Sound) as MMF_Sound;
         _specialFlash = _specialPowerFeedback?.FeedbacksList?.Find(f => f is MMF_Image) as MMF_Image;
     }
+
+    void OnEnable()  { ZoneManager.OnBossWarning += BossWarning; }
+    void OnDisable() { ZoneManager.OnBossWarning -= BossWarning; }
 
     void OnDestroy()
     {
@@ -54,6 +63,14 @@ public class SolengardFeel : MonoBehaviour
             _specialFlash.Duration = 0.6f;
         }
         _specialPowerFeedback?.PlayFeedbacks();
+    }
+
+    // Fase 3: banner com nome do boss quando o spawn inicia (gatilho: ZoneManager.OnBossWarning).
+    public void BossWarning(string bossTitle)
+    {
+        if (_bossBannerText != null)
+            _bossBannerText.text = string.IsNullOrEmpty(bossTitle) ? "BOSS" : bossTitle.ToUpper();
+        _bossBannerFeedback?.PlayFeedbacks();
     }
 
     // Stubs para fases futuras — sem implementação agora.
