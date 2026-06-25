@@ -968,6 +968,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   zones:
   - nome: Floresta de Veremoth
+    bossTitle: Veremoth, o Enraizado
     biome: 0
     durationSeconds: 600
     bossSpawnAt: 480
@@ -989,6 +990,7 @@ MonoBehaviour:
     bossPrefabs:
     - {fileID: 9089687885378820267, guid: 3458a797a4ccaea41a2e2d80688de065, type: 3}
   - nome: Cavernas de Khorduum
+    bossTitle: Khorduum, o Eterno
     biome: 1
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1013,6 +1015,7 @@ MonoBehaviour:
     bossPrefabs:
     - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
   - nome: "Cemit\xE9rio de Valdross"
+    bossTitle: Valdross, o Sem-Morte
     biome: 2
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1037,6 +1040,7 @@ MonoBehaviour:
     bossPrefabs:
     - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
   - nome: "P\xE2ntano de Gorveth"
+    bossTitle: Gorveth, o Podre
     biome: 3
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1061,6 +1065,7 @@ MonoBehaviour:
     bossPrefabs:
     - {fileID: 8905800565225863028, guid: 0f29ec9eba5e46242bf39aabb5bd3802, type: 3}
   - nome: Campo de Arkenfall
+    bossTitle: "Arkenfall, o Implac\xE1vel"
     biome: 4
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1080,10 +1085,9 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   - nome: Catacumbas de Drenhar
+    bossTitle: Drenhar, o Corrompido
     biome: 5
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1103,10 +1107,9 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   - nome: "Necr\xF3pole de Valgrath"
+    bossTitle: Valgrath, o Faminto
     biome: 2
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1126,10 +1129,9 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   - nome: Cavernas de Crysthorm
+    bossTitle: "Crysthorm, o que V\xEA"
     biome: 8
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1149,10 +1151,9 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   - nome: "Ru\xEDnas de Kaelthar"
+    bossTitle: Kaelthar, o Consumido
     biome: 6
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1172,10 +1173,9 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   - nome: Fortaleza de Duskmore
+    bossTitle: "Duskmore, o Guardi\xE3o"
     biome: 5
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1195,10 +1195,9 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   - nome: "Plan\xEDcies Geladas de Norrath"
+    bossTitle: Norrath, o Esquecido
     biome: 7
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1218,10 +1217,9 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   - nome: Abismo de Skarveth
+    bossTitle: Skarveth, o Profundo
     biome: 8
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1241,10 +1239,9 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   - nome: "P\xE2ntano de Morghul"
+    bossTitle: Morghul, o Devorador
     biome: 3
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1264,10 +1261,9 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   - nome: Desfiladeiro de Thornweld
+    bossTitle: "Thornweld, o \xDAltimo Muro"
     biome: 6
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1287,10 +1283,9 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   - nome: Cidadela de Rakthorr
+    bossTitle: Rakthorr, o Devastador
     biome: 5
     durationSeconds: 600
     bossSpawnAt: 480
@@ -1310,8 +1305,6 @@ MonoBehaviour:
     - {fileID: 2599386333796208962, guid: 4ed02474be5abdc459f254458e81ab23, type: 3}
     - {fileID: 4538314564303390490, guid: 7fed887fc54bc73408a1c53f0fd78ab2, type: 3}
     bossPrefabs:
-    - {fileID: 4128386866468412578, guid: fdbd3f0756ade5e42a868a036b1ed626, type: 3}
-    - {fileID: 3453238977261052969, guid: 5f047f71bcd12484e86087b28bfe7c13, type: 3}
     - {fileID: 8950108394904999623, guid: edbed2be2f11dec46a3c06070fe3465c, type: 3}
   testBossSpawnAt: 0
 --- !u!4 &96858805
