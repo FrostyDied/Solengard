@@ -13,6 +13,7 @@ public class ZoneManager : MonoBehaviour
     public class ZoneConfig
     {
         public string              nome;
+        public string              bossTitle;   // Nome próprio do boss (preenchido pelo Setup)
         public BiomeSystem.Biome   biome;
         public float durationSeconds  = 600f;
         public float bossSpawnAt      = 480f;
@@ -281,12 +282,13 @@ public class ZoneManager : MonoBehaviour
 
             if (CurrentZone < zones.Length)
             {
-                var nextConfig = BiomeSystem.Instance?.GetConfig(CurrentZone + 1);
-                var loreUI     = Object.FindFirstObjectByType<LoreScreenUI>();
-                if (loreUI != null && nextConfig != null)
+                var loreUI = Object.FindFirstObjectByType<LoreScreenUI>();
+                if (loreUI != null)
                 {
+                    string loreNome  = zones[CurrentZone].nome;
+                    string loreTexto = BiomeSystem.Instance != null ? BiomeSystem.Instance.GetLoreByZone(CurrentZone + 1) : "";
                     bool loreDone = false;
-                    StartCoroutine(loreUI.ShowLore(nextConfig, () => loreDone = true));
+                    StartCoroutine(loreUI.ShowLore(loreNome, loreTexto, () => loreDone = true));
                     yield return new WaitUntil(() => loreDone);
                 }
                 yield return StartCoroutine(FadeIn());

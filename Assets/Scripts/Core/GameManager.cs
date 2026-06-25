@@ -254,7 +254,7 @@ public class GameManager : MonoBehaviour
               };
 
         if (loreUI != null && config != null)
-            StartCoroutine(loreUI.ShowLore(config, afterLore));
+            StartCoroutine(loreUI.ShowLore(config.nome, BiomeSystem.Instance?.GetLoreByZone(1), afterLore));
         else
         {
             Debug.LogWarning($"[GameManager] Sem lore — fallback direto. loreUI={loreUI != null} config={config != null}");

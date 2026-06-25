@@ -197,6 +197,52 @@ public class BiomeSystem : MonoBehaviour
         },
     };
 
+    // ── Lore indexada por ZONA (não por bioma) ────────────────────────────────────
+    // Fonte da verdade do texto de lore. Indexada por número de zona (1-15), não pela
+    // posição do bioma — biomas se repetem entre zonas, então índice de bioma daria
+    // lore errada/duplicada. Os campos loreTexto dos biomas acima ficam como dados
+    // legados (não usados pelo LoreScreenUI). Cores/visual continuam vindo dos biomas.
+    readonly string[] _loreByZone =
+    {
+        // Zona 1 — Floresta de Veremoth
+        "A floresta não tem nome nos mapas antigos.\nNinguém que entrou fundo o suficiente voltou para nomeá-la.\n\nOs locais a chamam de Veremoth.\nO lugar onde a luz pede licença.\n\nE no centro, onde as raízes param de crescer:\nalgo esperou por você antes de você existir.",
+        // Zona 2 — Cavernas de Khorduum
+        "As árvores não desaparecem.\nElas se tornam pedra.\n\nVocê percebe que não está mais entre árvores\nmas entre estalactites que crescem como dentes\nde uma criatura enterrada há eras.\n\nE de baixo, muito abaixo:\num batimento. Lento. Regular.\nComo se a montanha tivesse um coração.\nComo se Khorduum ainda respirasse.",
+        // Zona 3 — Cemitério de Valdross
+        "O cemitério de Valdross não tem muros.\nSe estende até onde a vista alcança em todas as direções.\n\nUm campo de lápides irregulares\nque cobrem o solo como dentes numa mandíbula quebrada.\n\nE então você ouve: passos que param quando você para.\nValdross não assombra estes mortos.\nEle os emprestou.",
+        // Zona 4 — Pântano de Gorveth
+        "A terra começa a ceder.\nNão colapsa — apenas cede, gradualmente,\ncomo um convite.\n\nHá bolhas que sobem à superfície\ne estouram com um som\nque é quase, mas não exatamente, uma palavra.\n\nO pântano não mata.\nGorveth transforma.\nOs que não saíram ainda estão aqui — de outra forma.",
+        // Zona 5 — Campo de Batalha de Arkenfall
+        "A última batalha foi travada há dois séculos.\nMas para os que ficaram,\nela nunca terminou.\n\nE todos eles — mortos e máquinas e espectros —\nmovem-se com a lentidão inexorável\nde algo que não tem pressa.\n\nVocê chegou até aqui.\nArkenfall também.\nIsso significa algo.",
+        // Zona 6 — Catacumbas de Drenhar
+        "As paredes não têm fim.\nVocê já tentou voltar — e encontrou mais corredores.\n\nAlgo nas catacumbas de Drenhar não quer que você saia.\nE quanto mais fundo você vai,\nmenos você quer.\n\nNo nível mais baixo, onde o ar para de circular:\nDrenhar governa o que restou de um povo\nque desceu demais e não soube voltar.",
+        // Zona 7 — Necrópole de Valgrath
+        "A Necrópole não foi construída.\nEla cresceu — um osso por vez, um nome esquecido por vez.\n\nOs mortos aqui não assombram.\nEles trabalham.\nE o que constroem não tem nenhum uso para os vivos.\n\nValgrath não é o mais antigo daqui.\nÉ apenas o único que ainda tem fome.",
+        // Zona 8 — Cavernas de Crysthorm
+        "Os cristais não refletem a luz.\nEles a absorvem e devolvem diferente.\n\nNas cavernas de Crysthorm, a luz pulsa.\nComo se as paredes tivessem aprendido a respirar.\n\nE no centro de tudo, um olho que nunca pisca.\nCrysthorm não caça.\nEle apenas observa — até que você se torne parte do que ele vê.",
+        // Zona 9 — Ruínas de Kaelthar
+        "O deserto de Kaelthar não tem sombra.\nE o que não tem sombra não tem misericórdia.\n\nAs ruínas que afloram da areia eram cidades.\nAlgo as enterrou.\nAlgo ainda mora nelas.\n\nKaelthar não é o que destruiu esta cidade.\nÉ o que sobrou depois.",
+        // Zona 10 — Fortaleza de Duskmore
+        "A Fortaleza não tem portas abertas.\nNem janelas. Nem misericórdia.\n\nOs que a construíram ainda estão aqui.\nNão como guardas.\nComo partes da estrutura.\n\nDuskmore não defende a Fortaleza.\nEle é a Fortaleza.\nE você acaba de entrar.",
+        // Zona 11 — Planícies Geladas de Norrath
+        "O frio não mata aqui.\nEle apenas espera.\n\nAs planícies de Norrath guardam o que o calor jamais poderia preservar:\nvetores antigos, coisas que o mundo esqueceu de enterrar.\n\nNorrath foi enterrado junto com elas.\nMas o frio o preservou.\nE a fome, essa nunca congelou.",
+        // Zona 12 — Abismo de Skarveth
+        "O abismo não tem fundo visível.\nVocê olha e ele olha de volta.\n\nOs sons que sobem de lá embaixo\nnão têm nome em nenhuma língua conhecida.\nMas o corpo os reconhece.\n\nSkarveth não subiu do abismo.\nO abismo é Skarveth.\nE você desceu longe demais.",
+        // Zona 13 — Pântano de Morghul
+        "Aqui o pântano não cede.\nEle engole.\n\nOs ossos que afloram na lama não são de animais.\nSão de tudo que Morghul encontrou\ne achou insuficiente para guardar inteiro.\n\nVocê é o próximo que ele vai avaliar.",
+        // Zona 14 — Desfiladeiro de Thornweld
+        "O desfiladeiro não foi esculpido pela erosão.\nAs marcas nas paredes são de garras.\n\nAlgo passou aqui repetidamente,\nno mesmo caminho, por séculos,\nesperando que algo viesse pelo outro lado.\n\nThornweld não guarda passagem.\nEle é o motivo pelo qual nada passa.",
+        // Zona 15 — Cidadela de Rakthorr
+        "A Cidadela foi construída para ele.\nNão como prisão.\nComo trono.\n\nTudo que você atravessou — cada floresta, cada caverna,\ncada campo de mortos e abismo sem fundo —\nfoi o caminho até aqui.\n\nRakthorr não espera que você chegue.\nEle sabe que você vai chegar.\nSempre soube.",
+    };
+
+    /// Retorna o texto de lore da zona (1-15). Clampa fora do range.
+    public string GetLoreByZone(int zoneNumber)
+    {
+        int idx = Mathf.Clamp(zoneNumber - 1, 0, _loreByZone.Length - 1);
+        return _loreByZone[idx];
+    }
+
     public BiomeConfig CurrentBiome { get; private set; }
 
     SpriteRenderer       _floorRenderer;

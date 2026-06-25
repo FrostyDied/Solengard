@@ -63,7 +63,7 @@ public class LoreScreenUI : MonoBehaviour
         cb?.Invoke();
     }
 
-    public IEnumerator ShowLore(BiomeSystem.BiomeConfig config, System.Action onComplete)
+    public IEnumerator ShowLore(string nome, string loreTexto, System.Action onComplete)
     {
         Debug.Log($"[Lore] ShowLore iniciado, lorePanel={lorePanel != null}, active={lorePanel?.activeInHierarchy}");
 
@@ -96,7 +96,7 @@ public class LoreScreenUI : MonoBehaviour
         _isShowing     = true;
         Time.timeScale = 0f;
 
-        if (nomeBioma != null) nomeBioma.text  = config.nome.ToUpper();
+        if (nomeBioma != null) nomeBioma.text  = (nome ?? "").ToUpper();
         if (textoLore != null) textoLore.text  = "";
         if (instrucao != null) instrucao.alpha = 0f;
         if (separador != null) separador.color = new Color(0.78f, 0.65f, 0.20f, 0f);
@@ -124,9 +124,9 @@ public class LoreScreenUI : MonoBehaviour
 
         if (textoLore != null)
         {
-            textoLore.text = config.loreTexto;
+            textoLore.text = loreTexto;
             textoLore.maxVisibleCharacters = 0;
-            int   totalChars   = config.loreTexto.Length;
+            int   totalChars   = (loreTexto ?? "").Length;
             float typeDuration = totalChars * 0.035f;
             DOTween.To(
                 () => textoLore.maxVisibleCharacters,

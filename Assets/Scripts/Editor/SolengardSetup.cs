@@ -206,74 +206,62 @@ public static class SolengardSetup
         },
     };
 
+    // 1 boss por zona. Todos os bosses das zonas 1-15 são PLACEHOLDERS dos prefabs
+    // atuais — substituir pelos assets novos (pasta "Assets Nao Implementados Ainda/Boss")
+    // após import manual. Cada entrada indica o asset definitivo no comentário.
     static readonly string[][] ZONE_BOSS_PATHS =
     {
-        // Zona 0 — Veremoth
-        new[] { "Assets/Prefabs/Enemies/EnemyGolem.prefab" },
-        // Zona 1 — Khorduum
-        new[] { "Assets/Prefabs/Enemies/BossCaveman.prefab" },
-        // Zona 2 — Valdross
-        new[] { "Assets/Prefabs/Enemies/BossGiantGoblin.prefab" },
-        // Zona 3 — Gorveth (DarkElf amplificado ×8 HP, ×2.5 scale)
-        new[] { "Assets/Prefabs/Enemies/EnemyDarkElf.prefab" },
-        // Zona 4 — Arkenfall (3 bosses simultâneos)
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
+        // Zona 1 — Veremoth, o Enraizado
+        new[] { "Assets/Prefabs/Enemies/EnemyGolem.prefab" },        // PLACEHOLDER — substituir por Earth Monster após import
+        // Zona 2 — Khorduum, o Eterno
+        new[] { "Assets/Prefabs/Enemies/BossCaveman.prefab" },       // PLACEHOLDER — substituir por Rock Monster após import
+        // Zona 3 — Valdross, o Sem-Morte
+        new[] { "Assets/Prefabs/Enemies/BossGiantGoblin.prefab" },   // PLACEHOLDER — substituir por Necromancer após import
+        // Zona 4 — Gorveth, o Podre
+        new[] { "Assets/Prefabs/Enemies/EnemyDarkElf.prefab" },      // PLACEHOLDER — substituir por Huge Mushroom após import
+        // Zona 5 — Arkenfall, o Implacável (trio removido — 1 boss)
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — substituir por Armored Ogre após import
 
-        // Zonas 5-14 — mesmo triple-boss da Zona 4 como placeholder
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
-        new[] {
-            "Assets/Prefabs/Enemies/BossCaveman.prefab",
-            "Assets/Prefabs/Enemies/BossGiantGoblin.prefab",
-            "Assets/Prefabs/Enemies/BossVikingLeader.prefab",
-        },
+        // Zona 6 — Drenhar, o Corrompido
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — boss único, asset novo pendente de import
+        // Zona 7 — Valgrath, o Faminto
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — boss único, asset novo pendente de import
+        // Zona 8 — Crysthorm, o que Vê
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — boss único, asset novo pendente de import
+        // Zona 9 — Kaelthar, o Consumido
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — boss único, asset novo pendente de import
+        // Zona 10 — Duskmore, o Guardião
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — boss único, asset novo pendente de import
+        // Zona 11 — Norrath, o Esquecido
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — boss único, asset novo pendente de import
+        // Zona 12 — Skarveth, o Profundo
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — boss único, asset novo pendente de import
+        // Zona 13 — Morghul, o Devorador
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — boss único, asset novo pendente de import
+        // Zona 14 — Thornweld, o Último Muro
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — boss único, asset novo pendente de import
+        // Zona 15 — Rakthorr, o Devastador
+        new[] { "Assets/Prefabs/Enemies/BossVikingLeader.prefab" },  // PLACEHOLDER — substituir por Demon após import
+    };
+
+    // Nome próprio do boss por zona — escrito em ZoneConfig.bossTitle pelo Setup.
+    static readonly string[] ZONE_BOSS_TITLES =
+    {
+        "Veremoth, o Enraizado",   // Zona 1
+        "Khorduum, o Eterno",      // Zona 2
+        "Valdross, o Sem-Morte",   // Zona 3
+        "Gorveth, o Podre",        // Zona 4
+        "Arkenfall, o Implacável", // Zona 5
+        "Drenhar, o Corrompido",   // Zona 6
+        "Valgrath, o Faminto",     // Zona 7
+        "Crysthorm, o que Vê",     // Zona 8
+        "Kaelthar, o Consumido",   // Zona 9
+        "Duskmore, o Guardião",    // Zona 10
+        "Norrath, o Esquecido",    // Zona 11
+        "Skarveth, o Profundo",    // Zona 12
+        "Morghul, o Devorador",    // Zona 13
+        "Thornweld, o Último Muro",// Zona 14
+        "Rakthorr, o Devastador",  // Zona 15
     };
 
     // ── Setup Scene ──────────────────────────────────────────────────────────────
@@ -2005,6 +1993,13 @@ public static class SolengardSetup
         for (int z = 0; z < zoneCount; z++)
         {
             var zoneProp = zonesProp.GetArrayElementAtIndex(z);
+
+            // Preencher bossTitle da zona
+            if (z < ZONE_BOSS_TITLES.Length)
+            {
+                var btProp = zoneProp.FindPropertyRelative("bossTitle");
+                if (btProp != null) btProp.stringValue = ZONE_BOSS_TITLES[z];
+            }
 
             // Preencher enemyPrefabs da zona
             var epProp = zoneProp.FindPropertyRelative("enemyPrefabs");
