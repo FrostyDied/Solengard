@@ -13,6 +13,11 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5f;
     public const float MAX_MOVE_SPEED = 9f;
 
+    [Tooltip("Quão rápido o player atinge a velocidade total ao iniciar (maior = mais brusco)")]
+    [SerializeField] float _acceleration = 8f;
+    [Tooltip("Quão rápido o player para ao soltar o input (maior = parada mais seca)")]
+    [SerializeField] float _deceleration = 12f;
+
     // Direção atual do movimento (fonte da verdade para flip e ataque)
     public Vector2 MoveDir { get; private set; }
 
@@ -28,6 +33,9 @@ public class PlayerController : MonoBehaviour
     Rigidbody2D       _rb;
     SpriteRenderer    _sr;
     CharacterAnimator _anim;
+
+    // Direção de movimento suavizada (acel/desacel) — só afeta a física, não a animação.
+    Vector2 _currentMoveDir = Vector2.zero;
 
     // Histerese de flip: evita oscilação em movimentos diagonais/verticais
     int _facingSign = 1; // 1 = direita, -1 = esquerda
@@ -57,7 +65,10 @@ public class PlayerController : MonoBehaviour
     void Update()      => InputManagement();
     void FixedUpdate()
     {
-        _rb.position += MoveDir * moveSpeed * Time.fixedDeltaTime;
+        // Aceleração ao iniciar movimento, desaceleração ao soltar — suaviza o on/off.
+        float rate = MoveDir.magnitude > 0.01f ? _acceleration : _deceleration;
+        _currentMoveDir = Vector2.MoveTowards(_currentMoveDir, MoveDir, rate * Time.fixedDeltaTime);
+        _rb.position += _currentMoveDir * moveSpeed * Time.fixedDeltaTime;
     }
 
     void InputManagement()
