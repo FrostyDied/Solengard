@@ -42,6 +42,16 @@ public class LoreDebugWindow : EditorWindow
         if (GUILayout.Button("Mostrar Banner de Boss", GUILayout.Height(28f)))
             MostrarBannerBoss();
 
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField(GUIContent.none, GUI.skin.horizontalSlider);
+        EditorGUILayout.Space();
+
+        EditorGUILayout.LabelField("Morte de Boss", EditorStyles.boldLabel);
+        EditorGUILayout.Space();
+
+        if (GUILayout.Button("Testar Morte de Boss", GUILayout.Height(28f)))
+            MostrarMorteBoss();
+
         if (!EditorApplication.isPlaying)
             EditorGUILayout.HelpBox("Entre em Play Mode para testar.", MessageType.Info);
     }
@@ -107,5 +117,25 @@ public class LoreDebugWindow : EditorWindow
         }
 
         SolengardFeel.Instance.BossWarning(zoneConfig.bossTitle);
+    }
+
+    void MostrarMorteBoss()
+    {
+        if (!EditorApplication.isPlaying)
+        {
+            EditorUtility.DisplayDialog("Morte Debug", "Entre em Play Mode primeiro.", "OK");
+            return;
+        }
+
+        if (SolengardFeel.Instance == null)
+        {
+            EditorUtility.DisplayDialog(
+                "Morte Debug",
+                "SolengardFeel não encontrado. Entre em Play Mode na GameScene primeiro.",
+                "OK");
+            return;
+        }
+
+        SolengardFeel.Instance.BossDefeated();
     }
 }

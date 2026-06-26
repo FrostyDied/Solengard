@@ -324,11 +324,8 @@ public class EnemyBase : MonoBehaviour
 
         var deathType = isBoss  ? VFXManager.EnemyType.Boss  :
                         isHeavy ? VFXManager.EnemyType.Heavy : VFXManager.EnemyType.Normal;
-        Debug.Log($"[Die] {name} spawning SpawnDeath");
-        // [FEEL_TEST — REATIVAR APÓS FASE 1] Magic Effects (Hovl) death VFX
-        // desativado temporariamente para testar o Hit do Feel isolado.
-        // Para reativar: descomentar a linha abaixo.
-        // VFXManager.Instance?.SpawnDeath(transform.position, deathType);
+        // VFX de morte: apenas boss. Inimigos normais seguem sem SpawnDeath (decisão final).
+        if (isBoss) VFXManager.Instance?.SpawnDeath(transform.position, deathType);
         GameManager.Instance?.IncrementKill();
         if (PlayerClassManager.Instance?.HasBoost("alma_drenada") == true)
             PlayerController.Instance?.GetComponent<PlayerHealth>()?.Heal(3f);

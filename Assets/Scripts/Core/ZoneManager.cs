@@ -114,6 +114,9 @@ public class ZoneManager : MonoBehaviour
     [Header("Modo de teste — 0 = desativado")]
     [SerializeField] float testBossSpawnAt = 0f;
 
+    [Header("Fase 3 — Morte do Boss")]
+    [SerializeField] float _bossDeathDelay = 2.0f;
+
     readonly int[] _quotaPerMinute = { 30, 50, 80, 110, 140, 170, 200, 240 };
     int   _currentMinute    = 0;
     int   _spawnBudget      = 0;
@@ -276,6 +279,11 @@ public class ZoneManager : MonoBehaviour
             var ph = PlayerController.Instance?.GetComponent<PlayerHealth>();
             if (ph != null) ph.Curar(ph.MaxHealth);
             XPSystem.Instance?.ResetLevel();
+
+            // Fase 3: segura o momento de morte do boss (hit stop + flash + VFX disparados
+            // via OnBossDefeated) antes do fade de transição. Arena já limpa pelo ClearEnemies.
+            if (_bossDeathDelay > 0f)
+                yield return new WaitForSeconds(_bossDeathDelay);
 
             yield return StartCoroutine(ZoneTransition(CurrentZone));
 
