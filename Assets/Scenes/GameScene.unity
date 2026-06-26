@@ -16226,6 +16226,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0315cd01e0acc1240ac0b98d6fc569b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _propsPerBiome: 0c00000009000000080000000a00000007000000070000000600000007000000080000000700000006000000
   biomeProps:
   - prefabs:
     - {fileID: 8139172456422363025, guid: b378a3da89432a840855f09063f01322, type: 3}
@@ -16245,13 +16246,19 @@ MonoBehaviour:
     - {fileID: 8165641223207431591, guid: d8ebef3f4a6b36248a83d62cc42c1dae, type: 3}
     - {fileID: 6180758141251566034, guid: c3f2663df6e165a44bc7d9c763305378, type: 3}
   - prefabs:
-    - {fileID: 3153464172507769279, guid: 8fb1857f7553d1c4c96d19e78a522c29, type: 3}
     - {fileID: 7549292725888509823, guid: ae57f7abd2c2de745bef48f61098e2c9, type: 3}
   - prefabs:
-    - {fileID: 3153464172507769279, guid: 8fb1857f7553d1c4c96d19e78a522c29, type: 3}
     - {fileID: 7549292725888509823, guid: ae57f7abd2c2de745bef48f61098e2c9, type: 3}
   - prefabs:
-    - {fileID: 7964161706049832482, guid: c014e65c1449bf2419964690b5654f63, type: 3}
+    - {fileID: 1575405861034238818, guid: ccdb46a7e2b69e94c845da47034e3cb9, type: 3}
+    - {fileID: 8667602407671325144, guid: 2cfc48238d0dae6488d4d02367fd2378, type: 3}
+    - {fileID: 5377980137936247679, guid: 73ebc638c1cf07342b2dd3289a7b6aff, type: 3}
+    - {fileID: 1700920597864195442, guid: e256524ba9f645e42aa290b758d81946, type: 3}
+    - {fileID: 510488294989944070, guid: 1d279840fc2e18341906a1bb790abdd6, type: 3}
+    - {fileID: 4268806917464081240, guid: 74c39c72dbfca4141b993586dc0ce258, type: 3}
+    - {fileID: 5692564303349431634, guid: 35c5e10ee49cff145980b73e28d36380, type: 3}
+    - {fileID: 4008849639566975347, guid: 6167570d2ee9d60418b417ad2f1c11ea, type: 3}
+    - {fileID: 5669665098519902471, guid: f900e01e96264f9458491f1fe04b7bb2, type: 3}
   - prefabs:
     - {fileID: 2166992452022813397, guid: a34ea75076f43c14398e0948826144f8, type: 3}
   - prefabs:
@@ -16263,7 +16270,10 @@ MonoBehaviour:
     - {fileID: 3153464172507769279, guid: 8fb1857f7553d1c4c96d19e78a522c29, type: 3}
     - {fileID: 7549292725888509823, guid: ae57f7abd2c2de745bef48f61098e2c9, type: 3}
   sharedNeutralProps:
-    prefabs: []
+    prefabs:
+    - {fileID: 4247114746198152094, guid: 97324626babc84748b0541158b84b2a7, type: 3}
+    - {fileID: 7160246327931069483, guid: 0592c1a17dc4ef6449143451b0c0ebf5, type: 3}
+    - {fileID: 8165641223207431591, guid: d8ebef3f4a6b36248a83d62cc42c1dae, type: 3}
 --- !u!4 &1990160304
 Transform:
   m_ObjectHideFlags: 0

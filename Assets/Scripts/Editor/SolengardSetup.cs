@@ -2676,59 +2676,61 @@ public static class SolengardSetup
             AssetDatabase.CreateFolder("Assets/Prefabs/Environment", "DesertRich");
         const string DESERT = "Assets/Art/Environment/DesertPack";
 
+        // baseScale (7º arg) normaliza props pequenos ao espaçamento (1.2u global / 3.5u mesmo tipo).
         CreateRichPrefab(desertDir + "/Desert_Cactus.prefab",
             new[]{ DESERT },
             new[]{ "Cactus2", "Cactus3" },            // Cactus1 (16px) dropado; Cactus3 mantém ground (sem sand)
             new[]{ "grass_shadow" },
-            true, 0.30f);
+            true, 0.30f, 1.4f);                       // 1-2u → ~1.4-2.8u
 
-        CreateRichPrefab(desertDir + "/Desert_Tree.prefab",
+        // "Vegetation" (não "Tree") — escapa do cap 0.60 e do gate allowTrees; não rotaciona (CanRotateProp).
+        CreateRichPrefab(desertDir + "/Desert_Vegetation.prefab",
             new[]{ DESERT },
             new[]{ "Tree1", "Tree2", "Tree4", "Tree3", "curved_tree" },
             new[]{ "ground_shadow", "water" },        // tudo junto (sand + curved grass); só corta ground e Tree_water
-            true, 0.35f);
+            true, 0.35f);                             // já 4u — escala 1.0
 
         CreateRichPrefab(desertDir + "/Desert_Rock.prefab",
             new[]{ DESERT },
             new[]{ "Rock" },                          // Rock1..Rock14, variações _N
             new[]{ "grass_shadow" },
-            true, 0.30f);
+            true, 0.30f, 1.3f);                       // sobe os menores (2u→2.6u; 4u→5.2u)
 
         CreateRichPrefab(desertDir + "/Desert_Bones.prefab",
             new[]{ DESERT },
             new[]{ "Bones_sand", "Bone_element_sand", "Bone_sand", "Sculls_sand" }, // Scull_ (16px) dropado; "Bone_sand" pega o typo "shadpw"
             new[]{ "grass_shadow" },
-            false, 0f);
+            false, 0f, 1.6f);                         // 1u → ~1.6u
 
         CreateRichPrefab(desertDir + "/Desert_Ruins.prefab",
             new[]{ DESERT },
             new[]{ "Ruins" },                         // Ruins1..5
             new string[]{ },
-            true, 0.40f);
+            true, 0.40f, 1.3f);                       // sobe o Ruins5 (1u) pra não destoar
 
         CreateRichPrefab(desertDir + "/Desert_Pyramid.prefab",
             new[]{ DESERT },
             new[]{ "pyramid" },
             new[]{ "grass_shadow" },
-            true, 0.50f);
+            true, 0.50f);                             // 4u garantido, não rotaciona — preenchedor
 
         CreateRichPrefab(desertDir + "/Desert_Gate.prefab",
             new[]{ DESERT },
             new[]{ "Gates", "small_gate" },           // direcional — CanRotateProp exclui "gate"
             new string[]{ },
-            true, 0.40f);
+            true, 0.40f);                             // 2u — escala 1.0
 
         CreateRichPrefab(desertDir + "/Desert_Bush.prefab",
             new[]{ DESERT },
             new[]{ "Small_bush" },
             new string[]{ },
-            false, 0f);
+            false, 0f, 1.8f);                         // 1u → ~1.8u
 
         CreateRichPrefab(desertDir + "/Desert_Flower.prefab",
             new[]{ DESERT },
             new[]{ "flower" },                        // Red/Violet/White/Yellow_flower1-3
             new string[]{ },
-            false, 0f);
+            false, 0f, 1.8f);                         // 1u → ~1.8u
 
         AssetDatabase.Refresh();
         Debug.Log("[RichEnv] Todos os prefabs ricos criados!");
@@ -2736,7 +2738,7 @@ public static class SolengardSetup
 
     static void CreateRichPrefab(string prefabPath, string[] searchFolders,
         string[] includeKeywords, string[] excludeKeywords,
-        bool hasCollider, float colRadius)
+        bool hasCollider, float colRadius, float baseScale = 1f)
     {
         var sprites = new List<Sprite>();
         var guids   = AssetDatabase.FindAssets("t:Sprite", searchFolders);
@@ -2773,6 +2775,7 @@ public static class SolengardSetup
         ep.sprites        = sprites;
         ep.hasCollider    = hasCollider;
         ep.colliderRadius = colRadius;
+        ep.baseScale      = baseScale;
 
         PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
         Object.DestroyImmediate(go);

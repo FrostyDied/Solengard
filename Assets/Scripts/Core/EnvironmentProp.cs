@@ -6,6 +6,9 @@ public class EnvironmentProp : MonoBehaviour
     [HideInInspector] public List<Sprite> sprites      = new();
     [HideInInspector] public bool         hasCollider  = true;
     [HideInInspector] public float        colliderRadius = 0.3f;
+    // Multiplicador de escala do prop, aplicado por cima do propScale do placement.
+    // Permite normalizar props pequenos (flor/arbusto 1u) ao espaçamento calibrado p/ props grandes.
+    [HideInInspector] public float        baseScale    = 1f;
 
     SpriteRenderer _sr;
 

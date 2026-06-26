@@ -113,3 +113,4 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 55d8296195813c04a9b3edbf77a84347, type: 3}
   hasCollider: 0
   colliderRadius: 0
+  baseScale: 1

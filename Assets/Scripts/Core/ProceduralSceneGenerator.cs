@@ -431,8 +431,10 @@ public class ProceduralSceneGenerator : MonoBehaviour
                 float propScale = 0.85f + (float)rng.NextDouble() * 0.30f;
                 if (selectedPfb.name.ToLower().Contains("tree"))
                     propScale = Mathf.Min(propScale, 0.60f);
+                // baseScale por prefab (EnvironmentProp) — normaliza props pequenos ao espaçamento
+                float baseScale = ep != null ? ep.baseScale : 1f;
                 float flipSign = rng.Next(2) == 0 ? 1f : -1f;
-                go.transform.localScale = new Vector3(propScale * flipSign, propScale, 1f);
+                go.transform.localScale = new Vector3(propScale * flipSign * baseScale, propScale * baseScale, 1f);
 
                 // Rotação livre 0-360° para props não-direcionais
                 if (CanRotateProp(selectedPfb.name))
@@ -468,7 +470,8 @@ public class ProceduralSceneGenerator : MonoBehaviour
         string n = prefabName.ToLowerInvariant();
         return !n.Contains("guard") && !n.Contains("soldier") && !n.Contains("archer") &&
                !n.Contains("statue") && !n.Contains("torch") && !n.Contains("sign") &&
-               !n.Contains("tree") && !n.Contains("gate") && !n.Contains("pyramid");
+               !n.Contains("tree") && !n.Contains("gate") && !n.Contains("pyramid") &&
+               !n.Contains("vegetation");
     }
 
     public void ClearChunk(GameObject chunkRoot)
