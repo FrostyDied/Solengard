@@ -468,7 +468,7 @@ public class ProceduralSceneGenerator : MonoBehaviour
         string n = prefabName.ToLowerInvariant();
         return !n.Contains("guard") && !n.Contains("soldier") && !n.Contains("archer") &&
                !n.Contains("statue") && !n.Contains("torch") && !n.Contains("sign") &&
-               !n.Contains("tree");
+               !n.Contains("tree") && !n.Contains("gate") && !n.Contains("pyramid");
     }
 
     public void ClearChunk(GameObject chunkRoot)

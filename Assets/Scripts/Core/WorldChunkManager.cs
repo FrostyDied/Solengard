@@ -14,7 +14,18 @@ public class WorldChunkManager : MonoBehaviour
 
     const float CHUNK_SIZE      = 20f;
     const int   GRID_RADIUS     = 3;    // 7×7 = 49 chunks ativos (140×140u)
-    const int   PROPS_PER_CHUNK = 12;
+    const int   PROPS_PER_CHUNK = 12;   // fallback se _propsPerBiome não cobrir o índice
+
+    [Header("Densidade de props por bioma (índices 0-10)")]
+    [Tooltip("Props por chunk por bioma: 0 Veremoth · 1 Khorduum · 2 Valdross · 3 Gorveth · " +
+             "4 Arkenfall · 5 Dungeon · 6 Desert · 7 Winter · 8 GlowingCave · 9 Necropolis · 10 FortressDark")]
+    [SerializeField] int[] _propsPerBiome = { 12, 9, 8, 10, 7, 7, 6, 7, 8, 7, 6 };
+
+    // Densidade-base de props para o bioma; cai no global se o índice não estiver no array.
+    int PropsForBiome(int biome)
+        => (_propsPerBiome != null && biome >= 0 && biome < _propsPerBiome.Length)
+            ? _propsPerBiome[biome]
+            : PROPS_PER_CHUNK;
 
     static readonly string[][] BIOME_RESOURCE_NAMES = new string[][]
     {
@@ -84,7 +95,7 @@ public class WorldChunkManager : MonoBehaviour
                 var chunk = _pool.Count > 0 ? _pool.Dequeue() : MakeChunk();
                 chunk.transform.position = ToWorld(pos);
                 gen.GenerateChunkSync(chunk.gameObject, pos.x, pos.y,
-                    _currentBiome, CHUNK_SIZE, props0, PROPS_PER_CHUNK, neutral0);
+                    _currentBiome, CHUNK_SIZE, props0, PropsForBiome(_currentBiome), neutral0);
                 _active[pos] = chunk;
             }
         }
@@ -158,7 +169,7 @@ public class WorldChunkManager : MonoBehaviour
         int count = props?.Count ?? 0;
         Debug.Log($"[Chunks] SetBiome({b}): {count} prefabs específicos + {neutral?.Count ?? 0} neutros");
         foreach (var kv in _active)
-            kv.Value.Repopulate(_currentBiome, props, PROPS_PER_CHUNK, CHUNK_SIZE, neutral);
+            kv.Value.Repopulate(_currentBiome, props, PropsForBiome(_currentBiome), CHUNK_SIZE, neutral);
     }
 
     void UpdateChunks()
@@ -195,7 +206,7 @@ public class WorldChunkManager : MonoBehaviour
         {
             var chunk = _pool.Count > 0 ? _pool.Dequeue() : MakeChunk();
             chunk.transform.position = ToWorld(pos);
-            chunk.Populate(pos, _currentBiome, props, PROPS_PER_CHUNK, CHUNK_SIZE, neutral);
+            chunk.Populate(pos, _currentBiome, props, PropsForBiome(_currentBiome), CHUNK_SIZE, neutral);
             _active[pos] = chunk;
         }
     }

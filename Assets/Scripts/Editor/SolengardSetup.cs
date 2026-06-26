@@ -1890,7 +1890,7 @@ public static class SolengardSetup
             new[]{ "Season4", "Season6", "Season11" },  // 3 Gorveth (Swamp + Undead + Undead2)
             new[]{ "Season1" },                         // 4 Arkenfall
             new[]{ "Season1", "Season9" },              // 5 Dungeon
-            new[]{ "Season12" },                        // 6 Desert
+            new[]{ "DesertRich" },                      // 6 Desert (pack rico DesertRich)
             new[]{ "Season10" },                        // 7 Winter
             new[]{ "Season8" },                         // 8 GlowingCave
             new[]{ "Season11", "Season7" },             // 9 Necropolis (Undead2 + Cursed)
@@ -2667,6 +2667,67 @@ public static class SolengardSetup
             new[]{ "Tree_shadow2","Broken_tree_shadow2","Dead_tree_shadow2",
                    "monster_tree","web_tree" },
             new[]{ "_shadow3" },
+            false, 0f);
+
+        // ───────────────────────── DESERTO (bioma 6) — DesertRich ─────────────────────────
+        // Pack importado a PPU 32 (128px=4u). Pasta própria: biomeSeasons[6] = {"DesertRich"}.
+        string desertDir = "Assets/Prefabs/Environment/DesertRich";
+        if (!AssetDatabase.IsValidFolder(desertDir))
+            AssetDatabase.CreateFolder("Assets/Prefabs/Environment", "DesertRich");
+        const string DESERT = "Assets/Art/Environment/DesertPack";
+
+        CreateRichPrefab(desertDir + "/Desert_Cactus.prefab",
+            new[]{ DESERT },
+            new[]{ "Cactus2", "Cactus3" },            // Cactus1 (16px) dropado; Cactus3 mantém ground (sem sand)
+            new[]{ "grass_shadow" },
+            true, 0.30f);
+
+        CreateRichPrefab(desertDir + "/Desert_Tree.prefab",
+            new[]{ DESERT },
+            new[]{ "Tree1", "Tree2", "Tree4", "Tree3", "curved_tree" },
+            new[]{ "ground_shadow", "water" },        // tudo junto (sand + curved grass); só corta ground e Tree_water
+            true, 0.35f);
+
+        CreateRichPrefab(desertDir + "/Desert_Rock.prefab",
+            new[]{ DESERT },
+            new[]{ "Rock" },                          // Rock1..Rock14, variações _N
+            new[]{ "grass_shadow" },
+            true, 0.30f);
+
+        CreateRichPrefab(desertDir + "/Desert_Bones.prefab",
+            new[]{ DESERT },
+            new[]{ "Bones_sand", "Bone_element_sand", "Bone_sand", "Sculls_sand" }, // Scull_ (16px) dropado; "Bone_sand" pega o typo "shadpw"
+            new[]{ "grass_shadow" },
+            false, 0f);
+
+        CreateRichPrefab(desertDir + "/Desert_Ruins.prefab",
+            new[]{ DESERT },
+            new[]{ "Ruins" },                         // Ruins1..5
+            new string[]{ },
+            true, 0.40f);
+
+        CreateRichPrefab(desertDir + "/Desert_Pyramid.prefab",
+            new[]{ DESERT },
+            new[]{ "pyramid" },
+            new[]{ "grass_shadow" },
+            true, 0.50f);
+
+        CreateRichPrefab(desertDir + "/Desert_Gate.prefab",
+            new[]{ DESERT },
+            new[]{ "Gates", "small_gate" },           // direcional — CanRotateProp exclui "gate"
+            new string[]{ },
+            true, 0.40f);
+
+        CreateRichPrefab(desertDir + "/Desert_Bush.prefab",
+            new[]{ DESERT },
+            new[]{ "Small_bush" },
+            new string[]{ },
+            false, 0f);
+
+        CreateRichPrefab(desertDir + "/Desert_Flower.prefab",
+            new[]{ DESERT },
+            new[]{ "flower" },                        // Red/Violet/White/Yellow_flower1-3
+            new string[]{ },
             false, 0f);
 
         AssetDatabase.Refresh();
