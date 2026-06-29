@@ -1,0 +1,43 @@
+/* ============================================================
+   tokens.uss — Design System do Solengard (variáveis --sol-*)
+   Carregar ANTES de common.uss e Config.uss no mesmo painel.
+   UI Toolkit suporta custom properties em :root + var(--sol-*).
+   ============================================================ */
+
+:root {
+    /* ---- Base — fundos / áreas grandes ---- */
+    --sol-bg-deep: #14131A;
+    --sol-bg-panel: #1F1D29;
+    --sol-bg-elevated: #2A2833;
+
+    /* ---- Accent — destaques ---- */
+    --sol-accent: #D4A03C;
+    --sol-accent-hover: #E8B95A;
+    --sol-accent-cold: #5A7A95;
+
+    /* ---- Texto ---- */
+    --sol-text-primary: #E8E0CC;
+    --sol-text-secondary: #9A95A8;
+    --sol-text-on-accent: #14131A;
+
+    /* ---- Estados ---- */
+    --sol-success: #6B8E5A;
+    --sol-danger: #A83838;
+    --sol-disabled: #4A4754;
+    --sol-arcane: #6B4E8E;
+
+    /* ---- Linhas / bordas do mundo ---- */
+    --sol-line: rgba(212, 160, 60, 0.22);
+    --sol-line-strong: rgba(212, 160, 60, 0.45);
+
+    /* Fundo escuro de campos (track de slider, inputs) */
+    --sol-field-bg: #15141B;
+
+    /* ---- Espaçamento ---- */
+    --sol-s1: 4px;
+    --sol-s2: 8px;
+    --sol-s3: 16px;
+    --sol-s4: 24px;
+    --sol-s5: 32px;
+    --sol-s6: 48px;
+}

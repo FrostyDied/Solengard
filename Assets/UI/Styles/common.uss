@@ -1,0 +1,159 @@
+/* ============================================================
+   common.uss — classes base reutilizáveis (Solengard UI Toolkit)
+   Requer tokens.uss carregado ANTES (usa var(--sol-*)).
+   Fontes SDF referenciadas por GUID (validadas no projeto):
+     Cinzel-Bold        94f1b26c14e6fb6458766bd16b4c3a38
+     AlegreyaSans-Reg.  7e393e06ac8efac4882128d1e8f07c80
+     AlegreyaSans-Bold  a12d1c01acf264c49a0d04393980de13
+   ============================================================ */
+
+/* ---------- Fontes (SDF) ---------- */
+.sol-font-display {
+    -unity-font-definition: url("project://database/Assets/Art/Fonts/Cinzel/Cinzel-Bold%20SDF.asset?fileID=11400000&guid=94f1b26c14e6fb6458766bd16b4c3a38&type=2#Cinzel-Bold SDF");
+}
+.sol-font-body {
+    -unity-font-definition: url("project://database/Assets/Art/Fonts/AlegreyaSans/AlegreyaSans-Regular%20SDF.asset?fileID=11400000&guid=7e393e06ac8efac4882128d1e8f07c80&type=2#AlegreyaSans-Regular SDF");
+}
+.sol-font-body-strong {
+    -unity-font-definition: url("project://database/Assets/Art/Fonts/AlegreyaSans/AlegreyaSans-Bold%20SDF.asset?fileID=11400000&guid=a12d1c01acf264c49a0d04393980de13&type=2#AlegreyaSans-Bold SDF");
+}
+
+/* ---------- Texto (cores utilitárias) ---------- */
+.sol-text-primary { color: var(--sol-text-primary); }
+.sol-text-secondary { color: var(--sol-text-secondary); }
+.sol-text-accent { color: var(--sol-accent); }
+
+/* ---------- Botões ---------- */
+.sol-btn {
+    -unity-font-definition: url("project://database/Assets/Art/Fonts/Cinzel/Cinzel-Bold%20SDF.asset?fileID=11400000&guid=94f1b26c14e6fb6458766bd16b4c3a38&type=2#Cinzel-Bold SDF");
+    font-size: 14px;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    border-radius: 5px;
+    padding-top: 11px;
+    padding-bottom: 11px;
+    padding-left: 22px;
+    padding-right: 22px;
+    border-top-width: 1.5px;
+    border-bottom-width: 1.5px;
+    border-left-width: 1.5px;
+    border-right-width: 1.5px;
+    border-color: rgba(0, 0, 0, 0);
+    transition-property: background-color, border-color, color;
+    transition-duration: 0.12s;
+}
+.sol-btn:disabled {
+    opacity: 0.45;
+}
+
+.sol-btn--primary {
+    background-color: var(--sol-accent);
+    color: var(--sol-text-on-accent);
+    border-color: var(--sol-accent);
+}
+.sol-btn--primary:hover {
+    background-color: var(--sol-accent-hover);
+    border-color: var(--sol-accent-hover);
+}
+
+.sol-btn--secondary {
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--sol-accent);
+    border-color: var(--sol-accent);
+}
+.sol-btn--secondary:hover {
+    background-color: rgba(212, 160, 60, 0.12);
+    color: var(--sol-accent-hover);
+    border-color: var(--sol-accent-hover);
+}
+
+/* ============================================================
+   CONTROLES NATIVOS — skins base.
+   Selecionam as sub-partes USS dos controles do UI Toolkit.
+   Ajuste fino visual (centralização exata, fill do slider) fica
+   pro Bloco 4 com as imagens de referência em mãos.
+   ============================================================ */
+
+/* ---------- Slider (horizontal) ---------- */
+.sol-slider .unity-base-slider__tracker {
+    background-color: var(--sol-field-bg);
+    border-color: var(--sol-line);
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-radius: 999px;
+    height: 14px;
+}
+.sol-slider .unity-base-slider__dragger {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background-color: var(--sol-accent);
+    border-color: #5A420F;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+}
+
+/* ---------- Toggle (aproximação de pílula) ----------
+   Toggle nativo é um checkbox; o knob-deslizante pixel-perfect
+   precisaria de elemento custom. Para o piloto (toggles da aba
+   Vídeo são visuais/desabilitados) esta aproximação basta. */
+.sol-toggle .unity-toggle__checkmark {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background-color: var(--sol-field-bg);
+    border-color: var(--sol-line);
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+}
+.sol-toggle:checked .unity-toggle__checkmark {
+    background-color: var(--sol-accent);
+    border-color: var(--sol-accent);
+}
+
+/* ---------- Dropdown (DropdownField) ---------- */
+.sol-dropdown .unity-base-popup-field__input {
+    background-color: var(--sol-bg-elevated);
+    border-color: var(--sol-line);
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-radius: 6px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 14px;
+    padding-right: 14px;
+    color: var(--sol-text-primary);
+}
+.sol-dropdown .unity-base-popup-field__input:hover {
+    border-color: var(--sol-line-strong);
+}
+.sol-dropdown .unity-base-popup-field__arrow {
+    -unity-background-image-tint-color: var(--sol-accent);
+}
+
+/* ---------- Campo de texto (TextField) ---------- */
+.sol-field .unity-base-text-field__input {
+    background-color: var(--sol-bg-elevated);
+    border-color: var(--sol-line);
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-radius: 6px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 14px;
+    padding-right: 14px;
+    color: var(--sol-text-primary);
+}
+.sol-field .unity-base-text-field__input:focus {
+    border-color: var(--sol-accent);
+}
