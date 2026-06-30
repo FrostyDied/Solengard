@@ -24,6 +24,7 @@ public static class SystemsBootstrap
     static readonly (string name, Type type)[] Systems =
     {
         ("[S] DiamondSystem",       typeof(DiamondSystem)),
+        ("[S] SettingsManager",     typeof(Solengard.Core.SettingsManager)),
         ("[S] PermanentUpgrades",   typeof(PermanentUpgradeSystem)),
         ("[S] SeasonPassSystem",    typeof(SeasonPassSystem)),
         ("[S] DailyRewardSystem",   typeof(DailyRewardSystem)),

@@ -1,0 +1,173 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- Folhas de estilo: tokens (variáveis) -> common (base). Config.uss entra no Bloco 4. -->
+    <Style src="../../Styles/tokens.uss" />
+    <Style src="../../Styles/common.uss" />
+    <Style src="Config.uss" />
+
+    <ui:VisualElement name="ConfigScreen" class="config-screen">
+        <ui:VisualElement name="ConfigPanel" class="config-panel">
+
+            <!-- Cantoneiras douradas (decorativas, não capturam clique) -->
+            <ui:VisualElement name="CornerTL" class="corner corner-tl" picking-mode="Ignore" />
+            <ui:VisualElement name="CornerTR" class="corner corner-tr" picking-mode="Ignore" />
+            <ui:VisualElement name="CornerBL" class="corner corner-bl" picking-mode="Ignore" />
+            <ui:VisualElement name="CornerBR" class="corner corner-br" picking-mode="Ignore" />
+
+            <!-- ===================== HEADER ===================== -->
+            <ui:VisualElement name="ConfigHeader" class="config-header">
+                <ui:Label text="CONFIGURAÇÕES" name="ConfigTitle" class="config-title sol-font-display" />
+                <ui:Button text="✕" name="BtnFechar" class="config-close sol-font-display" />
+            </ui:VisualElement>
+
+            <!-- ===================== ABAS ===================== -->
+            <ui:VisualElement name="ConfigTabs" class="config-tabs">
+                <ui:Button text="Áudio" name="TabAudio" class="config-tab sol-font-display is-active" />
+                <ui:Button text="Vídeo" name="TabVideo" class="config-tab sol-font-display" />
+                <ui:Button text="Jogo"  name="TabJogo"  class="config-tab sol-font-display" />
+                <ui:Button text="Conta" name="TabConta" class="config-tab sol-font-display" />
+            </ui:VisualElement>
+
+            <!-- ===================== CORPO ===================== -->
+            <ui:VisualElement name="ConfigBody" class="config-body">
+
+                <!-- ===== ÁUDIO (ativo por padrão; religado no Bloco 5) ===== -->
+                <ui:VisualElement name="PanelAudio" class="config-tabpanel is-active">
+                    <ui:Label text="ÁUDIO" class="config-section-hint sol-font-body-strong" />
+
+                    <ui:VisualElement class="config-row config-slider-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="Música" class="config-row-name sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:Slider name="SliderMusica" low-value="0" high-value="1" value="0.75" class="sol-slider config-slider" />
+                            <ui:Label text="75%" name="ValMusica" class="config-slider-value sol-font-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="config-row config-slider-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="Efeitos (SFX)" class="config-row-name sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:Slider name="SliderSfx" low-value="0" high-value="1" value="0.85" class="sol-slider config-slider" />
+                            <ui:Label text="85%" name="ValSfx" class="config-slider-value sol-font-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <!-- ===== VÍDEO (visual; NÃO religado no piloto) ===== -->
+                <ui:VisualElement name="PanelVideo" class="config-tabpanel">
+                    <ui:Label text="VÍDEO" class="config-section-hint sol-font-body-strong" />
+
+                    <ui:VisualElement class="config-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="Resolução" class="config-row-name sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:DropdownField name="DropdownResolucao" choices="1920 × 1080,1600 × 900,1366 × 768,1280 × 720" index="0" class="sol-dropdown config-dropdown" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="config-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="Tela cheia" class="config-row-name sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:Toggle name="ToggleTelaCheia" value="true" class="sol-toggle config-toggle" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="config-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="Qualidade gráfica" class="config-row-name sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:DropdownField name="DropdownQualidade" choices="Baixa,Média,Alta" index="2" class="sol-dropdown config-dropdown" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="config-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="V-Sync" class="config-row-name sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:Toggle name="ToggleVSync" value="false" class="sol-toggle config-toggle" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="config-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="Números de dano" class="config-row-name sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:Toggle name="ToggleDano" value="true" class="sol-toggle config-toggle" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <!-- ===== JOGO (Idioma religado no Bloco 5) ===== -->
+                <ui:VisualElement name="PanelJogo" class="config-tabpanel">
+                    <ui:Label text="JOGO" class="config-section-hint sol-font-body-strong" />
+
+                    <ui:VisualElement class="config-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="Idioma" class="config-row-name sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:DropdownField name="DropdownIdioma" choices="Português,English,Español" index="0" class="sol-dropdown config-dropdown" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <!-- ===== CONTA (botões visuais; sem ação no piloto) ===== -->
+                <ui:VisualElement name="PanelConta" class="config-tabpanel">
+                    <ui:Label text="CONTA" class="config-section-hint sol-font-body-strong" />
+
+                    <ui:VisualElement class="config-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="Nome do jogador" class="config-row-name sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:TextField name="FieldNome" value="Errante das Brasas" class="sol-field config-field" />
+                            <ui:Button text="Editar perfil" name="BtnEditarPerfil" class="sol-btn sol-btn--secondary" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="config-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="Conta" class="config-row-name sol-font-body" />
+                            <ui:Label text="Vincule para sincronizar o progresso." class="config-row-desc sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:Button text="Conta / Login" name="BtnContaLogin" class="sol-btn sol-btn--primary" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="config-row">
+                        <ui:VisualElement class="config-row-label">
+                            <ui:Label text="Compras" class="config-row-name sol-font-body" />
+                            <ui:Label text="Recupere itens vinculados à sua conta." class="config-row-desc sol-font-body" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="config-row-control">
+                            <ui:Button text="Restaurar Compras" name="BtnRestaurarCompras" class="sol-btn sol-btn--secondary" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+            </ui:VisualElement>
+
+            <!-- ===================== RODAPÉ ===================== -->
+            <ui:VisualElement name="ConfigFooter" class="config-footer">
+                <ui:VisualElement class="config-footer-links">
+                    <ui:Label text="Privacidade" name="LinkPrivacidade" class="config-link sol-font-body" />
+                    <ui:Label text="Créditos" name="LinkCreditos" class="config-link sol-font-body" />
+                </ui:VisualElement>
+                <ui:VisualElement class="config-footer-actions">
+                    <ui:Button text="Restaurar Padrões" name="BtnRestaurarPadroes" class="sol-btn sol-btn--secondary" />
+                    <ui:Button text="Salvar" name="BtnSalvar" class="sol-btn sol-btn--primary" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

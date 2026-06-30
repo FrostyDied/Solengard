@@ -1,0 +1,270 @@
+/* ============================================================
+   Config.uss — estilo específico da tela de Configurações.
+   Requer tokens.uss + common.uss carregados antes (var(--sol-*)).
+   Limitações UITK tratadas: sem gap (uso margin), sem ::after
+   (border-bottom na aba ativa), sem radial-gradient (cor sólida).
+   ============================================================ */
+
+/* ===================== LAYOUT ===================== */
+.config-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;          /* centraliza o painel no eixo horizontal */
+    justify-content: flex-start;  /* topo */
+    padding-top: 48px;
+    padding-bottom: 48px;
+    padding-left: 24px;
+    padding-right: 24px;
+    background-color: #16151C;     /* radial-gradient -> cor sólida aproximada */
+}
+
+.config-panel {
+    width: 100%;
+    max-width: 860px;
+    background-color: var(--sol-bg-panel);
+    border-width: 1px;
+    border-color: var(--sol-line-strong);
+    border-radius: 10px;
+    /* box-shadow não é suportado de forma fiel no UITK — omitido. */
+}
+
+/* ===================== CANTONEIRAS (L âmbar) ===================== */
+.corner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-color: var(--sol-accent);
+}
+.corner-tl { top: 9px;    left: 9px;  border-top-width: 2px;    border-left-width: 2px; }
+.corner-tr { top: 9px;    right: 9px; border-top-width: 2px;    border-right-width: 2px; }
+.corner-bl { bottom: 9px; left: 9px;  border-bottom-width: 2px; border-left-width: 2px; }
+.corner-br { bottom: 9px; right: 9px; border-bottom-width: 2px; border-right-width: 2px; }
+
+/* ===================== HEADER ===================== */
+.config-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    padding-left: 32px;
+    padding-right: 32px;
+    border-bottom-width: 1px;
+    border-color: var(--sol-line);
+    background-color: rgba(0, 0, 0, 0.25);
+}
+.config-title {
+    font-size: 28px;
+    color: var(--sol-accent);
+    letter-spacing: 2px;
+    /* glow âmbar (text-shadow) removido temporariamente — reavaliar se o
+       UI Builder desta versão aceita; readicionar depois se suportado. */
+}
+.config-close {
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: var(--sol-line);
+    background-color: var(--sol-bg-elevated);
+    color: var(--sol-text-secondary);
+    font-size: 18px;
+    -unity-text-align: middle-center;
+}
+.config-close:hover {
+    border-color: var(--sol-line-strong);
+    color: var(--sol-accent);
+    background-color: rgba(212, 160, 60, 0.08);
+}
+
+/* ===================== ABAS ===================== */
+.config-tabs {
+    flex-direction: row;
+    padding-left: 32px;
+    padding-right: 32px;
+    border-bottom-width: 1px;
+    border-color: var(--sol-line);
+    background-color: rgba(0, 0, 0, 0.15);
+}
+.config-tab {
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--sol-text-secondary);
+    font-size: 15px;
+    letter-spacing: 1px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    padding-left: 22px;
+    padding-right: 22px;
+    margin: 0;
+    -unity-text-align: middle-center;
+    /* border-bottom transparente em TODAS as abas evita "pulo" de layout
+       quando a ativa ganha o sublinhado âmbar */
+    border-top-width: 0;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 3px;
+    border-color: rgba(0, 0, 0, 0);
+    transition-property: color;
+    transition-duration: 0.12s;
+}
+.config-tab:hover {
+    color: var(--sol-text-primary);
+}
+.config-tab.is-active {
+    color: var(--sol-accent);
+    border-color: var(--sol-accent);   /* sublinhado âmbar (só bottom tem largura) */
+}
+
+/* ===================== CORPO ===================== */
+.config-body {
+    padding-top: 32px;
+    padding-bottom: 32px;
+    padding-left: 32px;
+    padding-right: 32px;
+}
+.config-tabpanel {
+    display: none;
+    flex-direction: column;
+}
+.config-tabpanel.is-active {
+    display: flex;
+}
+.config-section-hint {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--sol-text-secondary);
+    margin-bottom: 8px;
+}
+
+/* linha de controle genérica */
+.config-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    border-bottom-width: 1px;
+    border-color: rgba(212, 160, 60, 0.10);
+}
+.config-row-label {
+    flex-direction: column;
+}
+.config-row-name {
+    font-size: 15px;
+    color: var(--sol-text-primary);
+}
+.config-row-desc {
+    font-size: 12px;
+    color: var(--sol-text-secondary);
+    margin-top: 2px;
+}
+.config-row-control {
+    flex-direction: row;
+    align-items: center;
+}
+/* espaçamento entre controles na direita (substitui gap) */
+.config-row-control .sol-btn {
+    margin: 0;
+    margin-left: 12px;
+}
+
+/* ===================== SLIDER ===================== */
+.config-slider-row .config-row-control {
+    flex-grow: 1;
+    max-width: 360px;
+}
+.config-slider {
+    flex-grow: 1;
+    margin: 0;
+}
+/* slider nativo pode reservar área de label vazia — colapsa */
+.config-slider .unity-base-field__label {
+    display: none;
+}
+.config-slider-value {
+    font-size: 13px;
+    color: var(--sol-accent);
+    width: 42px;
+    margin-left: 16px;
+    -unity-text-align: middle-right;
+}
+/* Fill âmbar do slider — criado em runtime pelo ConfigPanelController e
+   inserido dentro do tracker nativo; só a largura (%) é setada via C#. */
+.sol-slider-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background-color: var(--sol-accent);
+    border-radius: 999px;
+}
+
+/* ===================== TOGGLE (pílula aproximada) ===================== */
+/* common.uss já pinta o checkmark âmbar quando :checked.
+   Aqui só alargo pra ficar com cara de pílula. Knob deslizante = refino futuro. */
+.config-toggle .unity-toggle__checkmark {
+    width: 44px;
+    height: 24px;
+    border-radius: 999px;
+}
+.config-toggle .unity-toggle__label {
+    display: none;
+}
+
+/* ===================== DROPDOWN ===================== */
+.config-dropdown {
+    min-width: 190px;
+}
+.config-dropdown .unity-base-field__label {
+    display: none;
+}
+
+/* ===================== CAMPO DE TEXTO ===================== */
+.config-field {
+    min-width: 220px;
+}
+.config-field .unity-base-field__label {
+    display: none;
+}
+
+/* ===================== RODAPÉ ===================== */
+.config-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    padding-left: 32px;
+    padding-right: 32px;
+    border-top-width: 1px;
+    border-color: var(--sol-line);
+    background-color: rgba(0, 0, 0, 0.25);
+}
+.config-footer-links {
+    flex-direction: row;
+    align-items: center;
+}
+.config-link {
+    color: var(--sol-text-secondary);
+    font-size: 13px;
+    margin-right: 24px;
+}
+.config-link:hover {
+    color: var(--sol-accent);
+}
+.config-footer-actions {
+    flex-direction: row;
+    align-items: center;
+}
+.config-footer-actions .sol-btn {
+    margin: 0;
+    margin-left: 16px;
+}
