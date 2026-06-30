@@ -16,7 +16,7 @@
             <!-- ===================== HEADER ===================== -->
             <ui:VisualElement name="ConfigHeader" class="config-header">
                 <ui:Label text="CONFIGURAÇÕES" name="ConfigTitle" class="config-title sol-font-display" />
-                <ui:Button text="✕" name="BtnFechar" class="config-close sol-font-display" />
+                <ui:Button text="X" name="BtnFechar" class="config-close sol-font-display" />
             </ui:VisualElement>
 
             <!-- ===================== ABAS ===================== -->
